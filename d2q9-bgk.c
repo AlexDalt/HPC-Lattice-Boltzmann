@@ -260,9 +260,9 @@ int propagate(const t_param params, t_speed* cells, t_speed* tmp_cells)
 int rebound(const t_param params, t_speed* cells, t_speed* tmp_cells, unsigned char* obstacles)
 {
   /* loop over the cells in the grid */
-  for (int jj = 0; jj < params.ny; jj++)
+  for (int ii = 0; ii < params.ny; ii++)
   {
-    for (int ii = 0; ii < params.nx; ii++)
+    for (int jj = 0; jj < params.nx; jj++)
     {
       /* if the cell contains an obstacle */
       if ((obstacles[(int) floor((ii * params.nx + jj)/8)] & (1 << ((ii * params.nx + jj)%8))))
@@ -295,9 +295,9 @@ int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, unsigned
   ** NB the collision step is called after
   ** the propagate step and so values of interest
   ** are in the scratch-space grid */
-  for (int jj = 0; jj < params.ny; jj++)
+  for (int ii = 0; ii < params.ny; ii++)
   {
-    for (int ii = 0; ii < params.nx; ii++)
+    for (int jj = 0; jj < params.nx; jj++)
     {
       /* don't consider occupied cells */
       if (!(obstacles[(int) floor((ii * params.nx + jj)/8)] & (1 << ((ii * params.nx + jj)%8))))
@@ -396,9 +396,9 @@ double av_velocity(const t_param params, t_speed* cells, unsigned char* obstacle
   tot_u = 0.0;
 
   /* loop over all non-blocked cells */
-  for (int jj = 0; jj < params.ny; jj++)
+  for (int ii = 0; ii < params.ny; ii++)
   {
-    for (int ii = 0; ii < params.nx; ii++)
+    for (int jj = 0; jj < params.nx; jj++)
     {
       /* ignore occupied cells */
       if (!(obstacles[(int) floor((ii * params.nx + jj)/8)] & (1 << ((ii * params.nx + jj)%8))))
@@ -528,9 +528,9 @@ int initialise(const char* paramfile, const char* obstaclefile,
   double w1 = params->density      / 9.0;
   double w2 = params->density      / 36.0;
 
-  for (int jj = 0; jj < params->ny; jj++)
+  for (int ii = 0; ii < params->ny; ii++)
   {
-    for (int ii = 0; ii < params->nx; ii++)
+    for (int jj = 0; jj < params->nx; jj++)
     {
       /* centre */
       (*cells_ptr)[ii * params->nx + jj].speeds[0] = w0;
