@@ -60,6 +60,7 @@
 #define FINALSTATEFILE  "final_state.dat"
 #define AVVELSFILE      "av_vels.dat"
 #define STEP            16
+#define min(a, b) (((a) < (b)) ? (a) : (b)) 
 
 /* struct to hold the parameter values */
 typedef struct
