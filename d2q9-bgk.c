@@ -166,7 +166,7 @@ int main(int argc, char* argv[])
     PAPI_L2_DCA };
 
   PAPI_library_init(PAPI_VER_CURRENT);
-  int i = PAPI_start_counters(PAPI_events,3);
+  i = PAPI_start_counters(PAPI_events,3);
 #endif
 
   for (int tt = 0; tt < params.maxIters; tt++)
