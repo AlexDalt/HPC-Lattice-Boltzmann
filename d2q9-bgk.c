@@ -60,7 +60,7 @@
 #define FINALSTATEFILE  "final_state.dat"
 #define AVVELSFILE      "av_vels.dat"
 #define STEP_COMP       20
-#define STEP_COL        8
+#define STEP_COL        4
 
 /* struct to hold the parameter values */
 typedef struct
