@@ -62,7 +62,7 @@
 #define AVVELSFILE      "av_vels.dat"
 #define STEP_COMP       32
 #define STEP_COL        8
-#define NUM_THREADS     20 
+#define NUM_THREADS     16 
 
 /* struct to hold the parameter values */
 typedef struct
@@ -158,7 +158,8 @@ int main(int argc, char* argv[])
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
 
   omp_set_num_threads(NUM_THREADS);
-
+#pragma omp parallel
+  {
     for (int tt = 0; tt < params.maxIters; tt++)
     {
       timestep(params, cells, tmp_cells, obstacles);
@@ -169,6 +170,7 @@ int main(int argc, char* argv[])
       printf("tot density: %.12E\n", total_density(params, cells));
   #endif
     }
+}
 
   gettimeofday(&timstr, NULL);
   toc = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
