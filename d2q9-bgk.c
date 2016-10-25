@@ -233,11 +233,12 @@ int accelerate_flow(const t_param params, t_speed* cells, int* obstacles)
 
 int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles){
   /* loop over _all_ cells */
-  
+  int ii,jj;
+
 #pragma omp parallel for private(ii,jj)
-  for (int ii = 0; ii < params.ny; ii+=STEP_COMP)
+  for (ii = 0; ii < params.ny; ii+=STEP_COMP)
   {
-    for (int jj = 0; jj < params.nx; jj+=STEP_COMP)
+    for (jj = 0; jj < params.nx; jj+=STEP_COMP)
     {
       for (int a = ii; a < ii+STEP_COMP && a < params.ny; a++){
         for (int b = jj; b < jj+STEP_COMP && b < params.nx; b++){
