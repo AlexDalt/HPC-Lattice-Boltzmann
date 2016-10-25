@@ -59,8 +59,8 @@
 #define NSPEEDS         9
 #define FINALSTATEFILE  "final_state.dat"
 #define AVVELSFILE      "av_vels.dat"
-#define STEP_COMP       20
-#define STEP_COL        4
+#define STEP_COMP       32
+#define STEP_COL        8
 
 /* struct to hold the parameter values */
 typedef struct
