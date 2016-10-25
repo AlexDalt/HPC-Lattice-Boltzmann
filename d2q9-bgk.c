@@ -158,8 +158,6 @@ int main(int argc, char* argv[])
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
 
   omp_set_num_threads(NUM_THREADS);
-  #pragma omp parallel shared(tot_u,tot_cells)
-  {
     for (int tt = 0; tt < params.maxIters; tt++)
     {
       timestep(params, cells, tmp_cells, obstacles);
@@ -170,7 +168,6 @@ int main(int argc, char* argv[])
       printf("tot density: %.12E\n", total_density(params, cells));
   #endif
     }
-  }
 
   gettimeofday(&timstr, NULL);
   toc = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
@@ -210,7 +207,7 @@ int accelerate_flow(const t_param params, t_speed* cells, int* obstacles)
   int ii = params.ny - 2;
   int jj = 0;
 
-#pragma omp for private(jj)
+#pragma omp parallel for private(jj)
   for (int jj = 0; jj < params.nx; jj++)
   {
     /* if the cell is not occupied and
@@ -238,7 +235,7 @@ int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
   /* loop over _all_ cells */
   int ii,jj = 0;
 
-#pragma omp for private(ii,jj)
+#pragma omp parallel for private(ii,jj)
   for (ii = 0; ii < params.ny; ii+=STEP_COMP)
   {
     for (jj = 0; jj < params.nx; jj+=STEP_COMP)
@@ -297,7 +294,7 @@ int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
   ** NB the collision step is called after
   ** the propagate step and so values of interest
   ** are in the scratch-space grid */
-  #pragma omp for private(ii,jj) //schedule(dynamic)
+  #pragma omp parallel for private(ii,jj) //schedule(dynamic)
   for (int ii = 0; ii < params.ny; ii+=STEP_COL)
   { 
     for (int jj = 0; jj < params.nx; jj+=STEP_COL)
@@ -407,7 +404,7 @@ double av_velocity(const t_param params, t_speed* cells, int* obstacles)
   tot_u = 0.0;
   int ii, jj = 0;
 
-#pragma omp for reduction (+:tot_u,tot_cells) private(ii,jj)
+#pragma omp parallel for reduction (+:tot_u,tot_cells) private(ii,jj)
   /* loop over all non-blocked cells */
   for (int ii = 0; ii < params.ny; ii++)
   {
