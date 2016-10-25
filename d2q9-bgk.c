@@ -161,7 +161,7 @@ int main(int argc, char* argv[])
 #ifdef DEBUG
   int retval, EventSet = PAPI_NULL;
   unsigned int native = 0x0;
-  PAPI_event_info_t = info;
+  PAPI_event_info_t info;
 
   long long counters[3];
   int PAPI_events[]={
