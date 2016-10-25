@@ -55,12 +55,14 @@
 #include<time.h>
 #include<sys/time.h>
 #include<sys/resource.h>
+#include <omp.h>
 
 #define NSPEEDS         9
 #define FINALSTATEFILE  "final_state.dat"
 #define AVVELSFILE      "av_vels.dat"
 #define STEP_COMP       32
 #define STEP_COL        8
+#define NUM_THREADS     16 
 
 /* struct to hold the parameter values */
 typedef struct
@@ -155,6 +157,7 @@ int main(int argc, char* argv[])
   gettimeofday(&timstr, NULL);
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
 
+#pragma omp parallel
   for (int tt = 0; tt < params.maxIters; tt++)
   {
     timestep(params, cells, tmp_cells, obstacles);
@@ -203,6 +206,7 @@ int accelerate_flow(const t_param params, t_speed* cells, int* obstacles)
   /* modify the 2nd row of the grid */
   int ii = params.ny - 2;
 
+#pragma omp for
   for (int jj = 0; jj < params.nx; jj++)
   {
     /* if the cell is not occupied and
