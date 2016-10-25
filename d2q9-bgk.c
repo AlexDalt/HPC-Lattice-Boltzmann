@@ -60,7 +60,6 @@
 #define FINALSTATEFILE  "final_state.dat"
 #define AVVELSFILE      "av_vels.dat"
 #define STEP            16
-#define min(a, b) (((a) < (b)) ? (a) : (b)) 
 
 /* struct to hold the parameter values */
 typedef struct
@@ -232,8 +231,8 @@ int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
   {
     for (int jj = 0; jj < params.nx; jj+=STEP)
     {
-      for (int a = 0; a < min(ii+STEP, params.ny); a++){
-        for (int b = 0; b < min(jj+STEP, params.nx); b++){
+      for (int a = 0; a < ii+STEP && a < params.ny; a++){
+        for (int b = 0; b < jj+STEP && b < params.nx; b++){
           /* determine indices of axis-direction neighbours
           ** respecting periodic boundary conditions (wrap around) */
           int y_n = (ii + 1) % params.ny;
