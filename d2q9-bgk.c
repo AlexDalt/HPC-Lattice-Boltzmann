@@ -160,6 +160,7 @@ int main(int argc, char* argv[])
   omp_set_num_threads(NUM_THREADS);
   int ii,jj,kk = 0;
   #pragma omp parallel private(ii,jj,kk)
+  {
     for (int tt = 0; tt < params.maxIters; tt++)
     {
       //  ACCELLERATE
@@ -348,7 +349,7 @@ int main(int argc, char* argv[])
       }
       av_vels[tt] = av_velocity(params, cells, obstacles);
     }
-
+}
 
   gettimeofday(&timstr, NULL);
   toc = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
