@@ -35,3 +35,21 @@ NODE 0;CONTEXT 0;THREAD 0:
   0.0            2            2           1           0       2848 int initialise(const char *, const char *, t_param *, t_speed **, t_speed **, unsigned char **, double **) C 
   0.0            0        0.353           1           1        353 double calc_reynolds(const t_param, t_speed *, unsigned char *) C 
   0.0        0.208        0.208           1           0        208 int finalise(const t_param *, t_speed **, t_speed **, unsigned char **, double **) C 
+
+  NODE 0;CONTEXT 0;THREAD 0:
+---------------------------------------------------------------------------------------
+%Time    Exclusive    Inclusive       #Call      #Subrs  Inclusive Name
+              msec   total msec                          usec/call 
+---------------------------------------------------------------------------------------
+100.0        0.043     1:51.324           1           1  111324619 .TAU application
+100.0           17     1:51.324           1       80004  111324576 int main(int, char **) C 
+ 87.6           36     1:37.565       40000      160000       2439 int timestep(const t_param, t_speed *, t_speed *, unsigned char *) C 
+ 72.9     1:21.150     1:21.150       40000           0       2029 int collision(const t_param, t_speed *, t_speed *, unsigned char *) C 
+ 12.3       13,669       13,669       40001           0        342 double av_velocity(const t_param, t_speed *, unsigned char *) C 
+ 10.1       11,294       11,294       40000           0        282 int propagate(const t_param, t_speed *, t_speed *) C 
+  4.5        5,029        5,029       40000           0        126 int rebound(const t_param, t_speed *, t_speed *, unsigned char *) C 
+  0.1           70           70           1           0      70382 int write_values(const t_param, t_speed *, unsigned char *, double *) C 
+  0.0           53           53       40000           0          1 int accelerate_flow(const t_param, t_speed *, unsigned char *) C 
+  0.0        0.703        0.703           1           0        703 int initialise(const char *, const char *, t_param *, t_speed **, t_speed **, unsigned char **, double **) C 
+  0.0            0        0.349           1           1        349 double calc_reynolds(const t_param, t_speed *, unsigned char *) C 
+  0.0        0.158        0.158           1           0        158 int finalise(const t_param *, t_speed **, t_speed **, unsigned char **, double **) C 
