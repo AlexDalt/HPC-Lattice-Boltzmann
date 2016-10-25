@@ -59,8 +59,7 @@
 #define NSPEEDS         9
 #define FINALSTATEFILE  "final_state.dat"
 #define AVVELSFILE      "av_vels.dat"
-#define STEP_COMP       20
-#define STEP_COL        20
+#define STEP            20
 
 /* struct to hold the parameter values */
 typedef struct
@@ -228,12 +227,12 @@ int accelerate_flow(const t_param params, t_speed* cells, int* obstacles)
 
 int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles){
   /* loop over _all_ cells */
-  for (int ii = 0; ii < params.ny; ii+=STEP_COMP)
+  for (int ii = 0; ii < params.ny; ii+=STEP)
   {
-    for (int jj = 0; jj < params.nx; jj+=STEP_COMP)
+    for (int jj = 0; jj < params.nx; jj+=STEP)
     {
-      for (int a = ii; a < ii+STEP_COMP && a < params.ny; a++){
-        for (int b = jj; b < jj+STEP_COMP && b < params.nx; b++){
+      for (int a = ii; a < ii+STEP && a < params.ny; a++){
+        for (int b = jj; b < jj+STEP && b < params.nx; b++){
           /* determine indices of axis-direction neighbours
           ** respecting periodic boundary conditions (wrap around) */
           int y_n = (a + 1) % params.ny;
@@ -285,12 +284,12 @@ int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
   ** NB the collision step is called after
   ** the propagate step and so values of interest
   ** are in the scratch-space grid */
-  for (int ii = 0; ii < params.ny; ii+=STEP_COL)
+  for (int ii = 0; ii < params.ny; ii+=STEP)
   {
-    for (int jj = 0; jj < params.nx; jj+=STEP_COL)
+    for (int jj = 0; jj < params.nx; jj+=STEP)
     {
-      for (int a = ii; a < ii+STEP_COL && a < params.ny; a++){
-        for (int b = jj; b < jj+STEP_COL && b < params.nx; b++){
+      for (int a = ii; a < ii+STEP && a < params.ny; a++){
+        for (int b = jj; b < jj+STEP && b < params.nx; b++){
           /* don't consider occupied cells */
           if (!obstacles[a * params.nx + b])
           {
