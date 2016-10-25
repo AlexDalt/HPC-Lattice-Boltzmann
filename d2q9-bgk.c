@@ -346,7 +346,9 @@ int main(int argc, char* argv[])
           }
         }
       }
+      av_vels[tt] = av_velocity(params, cells, obstacles);
     }
+
 
   gettimeofday(&timstr, NULL);
   toc = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
