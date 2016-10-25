@@ -234,6 +234,7 @@ int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
   /* loop over _all_ cells */
   int ii,jj = 0;
 
+#pragma omp parallel for private(ii,jj)
   for (ii = 0; ii < params.ny; ii+=STEP_COMP)
   {
     for (jj = 0; jj < params.nx; jj+=STEP_COMP)
