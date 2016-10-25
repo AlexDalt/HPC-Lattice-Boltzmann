@@ -243,7 +243,7 @@ int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
       /* propagate densities to neighbouring cells, following
       ** appropriate directions of travel and writing into
       ** scratch space grid */
-      if (obstacles[ii * params.nx + jj]){
+      if (!obstacles[ii * params.nx + jj]){
         tmp_cells[ii * params.nx + jj].speeds[0] = cells[ii * params.nx + jj].speeds[0];
         tmp_cells[ii * params.nx + jj].speeds[1] = cells[ii * params.nx + x_w].speeds[1];
         tmp_cells[ii * params.nx + jj].speeds[2] = cells[y_s * params.nx + jj].speeds[2];
