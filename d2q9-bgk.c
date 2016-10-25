@@ -293,6 +293,7 @@ int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
   ** are in the scratch-space grid */
   for (int ii = 0; ii < params.ny; ii+=STEP_COL)
   {
+    #pragma omp for
     for (int jj = 0; jj < params.nx; jj+=STEP_COL)
     {
       for (int a = ii; a < ii+STEP_COL && a < params.ny; a++){
