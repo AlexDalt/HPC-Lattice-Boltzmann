@@ -286,15 +286,15 @@ int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
   const double w0 = 4.0 / 9.0;  /* weighting factor */
   const double w1 = 1.0 / 9.0;  /* weighting factor */
   const double w2 = 1.0 / 36.0; /* weighting factor */
-  int a,b,ii,jj,k = 0;
+  int ii,jj = 0;
 
   /* loop over the cells in the grid
   ** NB the collision step is called after
   ** the propagate step and so values of interest
   ** are in the scratch-space grid */
+  #pragma omp parallel for private(ii,jj)
   for (int ii = 0; ii < params.ny; ii+=STEP_COL)
-  {
-    #pragma omp parallel for private(jj)
+  { 
     for (int jj = 0; jj < params.nx; jj+=STEP_COL)
     {
       for (int a = ii; a < ii+STEP_COL && a < params.ny; a++){
