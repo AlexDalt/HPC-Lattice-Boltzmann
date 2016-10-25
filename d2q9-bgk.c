@@ -193,7 +193,6 @@ int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obst
 {
   accelerate_flow(params, cells, obstacles);
   comp_func(params, cells, tmp_cells, obstacles);
-  collision(params, cells, tmp_cells, obstacles);
   return EXIT_SUCCESS;
 }
 
