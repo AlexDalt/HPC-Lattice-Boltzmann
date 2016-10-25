@@ -55,7 +55,9 @@
 #include<time.h>
 #include<sys/time.h>
 #include<sys/resource.h>
-#include<papi.h>
+#ifdef DEBUG
+#include <papi.h>
+#endif
 
 #define NSPEEDS         9
 #define FINALSTATEFILE  "final_state.dat"
