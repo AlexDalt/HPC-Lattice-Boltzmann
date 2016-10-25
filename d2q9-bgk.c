@@ -60,7 +60,8 @@
 #define NSPEEDS         9
 #define FINALSTATEFILE  "final_state.dat"
 #define AVVELSFILE      "av_vels.dat"
-#define STEP            16 
+#define STEP_COMP       32
+#define STEP_COL        8
 #define NUM_THREADS     16 
 
 /* struct to hold the parameter values */
@@ -193,6 +194,7 @@ int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obst
 {
   accelerate_flow(params, cells, obstacles);
   comp_func(params, cells, tmp_cells, obstacles);
+  collision(params, cells, tmp_cells, obstacles);
   return EXIT_SUCCESS;
 }
 
@@ -231,17 +233,13 @@ int accelerate_flow(const t_param params, t_speed* cells, int* obstacles)
 int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles){
   /* loop over _all_ cells */
   int ii,jj = 0;
-  const double c_sq = 1.0 / 3.0; /* square of speed of sound */
-  const double w0 = 4.0 / 9.0;  /* weighting factor */
-  const double w1 = 1.0 / 9.0;  /* weighting factor */
-  const double w2 = 1.0 / 36.0; /* weighting factor */
 
-  for (ii = 0; ii < params.ny; ii+=STEP)
+  for (ii = 0; ii < params.ny; ii+=STEP_COMP)
   {
-    for (jj = 0; jj < params.nx; jj+=STEP)
+    for (jj = 0; jj < params.nx; jj+=STEP_COMP)
     {
-      for (int a = ii; a < ii+STEP && a < params.ny; a++){
-        for (int b = jj; b < jj+STEP && b < params.nx; b++){
+      for (int a = ii; a < ii+STEP_COMP && a < params.ny; a++){
+        for (int b = jj; b < jj+STEP_COMP && b < params.nx; b++){
           /* determine indices of axis-direction neighbours
           ** respecting periodic boundary conditions (wrap around) */
           int y_n = (a + 1) % params.ny;
@@ -261,7 +259,49 @@ int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
             tmp_cells[a * params.nx + b].speeds[6] = cells[y_s * params.nx + x_e].speeds[6];
             tmp_cells[a * params.nx + b].speeds[7] = cells[y_n * params.nx + x_e].speeds[7];
             tmp_cells[a * params.nx + b].speeds[8] = cells[y_n * params.nx + x_w].speeds[8];
+          } else {
+            /* called after propagate, so taking values from scratch space
+            ** mirroring, and writing into main grid */
+            tmp_cells[a * params.nx + b].speeds[0] = cells[a * params.nx + b].speeds[0];
+            tmp_cells[a * params.nx + b].speeds[3] = cells[a * params.nx + x_w].speeds[1];
+            tmp_cells[a * params.nx + b].speeds[4] = cells[y_s * params.nx + b].speeds[2];
+            tmp_cells[a * params.nx + b].speeds[1] = cells[a * params.nx + x_e].speeds[3];
+            tmp_cells[a * params.nx + b].speeds[2] = cells[y_n * params.nx + b].speeds[4];
+            tmp_cells[a * params.nx + b].speeds[7] = cells[y_s * params.nx + x_w].speeds[5];
+            tmp_cells[a * params.nx + b].speeds[8] = cells[y_s * params.nx + x_e].speeds[6];
+            tmp_cells[a * params.nx + b].speeds[5] = cells[y_n * params.nx + x_e].speeds[7];
+            tmp_cells[a * params.nx + b].speeds[6] = cells[y_n * params.nx + x_w].speeds[8];
+          }
+        }
+      }
+    }
+  }
 
+  return EXIT_SUCCESS;
+}
+
+int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles)
+{
+  const double c_sq = 1.0 / 3.0; /* square of speed of sound */
+  const double w0 = 4.0 / 9.0;  /* weighting factor */
+  const double w1 = 1.0 / 9.0;  /* weighting factor */
+  const double w2 = 1.0 / 36.0; /* weighting factor */
+  int ii,jj = 0;
+
+  /* loop over the cells in the grid
+  ** NB the collision step is called after
+  ** the propagate step and so values of interest
+  ** are in the scratch-space grid */
+  #pragma omp parallel for private(ii,jj)
+  for (int ii = 0; ii < params.ny; ii+=STEP_COL)
+  { 
+    for (int jj = 0; jj < params.nx; jj+=STEP_COL)
+    {
+      for (int a = ii; a < ii+STEP_COL && a < params.ny; a++){
+        for (int b = jj; b < jj+STEP_COL && b < params.nx; b++){
+          /* don't consider occupied cells */
+          if (!obstacles[a * params.nx + b])
+          {
             /* compute local density total */
             double local_density = 0.0;
 
@@ -336,36 +376,16 @@ int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
             /* relaxation step */
             for (int kk = 0; kk < NSPEEDS; kk++)
             {
-              tmp_cells[a * params.nx + b].speeds[kk] = tmp_cells[a * params.nx + b].speeds[kk]
+              cells[a * params.nx + b].speeds[kk] = tmp_cells[a * params.nx + b].speeds[kk]
                                                       + params.omega
                                                       * (d_equ[kk] - tmp_cells[a * params.nx + b].speeds[kk]);
             }
           } else {
-            /* called after propagate, so taking values from scratch space
-            ** mirroring, and writing into main grid */
-            tmp_cells[a * params.nx + b].speeds[0] = cells[a * params.nx + b].speeds[0];
-            tmp_cells[a * params.nx + b].speeds[3] = cells[a * params.nx + x_w].speeds[1];
-            tmp_cells[a * params.nx + b].speeds[4] = cells[y_s * params.nx + b].speeds[2];
-            tmp_cells[a * params.nx + b].speeds[1] = cells[a * params.nx + x_e].speeds[3];
-            tmp_cells[a * params.nx + b].speeds[2] = cells[y_n * params.nx + b].speeds[4];
-            tmp_cells[a * params.nx + b].speeds[7] = cells[y_s * params.nx + x_w].speeds[5];
-            tmp_cells[a * params.nx + b].speeds[8] = cells[y_s * params.nx + x_e].speeds[6];
-            tmp_cells[a * params.nx + b].speeds[5] = cells[y_n * params.nx + x_e].speeds[7];
-            tmp_cells[a * params.nx + b].speeds[6] = cells[y_n * params.nx + x_w].speeds[8];
-
-
+            for (int kk = 0; kk < NSPEEDS; kk++){
+              cells[a * params.nx + b].speeds[kk] = tmp_cells[a * params.nx + b].speeds[kk];
+            }
           }
         }
-      }
-    }
-  }
-
-  for (ii = 0; ii < params.ny; ii++)
-  {
-    for (jj = 0; jj < params.nx; jj++)
-    {
-      for (int kk = 0; kk < NSPEEDS; kk++){
-        cells[ii * params.nx + jj].speeds[kk] = tmp_cells[ii * params.nx + jj].speeds[kk];
       }
     }
   }
