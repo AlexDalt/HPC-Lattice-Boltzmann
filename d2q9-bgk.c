@@ -208,7 +208,6 @@ int accelerate_flow(const t_param params, t_speed* cells, int* obstacles)
   /* modify the 2nd row of the grid */
   int ii = params.ny - 2;
 
-#pragma omp for private(jj)
   for (int jj = 0; jj < params.nx; jj++)
   {
     /* if the cell is not occupied and
@@ -234,6 +233,8 @@ int accelerate_flow(const t_param params, t_speed* cells, int* obstacles)
 
 int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles){
   /* loop over _all_ cells */
+  
+#pragma omp parallel for private(ii,jj)
   for (int ii = 0; ii < params.ny; ii+=STEP_COMP)
   {
     for (int jj = 0; jj < params.nx; jj+=STEP_COMP)
@@ -293,7 +294,6 @@ int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
   ** are in the scratch-space grid */
   for (int ii = 0; ii < params.ny; ii+=STEP_COL)
   {
-    #pragma omp for private(jj)
     for (int jj = 0; jj < params.nx; jj+=STEP_COL)
     {
       for (int a = ii; a < ii+STEP_COL && a < params.ny; a++){
