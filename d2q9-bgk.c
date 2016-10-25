@@ -55,6 +55,9 @@
 #include<time.h>
 #include<sys/time.h>
 #include<sys/resource.h>
+#ifdef DEBUG
+#include<papi.h>
+#endif
 
 #define NSPEEDS         9
 #define FINALSTATEFILE  "final_state.dat"
@@ -154,15 +157,22 @@ int main(int argc, char* argv[])
   gettimeofday(&timstr, NULL);
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
 
+  //cache checks
+#ifdef DEBUG
+  long long counters[3];
+  int PAPI_events[]={
+    PAPI_TOT_CYC,
+    PAPI_L2_DCM,
+    PAPI_L2_DCA };
+
+  PAPI_library_init(PAPI_VER_CURRENT);
+  i = PAPI_start_counters(PAPI_events,3);
+#endif
+
   for (int tt = 0; tt < params.maxIters; tt++)
   {
     timestep(params, cells, tmp_cells, obstacles);
     av_vels[tt] = av_velocity(params, cells, obstacles);
-#ifdef DEBUG
-    printf("==timestep: %d==\n", tt);
-    printf("av velocity: %.12E\n", av_vels[tt]);
-    printf("tot density: %.12E\n", total_density(params, cells));
-#endif
   }
 
   gettimeofday(&timstr, NULL);
@@ -179,6 +189,12 @@ int main(int argc, char* argv[])
   printf("Elapsed time:\t\t\t%.6lf (s)\n", toc - tic);
   printf("Elapsed user CPU time:\t\t%.6lf (s)\n", usrtim);
   printf("Elapsed system CPU time:\t%.6lf (s)\n", systim);
+#ifdef DEBUG
+  printf("%lld L2 chache misses (%.3lf%% misses) in %lld cycles\n",
+    counters[1],
+    (double)counters[1]/(double)counters[2],
+    counters[0]);
+#endif
   write_values(params, cells, obstacles, av_vels);
   finalise(&params, &cells, &tmp_cells, &obstacles, &av_vels);
 
