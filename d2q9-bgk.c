@@ -232,10 +232,8 @@ int accelerate_flow(const t_param params, t_speed* cells, int* obstacles)
 
 int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles){
   /* loop over _all_ cells */
-  omp_set_num_threads(NUM_THREADS);
   int ii,jj = 0;
 
-#pragma omp parallel for private(ii,jj)
   for (ii = 0; ii < params.ny; ii+=STEP_COMP)
   {
     for (jj = 0; jj < params.nx; jj+=STEP_COMP)
@@ -288,6 +286,7 @@ int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
   const double w0 = 4.0 / 9.0;  /* weighting factor */
   const double w1 = 1.0 / 9.0;  /* weighting factor */
   const double w2 = 1.0 / 36.0; /* weighting factor */
+  int a,b,ii,jj,k = 0;
 
   /* loop over the cells in the grid
   ** NB the collision step is called after
@@ -295,6 +294,7 @@ int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
   ** are in the scratch-space grid */
   for (int ii = 0; ii < params.ny; ii+=STEP_COL)
   {
+    #pragma omp parallel for private(jj,kk,a,b)
     for (int jj = 0; jj < params.nx; jj+=STEP_COL)
     {
       for (int a = ii; a < ii+STEP_COL && a < params.ny; a++){
