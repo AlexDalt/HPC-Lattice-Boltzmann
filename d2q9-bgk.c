@@ -62,7 +62,7 @@
 #define AVVELSFILE      "av_vels.dat"
 #define STEP_COMP       32
 #define STEP_COL        8
-#define NUM_THREADS     16 
+#define NUM_THREADS     8 
 
 /* struct to hold the parameter values */
 typedef struct
