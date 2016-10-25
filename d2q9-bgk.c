@@ -59,6 +59,7 @@
 #define NSPEEDS         9
 #define FINALSTATEFILE  "final_state.dat"
 #define AVVELSFILE      "av_vels.dat"
+#define STEP            16
 
 /* struct to hold the parameter values */
 typedef struct
@@ -226,41 +227,45 @@ int accelerate_flow(const t_param params, t_speed* cells, int* obstacles)
 
 int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles){
   /* loop over _all_ cells */
-  for (int ii = 0; ii < params.ny; ii++)
+  for (int ii = 0; ii < params.ny; ii+=STEP)
   {
-    for (int jj = 0; jj < params.nx; jj++)
+    for (int jj = 0; jj < params.nx; jj+=STEP)
     {
-      /* determine indices of axis-direction neighbours
-      ** respecting periodic boundary conditions (wrap around) */
-      int y_n = (ii + 1) % params.ny;
-      int x_e = (jj + 1) % params.nx;
-      int y_s = (ii == 0) ? (ii + params.ny - 1) : (ii - 1);
-      int x_w = (jj == 0) ? (jj + params.nx - 1) : (jj - 1);
-      /* propagate densities to neighbouring cells, following
-      ** appropriate directions of travel and writing into
-      ** scratch space grid */
-      if (!obstacles[ii * params.nx + jj]){
-        tmp_cells[ii * params.nx + jj].speeds[0] = cells[ii * params.nx + jj].speeds[0];
-        tmp_cells[ii * params.nx + jj].speeds[1] = cells[ii * params.nx + x_w].speeds[1];
-        tmp_cells[ii * params.nx + jj].speeds[2] = cells[y_s * params.nx + jj].speeds[2];
-        tmp_cells[ii * params.nx + jj].speeds[3] = cells[ii * params.nx + x_e].speeds[3];
-        tmp_cells[ii * params.nx + jj].speeds[4] = cells[y_n * params.nx + jj].speeds[4];
-        tmp_cells[ii * params.nx + jj].speeds[5] = cells[y_s * params.nx + x_w].speeds[5];
-        tmp_cells[ii * params.nx + jj].speeds[6] = cells[y_s * params.nx + x_e].speeds[6];
-        tmp_cells[ii * params.nx + jj].speeds[7] = cells[y_n * params.nx + x_e].speeds[7];
-        tmp_cells[ii * params.nx + jj].speeds[8] = cells[y_n * params.nx + x_w].speeds[8];
-      } else {
-        /* called after propagate, so taking values from scratch space
-        ** mirroring, and writing into main grid */
-        tmp_cells[ii * params.nx + jj].speeds[0] = cells[ii * params.nx + jj].speeds[0];
-        tmp_cells[ii * params.nx + jj].speeds[3] = cells[ii * params.nx + x_w].speeds[1];
-        tmp_cells[ii * params.nx + jj].speeds[4] = cells[y_s * params.nx + jj].speeds[2];
-        tmp_cells[ii * params.nx + jj].speeds[1] = cells[ii * params.nx + x_e].speeds[3];
-        tmp_cells[ii * params.nx + jj].speeds[2] = cells[y_n * params.nx + jj].speeds[4];
-        tmp_cells[ii * params.nx + jj].speeds[7] = cells[y_s * params.nx + x_w].speeds[5];
-        tmp_cells[ii * params.nx + jj].speeds[8] = cells[y_s * params.nx + x_e].speeds[6];
-        tmp_cells[ii * params.nx + jj].speeds[5] = cells[y_n * params.nx + x_e].speeds[7];
-        tmp_cells[ii * params.nx + jj].speeds[6] = cells[y_n * params.nx + x_w].speeds[8];
+      for (int a = 0; a < min(ii+STEP, params.ny); a++){
+        for (int b = 0; b < min(jj+STEP, params.nx); b++){
+          /* determine indices of axis-direction neighbours
+          ** respecting periodic boundary conditions (wrap around) */
+          int y_n = (ii + 1) % params.ny;
+          int x_e = (jj + 1) % params.nx;
+          int y_s = (ii == 0) ? (ii + params.ny - 1) : (ii - 1);
+          int x_w = (jj == 0) ? (jj + params.nx - 1) : (jj - 1);
+          /* propagate densities to neighbouring cells, following
+          ** appropriate directions of travel and writing into
+          ** scratch space grid */
+          if (!obstacles[ii * params.nx + jj]){
+            tmp_cells[ii * params.nx + jj].speeds[0] = cells[ii * params.nx + jj].speeds[0];
+            tmp_cells[ii * params.nx + jj].speeds[1] = cells[ii * params.nx + x_w].speeds[1];
+            tmp_cells[ii * params.nx + jj].speeds[2] = cells[y_s * params.nx + jj].speeds[2];
+            tmp_cells[ii * params.nx + jj].speeds[3] = cells[ii * params.nx + x_e].speeds[3];
+            tmp_cells[ii * params.nx + jj].speeds[4] = cells[y_n * params.nx + jj].speeds[4];
+            tmp_cells[ii * params.nx + jj].speeds[5] = cells[y_s * params.nx + x_w].speeds[5];
+            tmp_cells[ii * params.nx + jj].speeds[6] = cells[y_s * params.nx + x_e].speeds[6];
+            tmp_cells[ii * params.nx + jj].speeds[7] = cells[y_n * params.nx + x_e].speeds[7];
+            tmp_cells[ii * params.nx + jj].speeds[8] = cells[y_n * params.nx + x_w].speeds[8];
+          } else {
+            /* called after propagate, so taking values from scratch space
+            ** mirroring, and writing into main grid */
+            tmp_cells[ii * params.nx + jj].speeds[0] = cells[ii * params.nx + jj].speeds[0];
+            tmp_cells[ii * params.nx + jj].speeds[3] = cells[ii * params.nx + x_w].speeds[1];
+            tmp_cells[ii * params.nx + jj].speeds[4] = cells[y_s * params.nx + jj].speeds[2];
+            tmp_cells[ii * params.nx + jj].speeds[1] = cells[ii * params.nx + x_e].speeds[3];
+            tmp_cells[ii * params.nx + jj].speeds[2] = cells[y_n * params.nx + jj].speeds[4];
+            tmp_cells[ii * params.nx + jj].speeds[7] = cells[y_s * params.nx + x_w].speeds[5];
+            tmp_cells[ii * params.nx + jj].speeds[8] = cells[y_s * params.nx + x_e].speeds[6];
+            tmp_cells[ii * params.nx + jj].speeds[5] = cells[y_n * params.nx + x_e].speeds[7];
+            tmp_cells[ii * params.nx + jj].speeds[6] = cells[y_n * params.nx + x_w].speeds[8];
+          }
+        }
       }
     }
   }
