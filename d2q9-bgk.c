@@ -159,14 +159,18 @@ int main(int argc, char* argv[])
 
   //cache checks
 #ifdef DEBUG
+  int retval, EventSet = PAPI_NULL;
+  unsigned int native = 0x0;
+  PAPI_event_info_t = info;
+
   long long counters[3];
   int PAPI_events[]={
     PAPI_TOT_CYC,
     PAPI_L2_DCM,
     PAPI_L2_DCA };
 
-  PAPI_library_init(PAPI_VER_CURRENT);
-  i = PAPI_start_counters(PAPI_events,3);
+  retval = PAPI_library_init(PAPI_VER_CURRENT);
+  int i = PAPI_start_counters(PAPI_events,3);
 #endif
 
   for (int tt = 0; tt < params.maxIters; tt++)
