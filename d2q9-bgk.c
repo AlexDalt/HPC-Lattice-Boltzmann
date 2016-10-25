@@ -157,8 +157,8 @@ int main(int argc, char* argv[])
   gettimeofday(&timstr, NULL);
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
 
-#pragma omp parallel 
-  {
+  omp_set_num_threads(NUM_THREADS);
+
     for (int tt = 0; tt < params.maxIters; tt++)
     {
       timestep(params, cells, tmp_cells, obstacles);
@@ -169,7 +169,6 @@ int main(int argc, char* argv[])
       printf("tot density: %.12E\n", total_density(params, cells));
   #endif
     }
-  }
 
   gettimeofday(&timstr, NULL);
   toc = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
@@ -233,7 +232,8 @@ int accelerate_flow(const t_param params, t_speed* cells, int* obstacles)
 
 int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles){
   /* loop over _all_ cells */
-  int ii,jj;
+  omp_set_num_threads(NUM_THREADS);
+  int ii,jj = 0;
 
 #pragma omp parallel for private(ii,jj)
   for (ii = 0; ii < params.ny; ii+=STEP_COMP)
