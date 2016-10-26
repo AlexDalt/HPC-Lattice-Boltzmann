@@ -369,9 +369,7 @@ int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
       }
     }
   }
-
-  int kk = 0;
-
+  
   #pragma omp parallel for private(ii,jj,kk)
   for (int ii = 0; ii < params.ny; ii+=STEP_COMP)
   {
