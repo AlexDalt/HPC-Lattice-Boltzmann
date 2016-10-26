@@ -196,7 +196,9 @@ int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obst
   //collision(params, cells, tmp_cells, obstacles);
   for(int ii = 0; ii < params.ny; ii++){
     for(int jj = 0; jj < params.nx; jj++){
-      cells[ii * params.nx + jj].speeds[kk] = tmp_cells[ii * params.nx + jj].speeds[kk];
+      for(int kk = 0; kk < NSPEEDS; kk++){
+        cells[ii * params.nx + jj].speeds[kk] = tmp_cells[ii * params.nx + jj].speeds[kk];
+      }
     }
   }
   return EXIT_SUCCESS;
