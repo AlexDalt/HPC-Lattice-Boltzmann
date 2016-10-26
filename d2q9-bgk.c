@@ -233,13 +233,13 @@ int accelerate_flow(const t_param params, t_speed* cells, int* obstacles)
 
 int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles){
   /* loop over _all_ cells */
-  int ii,jj = 0;
+  int ii,jj,kk = 0;
   const double c_sq = 1.0 / 3.0; /* square of speed of sound */
   const double w0 = 4.0 / 9.0;  /* weighting factor */
   const double w1 = 1.0 / 9.0;  /* weighting factor */
   const double w2 = 1.0 / 36.0; /* weighting factor */
 
-#pragma omp parallel for private(ii,jj)
+#pragma omp parallel for private(ii,jj,kk)
   for (ii = 0; ii < params.ny; ii+=STEP_COMP)
   {
     for (jj = 0; jj < params.nx; jj+=STEP_COMP)
