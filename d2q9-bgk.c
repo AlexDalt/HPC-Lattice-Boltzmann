@@ -60,8 +60,7 @@
 #define NSPEEDS         9
 #define FINALSTATEFILE  "final_state.dat"
 #define AVVELSFILE      "av_vels.dat"
-#define STEP_COMP       32
-#define STEP_COL        8
+#define STEP            8
 #define NUM_THREADS     16 
 
 /* struct to hold the parameter values */
@@ -246,12 +245,12 @@ int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
   int ii,jj = 0;
 
 #pragma omp parallel for private(ii,jj)
-  for (ii = 0; ii < params.ny; ii+=STEP_COMP)
+  for (ii = 0; ii < params.ny; ii+=STEP)
   {
-    for (jj = 0; jj < params.nx; jj+=STEP_COMP)
+    for (jj = 0; jj < params.nx; jj+=STEP)
     {
-      for (int a = ii; a < ii+STEP_COMP && a < params.ny; a++){
-        for (int b = jj; b < jj+STEP_COMP && b < params.nx; b++){
+      for (int a = ii; a < ii+STEP && a < params.ny; a++){
+        for (int b = jj; b < jj+STEP && b < params.nx; b++){
           /* determine indices of axis-direction neighbours
           ** respecting periodic boundary conditions (wrap around) */
           int y_n = (a + 1) % params.ny;
