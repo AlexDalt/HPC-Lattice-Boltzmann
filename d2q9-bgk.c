@@ -60,7 +60,7 @@
 #define NSPEEDS         9
 #define FINALSTATEFILE  "final_state.dat"
 #define AVVELSFILE      "av_vels.dat"
-#define STEP            16
+#define STEP            4
 #define NUM_THREADS     16 
 
 /* struct to hold the parameter values */
