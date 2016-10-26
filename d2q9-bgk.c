@@ -370,13 +370,15 @@ int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
     }
   }
 
+  int kk = 0;
+
   #pragma omp parallel for private(ii,jj,kk)
   for (int ii = 0; ii < params.ny; ii+=STEP_COMP)
   {
     for (int jj = 0; jj < params.nx; jj+=STEP_COMP)
     {
-      for(int kk = 0; kk < NSPEEDS; kk++){
-        cells[ii * params.nx + jj].speeds[kk] = tmp_cells[ii * params.nx + jj]
+      for(int kk = 0; kk < NSPEEDS; kk++) {
+        cells[ii * params.nx + jj].speeds[kk] = tmp_cells[ii * params.nx + jj].speeds[kk];
       }
     }
   }
