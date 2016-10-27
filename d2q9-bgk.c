@@ -345,8 +345,6 @@ int comp_func(int a, int b, const t_param params, t_speed* cells, t_speed* tmp_c
       tmp_cells[a * params.nx + b].speeds[5] = cells[y_n * params.nx + x_e].speeds[7];
       tmp_cells[a * params.nx + b].speeds[6] = cells[y_n * params.nx + x_w].speeds[8];
       }
-    }
-  }
 
   return EXIT_SUCCESS;
 }
