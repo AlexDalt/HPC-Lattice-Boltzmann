@@ -244,7 +244,7 @@ int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
   const double w2 = 1.0 / 36.0; /* weighting factor */
   int ii,jj = 0;
 
-#pragma omp parallel for private(ii,jj)
+#pragma omp parallel for private(ii,jj) collapse(2)
   for (ii = 0; ii < params.ny; ii+=STEP)
   {
     for (jj = 0; jj < params.nx; jj+=STEP)
