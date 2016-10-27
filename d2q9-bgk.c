@@ -229,7 +229,7 @@ int accelerate_flow(int ii, int jj, const t_param params, t_speed* cells, int* o
   return EXIT_SUCCESS;
 }
 
-int comp_func(int ii, int jj, const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles){
+int comp_func(int a, int b, const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles){
   /* loop over _all_ cells */
   const double c_sq = 1.0 / 3.0; /* square of speed of sound */
   const double w0 = 4.0 / 9.0;  /* weighting factor */
