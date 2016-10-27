@@ -95,7 +95,6 @@ int initialise(const char* paramfile, const char* obstaclefile,
 ** timestep calls, in order, the functions:
 ** accelerate_flow(), propagate(), rebound() & collision()
 */
-int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles);
 int accelerate_flow(int ii, int jj, const t_param params, t_speed* cells, int* obstacles);
 int comp_func(int ii, int jj, const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles);
 int write_values(const t_param params, t_speed* cells, int* obstacles, double* av_vels);
@@ -169,7 +168,7 @@ int main(int argc, char* argv[])
       #pragma omp for
       for(ii = 0; ii < params.ny; ii++){
         for(jj = 0; jj < params.nx; jj++){
-          comp_func(ii, jj, params, cells, obstacles);
+          comp_func(ii, jj, params, cells, tmp_cells, obstacles);
         }
       }
       #pragma omp for
@@ -201,21 +200,6 @@ int main(int argc, char* argv[])
   write_values(params, cells, obstacles, av_vels);
   finalise(&params, &cells, &tmp_cells, &obstacles, &av_vels);
 
-  return EXIT_SUCCESS;
-}
-
-int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles)
-{
-  accelerate_flow(params, cells, obstacles);
-  comp_func(params, cells, tmp_cells, obstacles);
-#pragma omp parallel for
-  for(int ii = 0; ii < params.ny; ii++){
-    for(int jj = 0; jj < params.nx; jj++){
-      for(int kk = 0; kk < NSPEEDS; kk++){
-        cells[ii * params.nx + jj].speeds[kk] = tmp_cells[ii * params.nx + jj].speeds[kk];
-      }
-    }
-  }
   return EXIT_SUCCESS;
 }
 
