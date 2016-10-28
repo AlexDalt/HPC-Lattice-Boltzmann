@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
   gettimeofday(&timstr, NULL);
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
 
-  //omp_set_num_threads(NUM_THREADS);
+  omp_set_num_threads(NUM_THREADS);
     for (int tt = 0; tt < params.maxIters; tt++)
     {
       timestep(params, cells, tmp_cells, obstacles);
@@ -146,7 +146,7 @@ int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obst
   comp_func(params, cells, tmp_cells, obstacles);
 
   //writes from tmp_cells to cells
-//#pragma omp parallel for
+#pragma omp parallel for
   for(int ii = 0; ii < params.ny; ii++){
     for(int jj = 0; jj < params.nx; jj++){
       for(int kk = 0; kk < NSPEEDS; kk++){
@@ -167,7 +167,7 @@ int accelerate_flow(const t_param params, t_speed* cells, int* obstacles)
   int ii = params.ny - 2;
   int jj = 0;
 
-//#pragma omp parallel for private(jj)
+#pragma omp parallel for private(jj)
   for (int jj = 0; jj < params.nx; jj++)
   {
     /* if the cell is not occupied and
@@ -199,7 +199,7 @@ int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
   const double w2 = 1.0 / 36.0; /* weighting factor */
   int ii,jj = 0;
 
-//#pragma omp parallel for private(ii,jj) collapse(2)
+#pragma omp parallel for private(ii,jj) collapse(2)
   for (ii = 0; ii < params.ny; ii+=STEP)
   {
     for (jj = 0; jj < params.nx; jj+=STEP)
@@ -334,7 +334,7 @@ double av_velocity(const t_param params, t_speed* cells, int* obstacles)
   tot_u = 0.0;
   int ii, jj = 0;
 
-//#pragma omp parallel for reduction (+:tot_u,tot_cells) private(ii,jj)
+#pragma omp parallel for reduction (+:tot_u,tot_cells) private(ii,jj)
   /* loop over all non-blocked cells */
   for (int ii = 0; ii < params.ny; ii++)
   {
