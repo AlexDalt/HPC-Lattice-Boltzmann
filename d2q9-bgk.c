@@ -10,7 +10,7 @@
 #define FINALSTATEFILE  "final_state.dat"
 #define AVVELSFILE      "av_vels.dat"
 #define STEP            4
-#define NUM_THREADS     4
+#define NUM_THREADS     2
 
 
 /* struct to hold the parameter values */
