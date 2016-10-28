@@ -63,8 +63,6 @@
 #define STEP            4
 #define NUM_THREADS     16 
 
-export KMP_AFFINITY=compact
-
 
 /* struct to hold the parameter values */
 typedef struct
