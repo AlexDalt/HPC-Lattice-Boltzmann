@@ -1,54 +1,3 @@
-/*
-** Code to implement a d2q9-bgk lattice boltzmann scheme.
-** 'd2' inidates a 2-dimensional grid, and
-** 'q9' indicates 9 velocities per grid cell.
-** 'bgk' refers to the Bhatnagar-Gross-Krook collision step.
-**
-** The 'speeds' in each cell are numbered as follows:
-**
-** 6 2 5
-**  \|/
-** 3-0-1
-**  /|\
-** 7 4 8
-**
-** A 2D grid:
-**
-**           cols
-**       --- --- ---
-**      | D | E | F |
-** rows  --- --- ---
-**      | A | B | C |
-**       --- --- ---
-**
-** 'unwrapped' in row major order to give a 1D array:
-**
-**  --- --- --- --- --- ---
-** | A | B | C | D | E | F |
-**  --- --- --- --- --- ---
-**
-** Grid indicies are:
-**
-**          ny
-**          ^       cols(jj)
-**          |  ----- ----- -----
-**          | | ... | ... | etc |
-**          |  ----- ----- -----
-** rows(ii) | | 1,0 | 1,1 | 1,2 |
-**          |  ----- ----- -----
-**          | | 0,0 | 0,1 | 0,2 |
-**          |  ----- ----- -----
-**          ----------------------> nx
-**
-** Note the names of the input parameter and obstacle files
-** are passed on the command line, e.g.:
-**
-**   d2q9-bgk.exe input.params obstacles.dat
-**
-** Be sure to adjust the grid dimensions in the parameter file
-** if you choose a different obstacle file.
-*/
-
 #include<stdio.h>
 #include<stdlib.h>
 #include<math.h>
@@ -190,8 +139,13 @@ int main(int argc, char* argv[])
 
 int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles)
 {
+  //accelerates the second row of cells
   accelerate_flow(params, cells, obstacles);
+
+  //performs the bulk of the cell calculations, writing each to tmp_cells
   comp_func(params, cells, tmp_cells, obstacles);
+
+  //writes from tmp_cells to cells
 #pragma omp parallel for
   for(int ii = 0; ii < params.ny; ii++){
     for(int jj = 0; jj < params.nx; jj++){
