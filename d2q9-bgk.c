@@ -45,7 +45,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
 ** timestep calls, in order, the functions:
 ** accelerate_flow(), propagate(), rebound() & collision()
 */
-int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles);
+int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, int itteration);
 int accelerate_flow(const t_param params, t_speed* cells, int* obstacles);
 int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles);
 int write_values(const t_param params, t_speed* cells, int* obstacles, double* av_vels);
@@ -106,16 +106,33 @@ int main(int argc, char* argv[])
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
 
   omp_set_num_threads(NUM_THREADS);
-    for (int tt = 0; tt < params.maxIters; tt++)
+  int tt = 0;
+    while (tt < params.maxIters)
     {
-      timestep(params, cells, tmp_cells, obstacles);
-      av_vels[tt] = av_velocity(params, cells, obstacles);
+      timestep(params, cells, tmp_cells, obstacles,tt);
+      if(tt%2 == 0){
+        av_vels[tt] = av_velocity(params, cells, obstacles);
+      } else {
+        av_vels[tt] = av_velocity(params, tmp_cells, obstacles);
+      }
   #ifdef DEBUG
       printf("==timestep: %d==\n", tt);
       printf("av velocity: %.12E\n", av_vels[tt]);
       printf("tot density: %.12E\n", total_density(params, cells));
   #endif
+      tt++;
     }
+
+  if(tt%2 == 1){
+  #pragma omp parallel for
+    for(int ii = 0; ii < params.ny; ii++){
+      for(int jj = 0; jj < params.nx; jj++){
+        for(int kk = 0; kk < NSPEEDS; kk++){
+          cells[ii * params.nx + jj].speeds[kk] = tmp_cells[ii * params.nx + jj].speeds[kk];
+        }
+      }
+    }
+  }
 
   gettimeofday(&timstr, NULL);
   toc = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
@@ -137,13 +154,15 @@ int main(int argc, char* argv[])
   return EXIT_SUCCESS;
 }
 
-int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles)
+int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, int itteration)
 {
-  //accelerates the second row of cells
-  accelerate_flow(params, cells, obstacles);
-
-  //performs the bulk of the cell calculations, writing each to tmp_cells
-  comp_func(params, cells, tmp_cells, obstacles);
+  if(itteration%2 == 0){
+    accelerate_flow(params,cells,obstacles);
+    comp_func(params,cells,tmp_cells,obstacles);
+  } else {
+    accelerate_flow(params,tmp_cells,obstacles);
+    comp_func(params,tmp_cells,cells,obstacles);
+  }
 
   //writes from tmp_cells to cells
 #pragma omp parallel for
