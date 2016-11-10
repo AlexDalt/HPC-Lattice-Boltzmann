@@ -45,7 +45,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
 ** timestep calls, in order, the functions:
 ** accelerate_flow(), propagate(), rebound() & collision()
 */
-int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, int itteration);
+int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles);
 int accelerate_flow(const t_param params, t_speed* cells, int* obstacles);
 int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles);
 int write_values(const t_param params, t_speed* cells, int* obstacles, double* av_vels);
@@ -109,11 +109,12 @@ int main(int argc, char* argv[])
   int tt = 0;
     while (tt < params.maxIters)
     {
-      timestep(params, cells, tmp_cells, obstacles,tt);
       if(tt%2 == 0){
-        av_vels[tt] = av_velocity(params, cells, obstacles);
-      } else {
+        timestep(params, cells, tmp_cells, obstacles);
         av_vels[tt] = av_velocity(params, tmp_cells, obstacles);
+      } else {
+        timestep(params, tmp_cells, cells, obstacles);
+        av_vels[tt] = av_velocity(params, cells, obstacles);
       }
   #ifdef DEBUG
       printf("==timestep: %d==\n", tt);
@@ -154,25 +155,11 @@ int main(int argc, char* argv[])
   return EXIT_SUCCESS;
 }
 
-int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, int itteration)
+int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles)
 {
-  if(itteration%2 == 0){
-    accelerate_flow(params,cells,obstacles);
-    comp_func(params,cells,tmp_cells,obstacles);
-  } else {
-    accelerate_flow(params,tmp_cells,obstacles);
-    comp_func(params,tmp_cells,cells,obstacles);
-  }
-
-  //writes from tmp_cells to cells
-#pragma omp parallel for
-  for(int ii = 0; ii < params.ny; ii++){
-    for(int jj = 0; jj < params.nx; jj++){
-      for(int kk = 0; kk < NSPEEDS; kk++){
-        cells[ii * params.nx + jj].speeds[kk] = tmp_cells[ii * params.nx + jj].speeds[kk];
-      }
-    }
-  }
+  accelerate_flow(params,cells,obstacles);
+  comp_func(params,cells,tmp_cells,obstacles);
+  
   return EXIT_SUCCESS;
 }
 
