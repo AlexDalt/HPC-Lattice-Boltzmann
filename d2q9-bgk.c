@@ -201,7 +201,7 @@ double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* 
   int ii,jj = 0;
 
   int tot_cells = 0;
-  double tot_u = 0.0
+  double tot_u = 0.0;
 
 #pragma omp parallel for reduction (+:tot_u,tot_cells) private(ii,jj) collapse(2)
   for (ii = 0; ii < params.ny; ii+=STEP)
