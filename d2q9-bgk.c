@@ -10,7 +10,7 @@
 #define FINALSTATEFILE  "final_state.dat"
 #define AVVELSFILE      "av_vels.dat"
 #define STEP            4
-#define NUM_THREADS     32
+#define NUM_THREADS     16
 
 
 /* struct to hold the parameter values */
@@ -106,34 +106,16 @@ int main(int argc, char* argv[])
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
 
   omp_set_num_threads(NUM_THREADS);
-  int tt = 0;
-    while (tt < params.maxIters)
+    for (int tt = 0; tt < params.maxIters; tt++)
     {
-      if(tt%2 == 0){
-        timestep(params, cells, tmp_cells, obstacles);
-        av_vels[tt] = av_velocity(params, tmp_cells, obstacles);
-      } else {
-        timestep(params, tmp_cells, cells, obstacles);
-        av_vels[tt] = av_velocity(params, cells, obstacles);
-      }
+      timestep(params, cells, tmp_cells, obstacles);
+      av_vels[tt] = av_velocity(params, cells, obstacles);
   #ifdef DEBUG
       printf("==timestep: %d==\n", tt);
       printf("av velocity: %.12E\n", av_vels[tt]);
       printf("tot density: %.12E\n", total_density(params, cells));
   #endif
-      tt++;
     }
-
-  if(tt%2 == 1){
-  #pragma omp parallel for
-    for(int ii = 0; ii < params.ny; ii++){
-      for(int jj = 0; jj < params.nx; jj++){
-        for(int kk = 0; kk < NSPEEDS; kk++){
-          cells[ii * params.nx + jj].speeds[kk] = tmp_cells[ii * params.nx + jj].speeds[kk];
-        }
-      }
-    }
-  }
 
   gettimeofday(&timstr, NULL);
   toc = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
@@ -157,8 +139,16 @@ int main(int argc, char* argv[])
 
 int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles)
 {
-  accelerate_flow(params,cells,obstacles);
-  comp_func(params,cells,tmp_cells,obstacles);
+  //accelerates the second row of cells
+  accelerate_flow(params, cells, obstacles);
+
+  //performs the bulk of the cell calculations, writing each to tmp_cells
+  comp_func(params, cells, tmp_cells, obstacles);
+
+  //pointer swapping
+  int temp = cells;
+  cells = tmp_cells;
+  tmp_cells = temp;
   
   return EXIT_SUCCESS;
 }
