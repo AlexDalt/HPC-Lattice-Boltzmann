@@ -312,7 +312,7 @@ double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* 
               local_density_vel += tmp_cells[ii * params.nx + jj].speeds[kk];
             }
 
-            double u_x = (tmp_cells[ii * params.nx + jj].speeds[1]
+            double u_x_vel = (tmp_cells[ii * params.nx + jj].speeds[1]
                           + tmp_cells[ii * params.nx + jj].speeds[5]
                           + tmp_cells[ii * params.nx + jj].speeds[8]
                           - (tmp_cells[ii * params.nx + jj].speeds[3]
@@ -320,7 +320,7 @@ double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* 
                               + tmp_cells[ii * params.nx + jj].speeds[7]))
                           / local_density_vel;
 
-            double u_y = (tmp_cells[ii * params.nx + jj].speeds[2]
+            double u_y_vel = (tmp_cells[ii * params.nx + jj].speeds[2]
                           + tmp_cells[ii * params.nx + jj].speeds[5]
                           + tmp_cells[ii * params.nx + jj].speeds[6]
                           - (tmp_cells[ii * params.nx + jj].speeds[4]
@@ -328,7 +328,7 @@ double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* 
                              + tmp_cells[ii * params.nx + jj].speeds[8]))
                          / local_density_vel;
 
-            tot_u += sqrt((u_x * u_x) + (u_y * u_y));
+            tot_u += sqrt((u_x_vel * u_x_vel) + (u_y_vel * u_y_vel));
 
             ++tot_cells;
           } else {
