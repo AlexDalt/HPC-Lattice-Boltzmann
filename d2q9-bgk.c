@@ -45,6 +45,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
 ** timestep calls, in order, the functions:
 ** accelerate_flow(), propagate(), rebound() & collision()
 */
+int pointer_swap(t_speed** cells, t_speed** tmp_cells);
 int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles);
 int accelerate_flow(const t_param params, t_speed* cells, int* obstacles);
 int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles);
