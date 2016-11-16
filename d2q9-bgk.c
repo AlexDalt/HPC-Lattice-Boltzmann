@@ -114,6 +114,8 @@ int main(int argc, char* argv[])
       printf("==timestep: %d==\n", tt);
       printf("av velocity: %.12E\n", av_vels[tt]);
       printf("tot density: %.12E\n", total_density(params, cells));
+      printf("cells pointer: %d\n", cells);
+      printf("tmp_cells pointer: %d\n", tmp_cells)
   #endif
     }
 
