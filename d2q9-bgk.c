@@ -140,13 +140,13 @@ int main(int argc, char* argv[])
 }
 
 int pointer_swap(t_speed** cells, t_speed** tmp_cells){
-  printf("pointer swap - cells recieved: %d\n",*cells);
-  printf("pointer swap - tmp_cells recieved: %d\n",*tmp_cells);
+  //printf("pointer swap - cells recieved: %d\n",*cells);
+  //printf("pointer swap - tmp_cells recieved: %d\n",*tmp_cells);
   t_speed* temp = *cells;
   *cells = *tmp_cells;
   *tmp_cells = temp;
-  printf("pointer swap - cells outgoing: %d\n",*cells);
-  printf("pointer swap - tmp_cells outgoing: %d\n",*tmp_cells);
+  //printf("pointer swap - cells outgoing: %d\n",*cells);
+  //printf("pointer swap - tmp_cells outgoing: %d\n",*tmp_cells);
   return EXIT_SUCCESS;
 }
 
