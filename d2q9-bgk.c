@@ -46,9 +46,9 @@ int initialise(const char* paramfile, const char* obstaclefile,
 ** accelerate_flow(), propagate(), rebound() & collision()
 */
 int pointer_swap(t_speed** cells, t_speed** tmp_cells);
-int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles);
+double timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles);
 int accelerate_flow(const t_param params, t_speed* cells, int* obstacles);
-int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles);
+double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles);
 int write_values(const t_param params, t_speed* cells, int* obstacles, double* av_vels);
 
 /* finalise, including freeing up allocated memory */
@@ -109,9 +109,8 @@ int main(int argc, char* argv[])
   omp_set_num_threads(NUM_THREADS);
     for (int tt = 0; tt < params.maxIters; tt++)
     {
-      timestep(params, cells, tmp_cells, obstacles);
+      av_vels[tt] = timestep(params, cells, tmp_cells, obstacles);
       pointer_swap(&cells, &tmp_cells);
-      av_vels[tt] = av_velocity(params, cells, obstacles);
   #ifdef DEBUG
       printf("==timestep: %d==\n", tt);
       printf("av velocity: %.12E\n", av_vels[tt]);
@@ -148,15 +147,15 @@ int pointer_swap(t_speed** cells, t_speed** tmp_cells){
   return EXIT_SUCCESS;
 }
 
-int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles)
+double timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles)
 {
   //accelerates the second row of cells
   accelerate_flow(params, cells, obstacles);
 
   //performs the bulk of the cell calculations, writing each to tmp_cells
-  comp_func(params, cells, tmp_cells, obstacles);
+  double av_vel = comp_func(params, cells, tmp_cells, obstacles);
 
-  return EXIT_SUCCESS;
+  return av_vel;
 }
 
 int accelerate_flow(const t_param params, t_speed* cells, int* obstacles)
@@ -193,7 +192,7 @@ int accelerate_flow(const t_param params, t_speed* cells, int* obstacles)
   return EXIT_SUCCESS;
 }
 
-int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles){
+double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles){
   /* loop over _all_ cells */
   const double c_sq = 1.0 / 3.0; /* square of speed of sound */
   const double w0 = 4.0 / 9.0;  /* weighting factor */
@@ -201,7 +200,10 @@ int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
   const double w2 = 1.0 / 36.0; /* weighting factor */
   int ii,jj = 0;
 
-#pragma omp parallel for private(ii,jj) collapse(2)
+  int tot_cells = 0;
+  double tot_u = 0.0
+
+#pragma omp parallel for reduction (+:tot_u,tot_cells) private(ii,jj) collapse(2)
   for (ii = 0; ii < params.ny; ii+=STEP)
   {
     for (jj = 0; jj < params.nx; jj+=STEP)
@@ -299,13 +301,36 @@ int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
                                              + (u[8] * u[8]) / (2.0 * c_sq * c_sq)
                                              - u_sq / (2.0 * c_sq));
 
-            /* relaxation step */
+            double local_density = 0.0;
+
+            /* relaxation step and starting av_velocity */
             for (int kk = 0; kk < NSPEEDS; kk++)
             {
               tmp_cells[a * params.nx + b].speeds[kk] = tmp_cells[a * params.nx + b].speeds[kk]
                                                       + params.omega
                                                       * (d_equ[kk] - tmp_cells[a * params.nx + b].speeds[kk]);
+              local_density += tmp_cells[ii * params.nx + jj].speeds[kk];
             }
+
+            double u_x = (tmp_cells[ii * params.nx + jj].speeds[1]
+                          + tmp_cells[ii * params.nx + jj].speeds[5]
+                          + tmp_cells[ii * params.nx + jj].speeds[8]
+                          - (tmp_cells[ii * params.nx + jj].speeds[3]
+                              + tmp_cells[ii * params.nx + jj].speeds[6]
+                              + tmp_cells[ii * params.nx + jj].speeds[7]))
+                          / local_density;
+
+            double u_y = (tmp_cells[ii * params.nx + jj].speeds[2]
+                          + tmp_cells[ii * params.nx + jj].speeds[5]
+                          + tmp_cells[ii * params.nx + jj].speeds[6]
+                          - (tmp_cells[ii * params.nx + jj].speeds[4]
+                             + tmp_cells[ii * params.nx + jj].speeds[7]
+                             + tmp_cells[ii * params.nx + jj].speeds[8]))
+                         / local_density
+
+            tot_u += sqrt((u_x * u_x) + (u_y * u_y));
+
+            ++tot_cells;
           } else {
             /* called after propagate, so taking values from scratch space
             ** mirroring, and writing into main grid */
@@ -324,7 +349,7 @@ int comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
     }
   }
 
-  return EXIT_SUCCESS;
+  return tot_u / (double)tot_cells;
 }
 
 double av_velocity(const t_param params, t_speed* cells, int* obstacles)
