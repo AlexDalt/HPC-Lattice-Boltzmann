@@ -301,7 +301,7 @@ double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* 
                                              + (u[8] * u[8]) / (2.0 * c_sq * c_sq)
                                              - u_sq / (2.0 * c_sq));
 
-            double local_density = 0.0;
+            double local_density_vel = 0.0;
 
             /* relaxation step and starting av_velocity */
             for (int kk = 0; kk < NSPEEDS; kk++)
@@ -309,7 +309,7 @@ double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* 
               tmp_cells[a * params.nx + b].speeds[kk] = tmp_cells[a * params.nx + b].speeds[kk]
                                                       + params.omega
                                                       * (d_equ[kk] - tmp_cells[a * params.nx + b].speeds[kk]);
-              local_density += tmp_cells[ii * params.nx + jj].speeds[kk];
+              local_density_vel += tmp_cells[ii * params.nx + jj].speeds[kk];
             }
 
             double u_x = (tmp_cells[ii * params.nx + jj].speeds[1]
@@ -318,7 +318,7 @@ double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* 
                           - (tmp_cells[ii * params.nx + jj].speeds[3]
                               + tmp_cells[ii * params.nx + jj].speeds[6]
                               + tmp_cells[ii * params.nx + jj].speeds[7]))
-                          / local_density;
+                          / local_density_vel;
 
             double u_y = (tmp_cells[ii * params.nx + jj].speeds[2]
                           + tmp_cells[ii * params.nx + jj].speeds[5]
@@ -326,7 +326,7 @@ double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* 
                           - (tmp_cells[ii * params.nx + jj].speeds[4]
                              + tmp_cells[ii * params.nx + jj].speeds[7]
                              + tmp_cells[ii * params.nx + jj].speeds[8]))
-                         / local_density
+                         / local_density_vel;
 
             tot_u += sqrt((u_x * u_x) + (u_y * u_y));
 
