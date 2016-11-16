@@ -109,6 +109,7 @@ int main(int argc, char* argv[])
     for (int tt = 0; tt < 3; tt++)
     {
       timestep(params, cells, tmp_cells, obstacles);
+      pointer_swap(&cells, &tmp_cells);
       av_vels[tt] = av_velocity(params, cells, obstacles);
   #ifdef DEBUG
       printf("==timestep: %d==\n", tt);
@@ -157,10 +158,6 @@ int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obst
 
   //performs the bulk of the cell calculations, writing each to tmp_cells
   comp_func(params, cells, tmp_cells, obstacles);
-
-  //pointer swapping
-  pointer_swap(&cells, &tmp_cells);
-
   /*
   #pragma omp parallel for
   for(int ii = 0; ii < params.ny; ii++){
