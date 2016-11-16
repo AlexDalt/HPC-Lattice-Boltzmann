@@ -139,10 +139,14 @@ int main(int argc, char* argv[])
   return EXIT_SUCCESS;
 }
 
-int pointer_swap(t_speed*& cells, t_speed*& tmp_cells){
-  t_speed* temp = cells;
-  cells = tmp_cells;
-  tmp_cells = temp;
+int pointer_swap(t_speed** cells, t_speed** tmp_cells){
+  printf("pointer swap - cells recieved: %d",*cells);
+  printf("pointer swap - tmp_cells recieved: %d",*tmp_cells);
+  t_speed* temp = *cells;
+  *cells = *tmp_cells;
+  *tmp_cells = temp;
+  printf("pointer swap - cells outgoing: %d",*cells);
+  printf("pointer swap - tmp_cells outgoing: %d",*cells);
   return EXIT_SUCCESS;
 }
 
@@ -155,7 +159,7 @@ int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obst
   comp_func(params, cells, tmp_cells, obstacles);
 
   //pointer swapping
-  pointer_swap(cells, tmp_cells);
+  pointer_swap(&cells, &tmp_cells);
 
   return EXIT_SUCCESS;
 }
