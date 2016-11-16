@@ -153,9 +153,7 @@ double timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* o
   accelerate_flow(params, cells, obstacles);
 
   //performs the bulk of the cell calculations, writing each to tmp_cells
-  double av_vel = comp_func(params, cells, tmp_cells, obstacles);
-
-  return av_vel;
+  return comp_func(params, cells, tmp_cells, obstacles);
 }
 
 int accelerate_flow(const t_param params, t_speed* cells, int* obstacles)
@@ -203,7 +201,7 @@ double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* 
   int tot_cells = 0;
   double tot_u = 0.0;
 
-#pragma omp parallel for reduction (+:tot_u,tot_cells) private(ii,jj) collapse(2)
+#pragma omp parallel for reduction(+:tot_u, tot_cells) private(ii,jj) collapse(2)
   for (ii = 0; ii < params.ny; ii+=STEP)
   {
     for (jj = 0; jj < params.nx; jj+=STEP)
@@ -301,36 +299,17 @@ double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* 
                                              + (u[8] * u[8]) / (2.0 * c_sq * c_sq)
                                              - u_sq / (2.0 * c_sq));
 
-            double local_density_vel = 0.0;
-
-            /* relaxation step and starting av_velocity */
+            /* relaxation step */
             for (int kk = 0; kk < NSPEEDS; kk++)
             {
               tmp_cells[a * params.nx + b].speeds[kk] = tmp_cells[a * params.nx + b].speeds[kk]
                                                       + params.omega
                                                       * (d_equ[kk] - tmp_cells[a * params.nx + b].speeds[kk]);
-              local_density_vel += tmp_cells[ii * params.nx + jj].speeds[kk];
             }
 
-            double u_x_vel = (tmp_cells[ii * params.nx + jj].speeds[1]
-                          + tmp_cells[ii * params.nx + jj].speeds[5]
-                          + tmp_cells[ii * params.nx + jj].speeds[8]
-                          - (tmp_cells[ii * params.nx + jj].speeds[3]
-                              + tmp_cells[ii * params.nx + jj].speeds[6]
-                              + tmp_cells[ii * params.nx + jj].speeds[7]))
-                          / local_density_vel;
-
-            double u_y_vel = (tmp_cells[ii * params.nx + jj].speeds[2]
-                          + tmp_cells[ii * params.nx + jj].speeds[5]
-                          + tmp_cells[ii * params.nx + jj].speeds[6]
-                          - (tmp_cells[ii * params.nx + jj].speeds[4]
-                             + tmp_cells[ii * params.nx + jj].speeds[7]
-                             + tmp_cells[ii * params.nx + jj].speeds[8]))
-                         / local_density_vel;
-
-            tot_u += sqrt((u_x_vel * u_x_vel) + (u_y_vel * u_y_vel));
-
+            tot_u += sqrt(u_sq);
             ++tot_cells;
+
           } else {
             /* called after propagate, so taking values from scratch space
             ** mirroring, and writing into main grid */
@@ -349,7 +328,7 @@ double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* 
     }
   }
 
-  return tot_u / (double)tot_cells;
+  return tot_u/(double)tot_cells;
 }
 
 double av_velocity(const t_param params, t_speed* cells, int* obstacles)
