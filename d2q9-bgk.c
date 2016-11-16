@@ -146,7 +146,7 @@ int pointer_swap(t_speed** cells, t_speed** tmp_cells){
   *cells = *tmp_cells;
   *tmp_cells = temp;
   printf("pointer swap - cells outgoing: %d\n",*cells);
-  printf("pointer swap - tmp_cells outgoing: %d\n",*cells);
+  printf("pointer swap - tmp_cells outgoing: %d\n",*tmp_cells);
   return EXIT_SUCCESS;
 }
 
