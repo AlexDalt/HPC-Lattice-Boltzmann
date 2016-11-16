@@ -146,9 +146,9 @@ int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obst
   comp_func(params, cells, tmp_cells, obstacles);
 
   //pointer swapping
-  t_speed* temp = *cells;
-  cells* = *tmp_cells;
-  tmp_cells* = temp;
+  t_speed* temp = **cells;
+  *cells = **tmp_cells;
+  *tmp_cells = temp;
 
   return EXIT_SUCCESS;
 }
