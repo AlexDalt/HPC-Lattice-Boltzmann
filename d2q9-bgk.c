@@ -163,7 +163,7 @@ int main(int argc, char* argv[])
         MPI_COMM_WORLD, &status);
 
       // send to bottom, receive from top
-      MPI_Sendrecv(&(local_cells[local_nrows * params.nx]), params.nx, MPI_t_speed, top, tag,
+      MPI_Sendrecv(&(local_cells[local_nrows * params.nx]), params.nx, MPI_t_speed, bottom, tag,
         &(local_cells[0]), params.nx, MPI_t_speed, top, tag,
         MPI_COMM_WORLD, &status);
 
