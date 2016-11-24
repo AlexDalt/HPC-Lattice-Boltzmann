@@ -190,7 +190,7 @@ int main(int argc, char* argv[])
       }
 
       // do mpi reduce over local_av_vels
-      pointer_swap(&cells, &tmp_cells);
+      pointer_swap(&local_cells, &tmp_cells);
     }
 
   MPI_Gather(local_cells[local_ncols], message_length, MPI_t_speed,
@@ -213,8 +213,8 @@ int main(int argc, char* argv[])
     printf("Elapsed user CPU time:\t\t%.6lf (s)\n", usrtim);
     printf("Elapsed system CPU time:\t%.6lf (s)\n", systim);
     write_values(params, global_cells, obstacles, av_vels);
+    finalise(&params, &global_cells, &tmp_cells, &obstacles, &av_vels);
   }
-  finalise(&params, &global_cells, &tmp_cells, &obstacles, &av_vels);
   free(&sendbuf);
   free(&recvbuf);
   free(&local_cells);
