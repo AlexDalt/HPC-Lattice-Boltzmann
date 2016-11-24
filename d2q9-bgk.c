@@ -288,7 +288,7 @@ double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* 
 
   double tot_u = 0.0;
 
-#pragma omp parallel for reduction(+:tot_u, tot_cells) private(ii,jj) collapse(2)
+#pragma omp parallel for reduction(+:tot_u) private(ii,jj) collapse(2)
   for (ii = 1; ii < (local_nrows+1); ii+=STEP)
   {
     for (jj = 0; jj < local_ncols; jj+=STEP)
@@ -548,7 +548,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
   /* main grid */
   *global_cells_ptr = (t_speed*)malloc(sizeof(t_speed) * (params->ny * params->nx));
 
-  if (*cells_ptr == NULL) die("cannot allocate memory for cells", __LINE__, __FILE__);
+  if (*global_cells_ptr == NULL) die("cannot allocate memory for cells", __LINE__, __FILE__);
 
   /* local grid of cells */
   *local_cells_ptr = (t_speed*)malloc(sizeof(t_speed) * (calc_nrows(params->ny,size)+2)
