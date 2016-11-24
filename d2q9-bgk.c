@@ -12,6 +12,7 @@
 #define AVVELSFILE      "av_vels.dat"
 #define STEP            4
 #define NUM_THREADS     8
+#define MASTER          0
 
 
 /* struct to hold the parameter values */
@@ -41,6 +42,8 @@ int initialise(const char* paramfile, const char* obstaclefile,
                t_param* params, t_speed** local_cells_ptr, t_speed** tmp_cells_ptr,
                int** obstacles_ptr, int** global_obstacles_ptr, double** av_vels_ptr,
                int size, int rank);
+
+int nrows(int ny, int size);
 
 /*
 ** The main calculation methods.
@@ -101,6 +104,9 @@ int main(int argc, char* argv[])
   int bottom;
   int tag = 0;
   double local_total_vel;
+  double global_total_vel = 0;
+  MPI_Status status;
+  int nrows;
 
   // initialise mpi
   MPI_Init_thread(&argc, &argv, required, &provided);
@@ -154,11 +160,13 @@ int main(int argc, char* argv[])
       // halo exchange
       // send to top, receive from bottom
       MPI_Sendrecv(&local_cells[params.nx], params.nx, MPI_t_speed, top, tag,
-        &local_cells[(nrows+1) * params.nx], params.nx, MPI_t_speed, bottom, tag);
+        &local_cells[(nrows+1) * params.nx], params.nx, MPI_t_speed, bottom, tag,
+        MPI_COMM_WORLD, &status);
 
       // send to bottom, receive from top
       MPI_Sendrecv(&local_cells[nrows * params.nx], params.nx, MPI_t_speed, top, tag,
-        &local_cells[0], params.nx, MPI_t_speed, top, tag);
+        &local_cells[0], params.nx, MPI_t_speed, top, tag,
+        MPI_COMM_WORLD, &status);
 
       // bulk of computation
       local_total_vel = comp_func(params, local_cells, tmp_cells, obstacles, nrows);
@@ -203,7 +211,7 @@ int main(int argc, char* argv[])
     printf("Elapsed time:\t\t\t%.6lf (s)\n", toc - tic);
     printf("Elapsed user CPU time:\t\t%.6lf (s)\n", usrtim);
     printf("Elapsed system CPU time:\t%.6lf (s)\n", systim);
-    write_values(params, cells, obstacles, av_vels);
+    write_values(params, globab_cells, global_obstacles, av_vels);
     free(global_cells);
   }
   finalise(&params, &local_cells, &tmp_cells, &obstacles, &av_vels);
@@ -372,7 +380,6 @@ double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* 
 
             //av_velocity steps
             tot_u += sqrt(u_sq);
-            ++tot_cells;
 
           } else {
             /* called after propagate, so taking values from scratch space
