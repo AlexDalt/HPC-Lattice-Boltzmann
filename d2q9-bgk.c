@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
   MPI_Status status;
 
   // starting MPI
-  MPI_Init_thread( &argc, &argv, required, provided);
+  MPI_Init_thread( &argc, &argv, required, &provided);
   MPI_Comm_size( MPI_COMM_WORLD, &size );
   MPI_Comm_rank( MPI_COMM_WORLD, &rank );
 
