@@ -168,7 +168,6 @@ int main(int argc, char* argv[])
         int row = (params.ny-2) % local_nrows;
         accelerate_flow(params, local_cells, obstacles, row);
       }
-      printf("rank: %d accelerated\n",rank);
 
       // halo exchange
       // send to top, receive from bottom
@@ -176,14 +175,12 @@ int main(int argc, char* argv[])
         &(local_cells[(local_nrows+1) * params.nx]), params.nx, MPI_t_speed, bottom, tag,
         MPI_COMM_WORLD, &status);
 
-      printf("rank: %d sent to top, recieved from bottom\n",rank);
 
       // send to bottom, receive from top
       MPI_Sendrecv(&(local_cells[local_nrows * params.nx]), params.nx, MPI_t_speed, bottom, tag,
         &(local_cells[0]), params.nx, MPI_t_speed, top, tag,
         MPI_COMM_WORLD, &status);
 
-      printf("rank: %d sent to bottom, recieved from top\n",rank);
 
       // bulk of computation
       local_total_vel = comp_func(params, local_cells, tmp_cells, obstacles, local_nrows);
@@ -488,7 +485,6 @@ int initialise(const char* paramfile, const char* obstaclefile,
   int    blocked;        /* indicates whether a cell is blocked by an obstacle */
   int    retval;         /* to hold return value for checking */
   
-  printf("rank: %d initialised called\n",rank);
 
   /* open the parameter file */
   fp = fopen(paramfile, "r");
@@ -531,7 +527,6 @@ int initialise(const char* paramfile, const char* obstaclefile,
   /* and close up the file */
   fclose(fp);
 
-  printf("rank: %d file closed\n",rank);
 
   /*
   ** Allocate memory.
@@ -553,25 +548,21 @@ int initialise(const char* paramfile, const char* obstaclefile,
   */
 
   int nrows = calc_nrows(params->ny, size);
-  printf("rank: %d nrows calculated\n",rank);
 
   /* main grid */
   *local_cells_ptr = (t_speed*)malloc(sizeof(t_speed) * (nrows + 2) * params->nx);
 
   if (*local_cells_ptr == NULL) die("cannot allocate memory for local cells", __LINE__, __FILE__);
-  printf("rank: %d local cells grid malloc'd\n",rank);
 
   /* 'helper' grid, used as scratch space */
   *tmp_cells_ptr = (t_speed*)malloc(sizeof(t_speed) * (nrows + 2) * params->nx);
 
   if (*tmp_cells_ptr == NULL) die("cannot allocate memory for tmp_cells", __LINE__, __FILE__);
-  printf("rank: %d tmp cells grid malloc'd\n",rank);
 
   /* the map of obstacles */
   *obstacles_ptr = malloc(sizeof(int) * (nrows + 2) * params->nx);
 
   if (*obstacles_ptr == NULL) die("cannot allocate column memory for obstacles", __LINE__, __FILE__);
-  printf("rank: %d obstacles cells grid malloc'd\n",rank);
 
   *global_obstacles_ptr = malloc(sizeof(int) * params->ny * params->nx);
 
