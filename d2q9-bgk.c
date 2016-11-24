@@ -122,7 +122,8 @@ int main(int argc, char* argv[])
 
   block_lengths[0] = NSPEEDS;
   typelist[0] = MPI_FLOAT;
-  MPI_Type_struct(1, block_lengths, 0, typelist, &MPI_t_speed);
+  displacements[0] = 0;
+  MPI_Type_struct(1, block_lengths, displacements, typelist, &MPI_t_speed);
   MPI_Type_commit(&MPI_t_speed);
 
   /* parse the command line */
