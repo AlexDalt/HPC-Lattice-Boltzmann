@@ -193,7 +193,7 @@ int main(int argc, char* argv[])
       pointer_swap(&local_cells, &tmp_cells);
     }
 
-  MPI_Gather(local_cells[local_ncols], message_length, MPI_t_speed,
+  MPI_Gather(&local_cells[local_ncols], message_length, MPI_t_speed,
               global_cells, message_length, MPI_t_speed,
               MASTER, MPI_COMM_WORLD);
 
@@ -208,7 +208,7 @@ int main(int argc, char* argv[])
   /* write final values and free memory */
   if(rank == MASTER){
     printf("==done==\n");
-    printf("Reynolds number:\t\t%.12E\n", calc_reynolds(params, cells, obstacles));
+    printf("Reynolds number:\t\t%.12E\n", calc_reynolds(params, global_cells, obstacles));
     printf("Elapsed time:\t\t\t%.6lf (s)\n", toc - tic);
     printf("Elapsed user CPU time:\t\t%.6lf (s)\n", usrtim);
     printf("Elapsed system CPU time:\t%.6lf (s)\n", systim);
