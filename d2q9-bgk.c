@@ -99,6 +99,8 @@ int main(int argc, char* argv[])
   // mpi values
   int rank;
   int size;
+  int required=MPI_THREAD_FUNNELED;
+  int provided;
   int message_length;
   int local_nrows, local_ncols;
   double local_av_vel;
@@ -110,7 +112,7 @@ int main(int argc, char* argv[])
   MPI_Status status;
 
   // starting MPI
-  MPI_Init( &argc, &argv );
+  MPI_Init_thread( &argc, &argv, required, provided);
   MPI_Comm_size( MPI_COMM_WORLD, &size );
   MPI_Comm_rank( MPI_COMM_WORLD, &rank );
 
