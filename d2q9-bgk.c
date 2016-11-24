@@ -107,6 +107,7 @@ int main(int argc, char* argv[])
   t_speed* recvbuf;
   int top, bottom;
   int tag = 0;
+  MPI_Status status;
 
   // starting MPI
   MPI_Init( &argc, &argv );
