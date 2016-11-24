@@ -112,6 +112,8 @@ int main(int argc, char* argv[])
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
+  printf("rank: %d mpi intialised\n",rank);
+
   // define a type to send with mpi
   int block_lengths[1];
   MPI_Aint displacements[1];
@@ -124,6 +126,8 @@ int main(int argc, char* argv[])
 
   MPI_Type_create_struct(1, block_lengths, displacements, typelist, &MPI_t_speed);
   MPI_Type_commit(&MPI_t_speed);
+
+  printf("rank: %d data structure created\n",rank);
 
   /* parse the command line */
   if (argc != 3)
@@ -143,6 +147,8 @@ int main(int argc, char* argv[])
   top = (rank + 1) % size;
   bottom = (rank == MASTER) ? (rank + size - 1) : (rank - 1);
 
+  printf("rank: %d main stuff initialised\n",rank);
+
   /* iterate for maxIters timesteps */
   gettimeofday(&timstr, NULL);
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
@@ -155,6 +161,7 @@ int main(int argc, char* argv[])
         int row = (params.ny-2) % local_nrows;
         accelerate_flow(params, local_cells, obstacles, row);
       }
+      printf("rank: %d accelerated\n",rank);
 
       // halo exchange
       // send to top, receive from bottom
@@ -162,10 +169,14 @@ int main(int argc, char* argv[])
         &(local_cells[(local_nrows+1) * params.nx]), params.nx, MPI_t_speed, bottom, tag,
         MPI_COMM_WORLD, &status);
 
+      printf("rank: %d sent to top, recieved from bottom\n",rank);
+
       // send to bottom, receive from top
       MPI_Sendrecv(&(local_cells[local_nrows * params.nx]), params.nx, MPI_t_speed, bottom, tag,
         &(local_cells[0]), params.nx, MPI_t_speed, top, tag,
         MPI_COMM_WORLD, &status);
+
+      printf("rank: %d sent to bottom, recieved from top\n",rank);
 
       // bulk of computation
       local_total_vel = comp_func(params, local_cells, tmp_cells, obstacles, local_nrows);
