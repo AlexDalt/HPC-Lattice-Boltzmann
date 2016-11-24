@@ -144,7 +144,7 @@ int main(int argc, char* argv[])
   // scatter global_cells into local cells
   message_length = local_ncols * local_nrows;
   MPI_Scatter(global_cells, message_length, MPI_t_speed,
-              local_cells[params.nx], message_length, MPI_t_speed,
+              &local_cells[params.nx], message_length, MPI_t_speed,
               MASTER, MPI_COMM_WORLD);
 
   /* iterate for maxIters timesteps */
