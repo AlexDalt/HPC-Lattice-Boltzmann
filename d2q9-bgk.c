@@ -235,7 +235,7 @@ double timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* o
 {
   //accelerates the second row of cells
   if((local_nrows * (rank-1)) <= (params.ny - 2) && (local_nrows * rank) < (params.ny - 2)){
-    int row = (params.ny - 2) - (local_nrows * (rank-1))
+    int row = (params.ny - 2) - (local_nrows * (rank-1));
     accelerate_flow(params, cells, obstacles, row);
   }
 
