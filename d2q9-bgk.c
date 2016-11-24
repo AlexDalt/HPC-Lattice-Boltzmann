@@ -12,6 +12,7 @@
 #define AVVELSFILE      "av_vels.dat"
 #define STEP            4
 #define NUM_THREADS     8
+#define MASTER          0
 
 
 /* struct to hold the parameter values */
