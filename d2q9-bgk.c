@@ -112,8 +112,9 @@ int main(int argc, char* argv[])
   MPI_Comm_rank( MPI_COMM_WORLD, &rank );
 
   // defining mpi datatype eqivalent to t_speed, MPI_t_speed
-  MPI_Type_struct(1, NSPEEDS, 0, MPI_FLOAT, &MPI_t_speeds);
-  MPI_Type_commit(&MPI_t_speeds);
+  MPI_Datatype MPI_t_speed;
+  MPI_Type_struct(1, NSPEEDS, 0, MPI_FLOAT, &MPI_t_speed);
+  MPI_Type_commit(&MPI_t_speed);
 
   /* parse the command line */
   if (argc != 3)
@@ -138,8 +139,8 @@ int main(int argc, char* argv[])
 
   // scatter global_cells into local cells
   message_length = local_ncols * local_nrows;
-  MPI_Scatter(global_cells, message_length, MPI_t_speeds,
-              local_cells[params.nx], message_length, MPI_t_speeds,
+  MPI_Scatter(global_cells, message_length, MPI_t_speed,
+              local_cells[params.nx], message_length, MPI_t_speed,
               MASTER, MPI_COMM_WORLD);
 
   /* iterate for maxIters timesteps */
@@ -155,8 +156,8 @@ int main(int argc, char* argv[])
       for(jj = 0; jj < local_ncols; jj++){
         sendbuf[jj] = local_cells[params.nx + jj];
       }
-      MPI_Sendrecv(sendbuf, local_ncols, MPI_t_speeds, bottom, tag,
-        recvbuf, local_ncols, MPI_t_speeds, top, tag,
+      MPI_Sendrecv(sendbuf, local_ncols, MPI_t_speed, bottom, tag,
+        recvbuf, local_ncols, MPI_t_speed, top, tag,
         MPI_COMM_WORLD, &status);
       for(jj = 0; jj < local_ncols; jj++){
         local_cells[(local_nrows + 1) * params.nx + jj] = recvbuf[jj];
@@ -165,8 +166,8 @@ int main(int argc, char* argv[])
       for(jj = 0; jj < local_ncols; jj++){
         sendbuf[jj] = local_cells[(local_nrows + 1) * params.nx + jj];
       }
-      MPI_Sendrecv(sendbuf, local_ncols, MPI_t_speeds, top, tag,
-        recvbuf, local_ncols, MPI_t_speeds, bottom, tag,
+      MPI_Sendrecv(sendbuf, local_ncols, MPI_t_speed, top, tag,
+        recvbuf, local_ncols, MPI_t_speed, bottom, tag,
         MPI_COMM_WORLD, &status);
       for(jj = 0; jj < local_ncols; jj++){
         local_cells[params.nx + jj] = recvbuf[jj];
@@ -187,8 +188,8 @@ int main(int argc, char* argv[])
       pointer_swap(&cells, &tmp_cells);
     }
 
-  MPI_Gather(local_cells[local_ncols], message_length, MPI_t_speeds,
-              global_cells, message_length, MPI_t_speeds,
+  MPI_Gather(local_cells[local_ncols], message_length, MPI_t_speed,
+              global_cells, message_length, MPI_t_speed,
               MASTER, MPI_COMM_WORLD);
 
   gettimeofday(&timstr, NULL);
