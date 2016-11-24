@@ -102,7 +102,8 @@ int main(int argc, char* argv[])
   int local_nrows, local_ncols;
   double local_av_vel;
   double total_av_vel;
-  t_speed* sendbuf, recvbuf;
+  t_speed* sendbuf;
+  t_speed* recvbuf;
   int top, bottom;
   int tag = 0;
 
