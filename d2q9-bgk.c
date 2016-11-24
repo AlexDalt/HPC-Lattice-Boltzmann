@@ -43,7 +43,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
                int** obstacles_ptr, int** global_obstacles_ptr, double** av_vels_ptr,
                int size, int rank);
 
-int nrows(int ny, int size);
+int calc_nrows(int ny, int size);
 
 /*
 ** The main calculation methods.
@@ -106,7 +106,6 @@ int main(int argc, char* argv[])
   double local_total_vel;
   double global_total_vel = 0;
   MPI_Status status;
-  int nrows;
 
   // initialise mpi
   MPI_Init_thread(&argc, &argv, required, &provided);
@@ -140,7 +139,7 @@ int main(int argc, char* argv[])
   /* initialise our data structures and load values from file */
   initialise(paramfile, obstaclefile, &params, &local_cells,
     &tmp_cells, &obstacles, &global_obstacles, &av_vels, size, rank);
-  nrows = nrows(params.ny, size);
+  local_nrows = calc_nrows(params.ny, size);
   top = (rank + 1) % size;
   bottom = (rank == MASTER) ? (rank + size - 1) : (rank - 1);
 
@@ -152,24 +151,24 @@ int main(int argc, char* argv[])
     for (int tt = 0; tt < params.maxIters; tt++)
     {
       // accelerates if required
-      if(rank*nrows <= params.ny-2 && (rank+1)*nrows > params.ny-2){
-        int row = (params.ny-2) % nrows;
+      if(rank*local_nrows <= params.ny-2 && (rank+1)*local_nrows > params.ny-2){
+        int row = (params.ny-2) % local_nrows;
         accelerate_flow(params, local_cells, obstacles, row);
       }
 
       // halo exchange
       // send to top, receive from bottom
       MPI_Sendrecv(&local_cells[params.nx], params.nx, MPI_t_speed, top, tag,
-        &local_cells[(nrows+1) * params.nx], params.nx, MPI_t_speed, bottom, tag,
+        &local_cells[(local_nrows+1) * params.nx], params.nx, MPI_t_speed, bottom, tag,
         MPI_COMM_WORLD, &status);
 
       // send to bottom, receive from top
-      MPI_Sendrecv(&local_cells[nrows * params.nx], params.nx, MPI_t_speed, top, tag,
+      MPI_Sendrecv(&local_cells[local_nrows * params.nx], params.nx, MPI_t_speed, top, tag,
         &local_cells[0], params.nx, MPI_t_speed, top, tag,
         MPI_COMM_WORLD, &status);
 
       // bulk of computation
-      local_total_vel = comp_func(params, local_cells, tmp_cells, obstacles, nrows);
+      local_total_vel = comp_func(params, local_cells, tmp_cells, obstacles, local_nrows);
 
       // reduce all totals together and divide by number of cells
       MPI_Reduce(&local_total_vel, &global_total_vel, 1, MPI_DOUBLE, MPI_SUM, MASTER, MPI_COMM_WORLD);
@@ -200,8 +199,8 @@ int main(int argc, char* argv[])
     global_cells = (t_speed*)malloc(sizeof(t_speed) * params.nx * params.ny);
   }
 
-  MPI_Gather(&local_cells[params.nx], params.nx * nrows, MPI_t_speed,
-    global_cells, params.nx * nrows, MPI_t_speed,
+  MPI_Gather(&local_cells[params.nx], params.nx * local_nrows, MPI_t_speed,
+    global_cells, params.nx * local_nrows, MPI_t_speed,
     MASTER, MPI_COMM_WORLD);
 
   /* write final values and free memory */
@@ -402,7 +401,7 @@ double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* 
   return tot_u;
 }
 
-int nrows(int ny, int size){
+int calc_nrows(int ny, int size){
   return ny/size;
 }
 
@@ -530,7 +529,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
   ** a 1D array of these structs.
   */
 
-  int nrows = nrows(params->ny, size);
+  int nrows = calc_nrows(params->ny, size);
   /* main grid */
   *local_cells_ptr = (t_speed*)malloc(sizeof(t_speed) * (nrows + 2) * params->nx);
 
