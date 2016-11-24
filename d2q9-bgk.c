@@ -38,7 +38,7 @@ typedef struct
 
 /* load params, allocate memory, load obstacles & initialise fluid particle densities */
 int initialise(const char* paramfile, const char* obstaclefile,
-               t_param* params, t_speed** global_cells_ptr, t_speed** local_cells_ptr,
+               t_param* params, t_speed**, global_cells_ptr, t_speed** local_cells_ptr,
                t_speed** tmp_cells_ptr, int** obstacles_ptr, double** av_vels_ptr, int size);
 
 int calc_nrows(int ny, int size);
@@ -114,7 +114,8 @@ int main(int argc, char* argv[])
   // defining mpi datatype eqivalent to t_speed, MPI_t_speed
   MPI_Datatype MPI_t_speed;
   const int blocklengths = NSPEEDS;
-  MPI_Type_struct(1, &blocklengths, 0, MPI_FLOAT, &MPI_t_speed);
+  MPI_Datatype typelist = MPI_FLOAT;
+  MPI_Type_struct(1, &blocklengths, 0, &typelist, &MPI_t_speed);
   MPI_Type_commit(&MPI_t_speed);
 
   /* parse the command line */
@@ -129,7 +130,7 @@ int main(int argc, char* argv[])
   }
 
   /* initialise our data structures and load values from file */
-  initialise(paramfile, obstaclefile, &params, &global_cells, &local_cells &tmp_cells,
+  initialise(paramfile, obstaclefile, &params, &global_cells, &local_cells, &tmp_cells,
               &obstacles, &av_vels, size);
   local_ncols = params.nx;
   local_nrows = calc_nrows(params.ny, size);
@@ -472,7 +473,7 @@ double av_velocity(const t_param params, t_speed* cells, int* obstacles)
 }
 
 int initialise((const char* paramfile, const char* obstaclefile,
-               t_param* params, t_speed** global_cells_ptr, t_speed** local_cells_ptr,
+               t_param* params, t_speed**, global_cells_ptr, t_speed** local_cells_ptr,
                t_speed** tmp_cells_ptr, int** obstacles_ptr, double** av_vels_ptr, int size))
 {
   char   message[1024];  /* message buffer */
