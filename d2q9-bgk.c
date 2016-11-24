@@ -475,9 +475,9 @@ double av_velocity(const t_param params, t_speed* cells, int* obstacles)
   return tot_u / (double)tot_cells;
 }
 
-int initialise((const char* paramfile, const char* obstaclefile,
+int initialise(const char* paramfile, const char* obstaclefile,
                t_param* params, t_speed** global_cells_ptr, t_speed** local_cells_ptr,
-               t_speed** tmp_cells_ptr, int** obstacles_ptr, double** av_vels_ptr, int size))
+               t_speed** tmp_cells_ptr, int** obstacles_ptr, double** av_vels_ptr, int size)
 {
   char   message[1024];  /* message buffer */
   FILE*   fp;            /* file pointer */
