@@ -38,7 +38,7 @@ typedef struct
 
 /* load params, allocate memory, load obstacles & initialise fluid particle densities */
 int initialise(const char* paramfile, const char* obstaclefile,
-               t_param* params, t_speed**, global_cells_ptr, t_speed** local_cells_ptr,
+               t_param* params, t_speed** global_cells_ptr, t_speed** local_cells_ptr,
                t_speed** tmp_cells_ptr, int** obstacles_ptr, double** av_vels_ptr, int size);
 
 int calc_nrows(int ny, int size);
@@ -473,7 +473,7 @@ double av_velocity(const t_param params, t_speed* cells, int* obstacles)
 }
 
 int initialise((const char* paramfile, const char* obstaclefile,
-               t_param* params, t_speed**, global_cells_ptr, t_speed** local_cells_ptr,
+               t_param* params, t_speed** global_cells_ptr, t_speed** local_cells_ptr,
                t_speed** tmp_cells_ptr, int** obstacles_ptr, double** av_vels_ptr, int size))
 {
   char   message[1024];  /* message buffer */
