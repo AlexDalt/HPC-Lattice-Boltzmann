@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
   MPI_Comm_rank( MPI_COMM_WORLD, &rank );
 
   // defining mpi datatype eqivalent to t_speed, MPI_t_speed
-  int block_length[1];
+  int block_lengths[1];
   MPI_Aint displacements[1];
   MPI_Datatype typelist[1];
   MPI_Datatype MPI_t_speed;
