@@ -120,9 +120,9 @@ int main(int argc, char* argv[])
   MPI_Datatype typelist[1];
   MPI_Datatype MPI_t_speed;
 
-  blocklengths[0] = NSPEEDS;
+  block_lengths[0] = NSPEEDS;
   typelist[0] = MPI_FLOAT;
-  MPI_Type_struct(1, blocklengths, 0, typelist, &MPI_t_speed);
+  MPI_Type_struct(1, block_lengths, 0, typelist, &MPI_t_speed);
   MPI_Type_commit(&MPI_t_speed);
 
   /* parse the command line */
