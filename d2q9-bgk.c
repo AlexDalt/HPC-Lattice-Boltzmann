@@ -115,10 +115,14 @@ int main(int argc, char* argv[])
   MPI_Comm_rank( MPI_COMM_WORLD, &rank );
 
   // defining mpi datatype eqivalent to t_speed, MPI_t_speed
+  int block_length[1];
+  MPI_Aint displacements[1];
+  MPI_Datatype typelist[1];
   MPI_Datatype MPI_t_speed;
-  const int blocklengths = NSPEEDS;
-  MPI_Datatype typelist = MPI_FLOAT;
-  MPI_Type_struct(1, &blocklengths, 0, &typelist, &MPI_t_speed);
+
+  blocklengths[0] = NSPEEDS;
+  typelist[0] = MPI_FLOAT;
+  MPI_Type_struct(1, blocklengths, 0, typelist, &MPI_t_speed);
   MPI_Type_commit(&MPI_t_speed);
 
   /* parse the command line */
