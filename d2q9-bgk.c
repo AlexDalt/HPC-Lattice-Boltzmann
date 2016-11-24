@@ -158,13 +158,13 @@ int main(int argc, char* argv[])
 
       // halo exchange
       // send to top, receive from bottom
-      MPI_Sendrecv(&local_cells[params.nx], params.nx, MPI_t_speed, top, tag,
-        &local_cells[(local_nrows+1) * params.nx], params.nx, MPI_t_speed, bottom, tag,
+      MPI_Sendrecv(&(local_cells[params.nx]), params.nx, MPI_t_speed, top, tag,
+        &(local_cells[(local_nrows+1) * params.nx]), params.nx, MPI_t_speed, bottom, tag,
         MPI_COMM_WORLD, &status);
 
       // send to bottom, receive from top
-      MPI_Sendrecv(&local_cells[local_nrows * params.nx], params.nx, MPI_t_speed, top, tag,
-        &local_cells[0], params.nx, MPI_t_speed, top, tag,
+      MPI_Sendrecv(&(local_cells[local_nrows * params.nx]), params.nx, MPI_t_speed, top, tag,
+        &(local_cells[0]), params.nx, MPI_t_speed, top, tag,
         MPI_COMM_WORLD, &status);
 
       // bulk of computation
@@ -199,7 +199,7 @@ int main(int argc, char* argv[])
     global_cells = (t_speed*)malloc(sizeof(t_speed) * params.nx * params.ny);
   }
 
-  MPI_Gather(&local_cells[params.nx], params.nx * local_nrows, MPI_t_speed,
+  MPI_Gather(&(local_cells[params.nx]), params.nx * local_nrows, MPI_t_speed,
     global_cells, params.nx * local_nrows, MPI_t_speed,
     MASTER, MPI_COMM_WORLD);
 
