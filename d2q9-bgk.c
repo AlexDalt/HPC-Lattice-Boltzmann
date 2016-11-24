@@ -594,6 +594,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
     for (int jj = 0; jj < params->nx; jj++)
     {
       (*obstacles_ptr)[ii * params->nx + jj] = 0;
+      (*global_obstacles)[ii * params->nx + jj] = 0;
     }
   }
 
