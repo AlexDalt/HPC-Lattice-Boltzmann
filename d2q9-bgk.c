@@ -113,7 +113,8 @@ int main(int argc, char* argv[])
 
   // defining mpi datatype eqivalent to t_speed, MPI_t_speed
   MPI_Datatype MPI_t_speed;
-  MPI_Type_struct(1, NSPEEDS, 0, MPI_FLOAT, &MPI_t_speed);
+  const int blocklengths = NSPEEDS;
+  MPI_Type_struct(1, &blocklengths, 0, MPI_FLOAT, &MPI_t_speed);
   MPI_Type_commit(&MPI_t_speed);
 
   /* parse the command line */
