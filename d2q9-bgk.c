@@ -220,9 +220,9 @@ int main(int argc, char* argv[])
     write_values(params, global_cells, obstacles, av_vels);
     finalise(&params, &global_cells, &tmp_cells, &obstacles, &av_vels);
   }
-  free(&sendbuf);
-  free(&recvbuf);
-  free(&local_cells);
+  free(sendbuf);
+  free(recvbuf);
+  free(local_cells);
 
   MPI_Finalize();
   return EXIT_SUCCESS;
