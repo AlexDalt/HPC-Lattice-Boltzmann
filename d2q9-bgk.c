@@ -5,12 +5,13 @@
 #include<sys/time.h>
 #include<sys/resource.h>
 #include <omp.h>
+#include "mpi.h"
 
 #define NSPEEDS         9
 #define FINALSTATEFILE  "final_state.dat"
 #define AVVELSFILE      "av_vels.dat"
 #define STEP            4
-#define NUM_THREADS     16
+#define NUM_THREADS     8
 
 
 /* struct to hold the parameter values */
@@ -37,8 +38,10 @@ typedef struct
 
 /* load params, allocate memory, load obstacles & initialise fluid particle densities */
 int initialise(const char* paramfile, const char* obstaclefile,
-               t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr,
-               int** obstacles_ptr, double** av_vels_ptr);
+               t_param* params, t_speed** global_cells_ptr, t_speed** local_cells_ptr,
+               t_speed** tmp_cells_ptr, int** obstacles_ptr, double** av_vels_ptr, int size);
+
+int calc_nrows(int ny, int size);
 
 /*
 ** The main calculation methods.
@@ -78,7 +81,8 @@ int main(int argc, char* argv[])
   char*    paramfile = NULL;    /* name of the input parameter file */
   char*    obstaclefile = NULL; /* name of a the input obstacle file */
   t_param  params;              /* struct to hold parameter values */
-  t_speed* cells     = NULL;    /* grid containing fluid densities */
+  t_speed* global_cells = NULL;    /* grid containing fluid densities */
+  t_speed* local_cells = NULL;
   t_speed* tmp_cells = NULL;    /* scratch space */
   int*     obstacles = NULL;    /* grid indicating which cells are blocked */
   double* av_vels   = NULL;     /* a record of the av. velocity computed for each timestep */
@@ -87,6 +91,21 @@ int main(int argc, char* argv[])
   double tic, toc;              /* floating point numbers to calculate elapsed wallclock time */
   double usrtim;                /* floating point number to record elapsed user CPU time */
   double systim;                /* floating point number to record elapsed system CPU time */
+
+  // mpi values
+  int rank;
+  int size;
+  int message_length;
+  int local_nrows, local_ncols;
+
+  // starting MPI
+  MPI_Init( &argc, &argv );
+  MPI_Comm_size( MPI_COMM_WORLD, &size );
+  MPI_Comm_rank( MPI_COMM_WORLD, &rank );
+
+  // defining mpi datatype eqivalent to t_speed, MPI_t_speed
+  MPI_Type_struct(1, NSPEEDS, 0, MPI_FLOAT, &MPI_t_speeds);
+  MPI_Type_commit(&MPI_t_speeds);
 
   /* parse the command line */
   if (argc != 3)
@@ -100,7 +119,16 @@ int main(int argc, char* argv[])
   }
 
   /* initialise our data structures and load values from file */
-  initialise(paramfile, obstaclefile, &params, &cells, &tmp_cells, &obstacles, &av_vels);
+  initialise(paramfile, obstaclefile, &params, &global_cells, &local_cells &tmp_cells,
+              &obstacles, &av_vels, size);
+  local_ncols = params.nx;
+  local_nrows = calc_nrows(params.ny, size);
+
+  // scatter global_cells into local cells
+  message_length = local_ncols * local_nrows;
+  MPI_Scatter(global_cells, message_length, MPI_t_speeds,
+              local_cells[params.nx], message_length, MPI_t_speeds,
+              MASTER, MPI_COMM_WORLD);
 
   /* iterate for maxIters timesteps */
   gettimeofday(&timstr, NULL);
@@ -330,6 +358,10 @@ double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* 
   return tot_u/(double)tot_cells;
 }
 
+int calc_nrows(int ny, int size){
+  return ny/size;
+}
+
 double av_velocity(const t_param params, t_speed* cells, int* obstacles)
 {
   int    tot_cells = 0;  /* no. of cells used in calculation */
@@ -383,9 +415,9 @@ double av_velocity(const t_param params, t_speed* cells, int* obstacles)
   return tot_u / (double)tot_cells;
 }
 
-int initialise(const char* paramfile, const char* obstaclefile,
-               t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr,
-               int** obstacles_ptr, double** av_vels_ptr)
+int initialise((const char* paramfile, const char* obstaclefile,
+               t_param* params, t_speed** global_cells_ptr, t_speed** local_cells_ptr,
+               t_speed** tmp_cells_ptr, int** obstacles_ptr, double** av_vels_ptr, int size))
 {
   char   message[1024];  /* message buffer */
   FILE*   fp;            /* file pointer */
@@ -454,12 +486,19 @@ int initialise(const char* paramfile, const char* obstaclefile,
   */
 
   /* main grid */
-  *cells_ptr = (t_speed*)malloc(sizeof(t_speed) * (params->ny * params->nx));
+  *global_cells_ptr = (t_speed*)malloc(sizeof(t_speed) * (params->ny * params->nx));
 
   if (*cells_ptr == NULL) die("cannot allocate memory for cells", __LINE__, __FILE__);
 
+  /* local grid of cells */
+  *local_cells_ptr = (t_speed*)malloc(sizeof(t_speed) * (calc_nrows(params->ny,size)+2)
+                                      * params->nx);
+
+  if (*local_cells_ptr == NULL) die("cannot allocate memory for local_cells", __LINE__, __FILE__);
+
   /* 'helper' grid, used as scratch space */
-  *tmp_cells_ptr = (t_speed*)malloc(sizeof(t_speed) * (params->ny * params->nx));
+  *tmp_cells_ptr = (t_speed*)malloc(sizeof(t_speed) * (calc_nrows(params->ny,size)+2)
+                                      * params->nx);
 
   if (*tmp_cells_ptr == NULL) die("cannot allocate memory for tmp_cells", __LINE__, __FILE__);
 
@@ -478,17 +517,17 @@ int initialise(const char* paramfile, const char* obstaclefile,
     for (int jj = 0; jj < params->nx; jj++)
     {
       /* centre */
-      (*cells_ptr)[ii * params->nx + jj].speeds[0] = w0;
+      (*global_cells_ptr)[ii * params->nx + jj].speeds[0] = w0;
       /* axis directions */
-      (*cells_ptr)[ii * params->nx + jj].speeds[1] = w1;
-      (*cells_ptr)[ii * params->nx + jj].speeds[2] = w1;
-      (*cells_ptr)[ii * params->nx + jj].speeds[3] = w1;
-      (*cells_ptr)[ii * params->nx + jj].speeds[4] = w1;
+      (*global_cells_ptr)[ii * params->nx + jj].speeds[1] = w1;
+      (*global_cells_ptr)[ii * params->nx + jj].speeds[2] = w1;
+      (*global_cells_ptr)[ii * params->nx + jj].speeds[3] = w1;
+      (*global_cells_ptr)[ii * params->nx + jj].speeds[4] = w1;
       /* diagonals */
-      (*cells_ptr)[ii * params->nx + jj].speeds[5] = w2;
-      (*cells_ptr)[ii * params->nx + jj].speeds[6] = w2;
-      (*cells_ptr)[ii * params->nx + jj].speeds[7] = w2;
-      (*cells_ptr)[ii * params->nx + jj].speeds[8] = w2;
+      (*global_cells_ptr)[ii * params->nx + jj].speeds[5] = w2;
+      (*global_cells_ptr)[ii * params->nx + jj].speeds[6] = w2;
+      (*global_cells_ptr)[ii * params->nx + jj].speeds[7] = w2;
+      (*global_cells_ptr)[ii * params->nx + jj].speeds[8] = w2;
     }
   }
 
