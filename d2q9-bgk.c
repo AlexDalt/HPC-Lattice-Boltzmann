@@ -211,8 +211,9 @@ int main(int argc, char* argv[])
     printf("Elapsed user CPU time:\t\t%.6lf (s)\n", usrtim);
     printf("Elapsed system CPU time:\t%.6lf (s)\n", systim);
     write_values(params, global_cells, global_obstacles, av_vels);
-    free(global_cells);
   }
+  
+  free(global_cells);
   finalise(&params, &local_cells, &tmp_cells, &obstacles, &av_vels);
   free(global_obstacles);
   MPI_Finalize();
