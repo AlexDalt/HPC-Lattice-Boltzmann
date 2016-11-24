@@ -140,12 +140,19 @@ int main(int argc, char* argv[])
     obstaclefile = argv[2];
   }
 
+  printf("rank: %d parse command line\n",rank);
+
   /* initialise our data structures and load values from file */
   initialise(paramfile, obstaclefile, &params, &local_cells,
     &tmp_cells, &obstacles, &global_obstacles, &av_vels, size, rank);
+  printf("rank: %d intialised\n",rank);
   local_nrows = calc_nrows(params.ny, size);
+  printf("rank: %d calc_nrows \n",rank);
   top = (rank + 1) % size;
+  printf("rank: %d calculated top\n",rank);
   bottom = (rank == MASTER) ? (rank + size - 1) : (rank - 1);
+  printf("rank: %d calculated bottom\n",rank);
+
 
   printf("rank: %d main stuff initialised\n",rank);
 
