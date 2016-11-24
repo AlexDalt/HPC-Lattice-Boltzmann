@@ -49,9 +49,11 @@ int calc_nrows(int ny, int size);
 ** accelerate_flow(), propagate(), rebound() & collision()
 */
 int pointer_swap(t_speed** cells, t_speed** tmp_cells);
-double timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles);
-int accelerate_flow(const t_param params, t_speed* cells, int* obstacles);
-double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles);
+double timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles,
+                int local_ncols, int local_nrows, int rank);
+int accelerate_flow(const t_param params, t_speed* cells, int* obstacles, int row);
+double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles,
+                int local_ncols, int local_nrows, int rank);
 int write_values(const t_param params, t_speed* cells, int* obstacles, double* av_vels);
 
 /* finalise, including freeing up allocated memory */
@@ -91,12 +93,18 @@ int main(int argc, char* argv[])
   double tic, toc;              /* floating point numbers to calculate elapsed wallclock time */
   double usrtim;                /* floating point number to record elapsed user CPU time */
   double systim;                /* floating point number to record elapsed system CPU time */
+  int ii,jj;
 
   // mpi values
   int rank;
   int size;
   int message_length;
   int local_nrows, local_ncols;
+  double local_av_vel;
+  double total_av_vel;
+  t_speed* sendbuf, recvbuf;
+  int top, bottom;
+  int tag = 0;
 
   // starting MPI
   MPI_Init( &argc, &argv );
@@ -123,6 +131,10 @@ int main(int argc, char* argv[])
               &obstacles, &av_vels, size);
   local_ncols = params.nx;
   local_nrows = calc_nrows(params.ny, size);
+  sendbuf = (t_speed*)malloc(sizeof(t_speed) * local_ncols);
+  recvbuf = (t_speed*)malloc(sizeof(t_speed) * local_ncols);
+  top = (rank + 1) % size;
+  bottom = (rank == MASTER) ? (rank + size - 1) : (rank - 1);
 
   // scatter global_cells into local cells
   message_length = local_ncols * local_nrows;
@@ -137,14 +149,47 @@ int main(int argc, char* argv[])
   omp_set_num_threads(NUM_THREADS);
     for (int tt = 0; tt < params.maxIters; tt++)
     {
-      av_vels[tt] = timestep(params, cells, tmp_cells, obstacles);
+      total_av_vel = 0.0;
+      // halo exchange
+      // send to bottom recieve from top
+      for(jj = 0; jj < local_ncols; jj++){
+        sendbuf[jj] = local_cells[params.nx + jj];
+      }
+      MPI_Sendrecv(sendbuf, local_ncols, MPI_t_speeds, bottom, tag,
+        recvbuf, local_ncols, MPI_t_speeds, top, tag,
+        MPI_COMM_WORLD, &status);
+      for(jj = 0; jj < local_ncols; jj++){
+        local_cells[(local_nrows + 1) * params.nx + jj] = recvbuf[jj];
+      }
+      // send to top recieve from bottom
+      for(jj = 0; jj < local_ncols; jj++){
+        sendbuf[jj] = local_cells[(local_nrows + 1) * params.nx + jj];
+      }
+      MPI_Sendrecv(sendbuf, local_ncols, MPI_t_speeds, top, tag,
+        recvbuf, local_ncols, MPI_t_speeds, bottom, tag,
+        MPI_COMM_WORLD, &status);
+      for(jj = 0; jj < local_ncols; jj++){
+        local_cells[params.nx + jj] = recvbuf[jj];
+      }
+
+      // do calculation
+      local_av_vel = timestep(params, local_cells, tmp_cells, obstacles,
+        local_ncols, local_nrows, rank);
+
+      MPI_Reduce(&local_av_vel, &total_av_vel, 1, MPI_DOUBLE, MPI_SUM, MASTER,
+        MPI_COMM_WORLD);
+
+      if(rank == MASTER){
+        av_vels[tt] = total_av_vel/(params.nx*params.ny);
+      }
+
+      // do mpi reduce over local_av_vels
       pointer_swap(&cells, &tmp_cells);
-  #ifdef DEBUG
-      printf("==timestep: %d==\n", tt);
-      printf("av velocity: %.12E\n", av_vels[tt]);
-      printf("tot density: %.12E\n", total_density(params, cells));
-  #endif
     }
+
+  MPI_Gather(local_cells[local_ncols], message_length, MPI_t_speeds,
+              global_cells, message_length, MPI_t_speeds,
+              MASTER, MPI_COMM_WORLD);
 
   gettimeofday(&timstr, NULL);
   toc = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
@@ -155,14 +200,20 @@ int main(int argc, char* argv[])
   systim = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
 
   /* write final values and free memory */
-  printf("==done==\n");
-  printf("Reynolds number:\t\t%.12E\n", calc_reynolds(params, cells, obstacles));
-  printf("Elapsed time:\t\t\t%.6lf (s)\n", toc - tic);
-  printf("Elapsed user CPU time:\t\t%.6lf (s)\n", usrtim);
-  printf("Elapsed system CPU time:\t%.6lf (s)\n", systim);
-  write_values(params, cells, obstacles, av_vels);
-  finalise(&params, &cells, &tmp_cells, &obstacles, &av_vels);
+  if(rank == MASTER){
+    printf("==done==\n");
+    printf("Reynolds number:\t\t%.12E\n", calc_reynolds(params, cells, obstacles));
+    printf("Elapsed time:\t\t\t%.6lf (s)\n", toc - tic);
+    printf("Elapsed user CPU time:\t\t%.6lf (s)\n", usrtim);
+    printf("Elapsed system CPU time:\t%.6lf (s)\n", systim);
+    write_values(params, global_cells, obstacles, av_vels);
+  }
+  finalise(&params, &global_cells, &tmp_cells, &obstacles, &av_vels);
+  free(&sendbuf);
+  free(&recvbuf);
+  free(&local_cells);
 
+  MPI_Finalize();
   return EXIT_SUCCESS;
 }
 
@@ -173,23 +224,27 @@ int pointer_swap(t_speed** cells, t_speed** tmp_cells){
   return EXIT_SUCCESS;
 }
 
-double timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles)
+double timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles,
+                int local_ncols, int local_nrows, int rank)
 {
   //accelerates the second row of cells
-  accelerate_flow(params, cells, obstacles);
+  if((local_nrows * (rank-1)) <= (params.ny - 2) && (local_nrows * rank) < (params.ny - 2)){
+    int row = (params.ny - 2) - (local_nrows * (rank-1))
+    accelerate_flow(params, cells, obstacles, row);
+  }
 
   //performs the bulk of the cell calculations, writing each to tmp_cells, and returns av_velocity
-  return comp_func(params, cells, tmp_cells, obstacles);
+  return comp_func(params, cells, tmp_cells, obstacles, local_ncols, local_nrows, rank);
 }
 
-int accelerate_flow(const t_param params, t_speed* cells, int* obstacles)
+int accelerate_flow(const t_param params, t_speed* cells, int* obstacles, int row)
 {
   /* compute weighting factors */
   double w1 = params.density * params.accel / 9.0;
   double w2 = params.density * params.accel / 36.0;
 
   /* modify the 2nd row of the grid */
-  int ii = params.ny - 2;
+  int ii = row+1;
   int jj = 0;
 
 #pragma omp parallel for private(jj)
@@ -216,7 +271,8 @@ int accelerate_flow(const t_param params, t_speed* cells, int* obstacles)
   return EXIT_SUCCESS;
 }
 
-double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles){
+double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles,
+                int local_ncols, int local_nrows, int rank){
   /* loop over _all_ cells */
   const double c_sq = 1.0 / 3.0; /* square of speed of sound */
   const double w0 = 4.0 / 9.0;  /* weighting factor */
@@ -224,35 +280,34 @@ double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* 
   const double w2 = 1.0 / 36.0; /* weighting factor */
   int ii,jj = 0;
 
-  int tot_cells = 0;
   double tot_u = 0.0;
 
 #pragma omp parallel for reduction(+:tot_u, tot_cells) private(ii,jj) collapse(2)
-  for (ii = 0; ii < params.ny; ii+=STEP)
+  for (ii = 1; ii < (local_nrows+1); ii+=STEP)
   {
-    for (jj = 0; jj < params.nx; jj+=STEP)
+    for (jj = 0; jj < local_ncols; jj+=STEP)
     {
-      for (int a = ii; a < ii+STEP && a < params.ny; a++){
-        for (int b = jj; b < jj+STEP && b < params.nx; b++){
+      for (int a = ii; a < ii+STEP && a < (local_nrows+1); a++){
+        for (int b = jj; b < jj+STEP && b < local_ncols; b++){
           /* determine indices of axis-direction neighbours
           ** respecting periodic boundary conditions (wrap around) */
-          int y_n = (a + 1) % params.ny;
-          int x_e = (b + 1) % params.nx;
-          int y_s = (a == 0) ? (a + params.ny - 1) : (a - 1);
-          int x_w = (b == 0) ? (b + params.nx - 1) : (b - 1);
+          int y_n = (a + 1);
+          int x_e = (b + 1) % local_ncols;
+          int y_s = (a - 1);
+          int x_w = (b == 0) ? (b + local_ncols - 1) : (b - 1);
           /* propagate densities to neighbouring cells, following
           ** appropriate directions of travel and writing into
           ** scratch space grid */
-          if (!obstacles[a * params.nx + b]){
-            tmp_cells[a * params.nx + b].speeds[0] = cells[a * params.nx + b].speeds[0];
-            tmp_cells[a * params.nx + b].speeds[1] = cells[a * params.nx + x_w].speeds[1];
-            tmp_cells[a * params.nx + b].speeds[2] = cells[y_s * params.nx + b].speeds[2];
-            tmp_cells[a * params.nx + b].speeds[3] = cells[a * params.nx + x_e].speeds[3];
-            tmp_cells[a * params.nx + b].speeds[4] = cells[y_n * params.nx + b].speeds[4];
-            tmp_cells[a * params.nx + b].speeds[5] = cells[y_s * params.nx + x_w].speeds[5];
-            tmp_cells[a * params.nx + b].speeds[6] = cells[y_s * params.nx + x_e].speeds[6];
-            tmp_cells[a * params.nx + b].speeds[7] = cells[y_n * params.nx + x_e].speeds[7];
-            tmp_cells[a * params.nx + b].speeds[8] = cells[y_n * params.nx + x_w].speeds[8];
+          if (!obstacles[local_nrows * rank + a * params.nx + b]){
+            tmp_cells[a * local_ncols + b].speeds[0] = cells[a * local_ncols + b].speeds[0];
+            tmp_cells[a * local_ncols + b].speeds[1] = cells[a * local_ncols + x_w].speeds[1];
+            tmp_cells[a * local_ncols + b].speeds[2] = cells[y_s * local_ncols + b].speeds[2];
+            tmp_cells[a * local_ncols + b].speeds[3] = cells[a * local_ncols + x_e].speeds[3];
+            tmp_cells[a * local_ncols + b].speeds[4] = cells[y_n * local_ncols + b].speeds[4];
+            tmp_cells[a * local_ncols + b].speeds[5] = cells[y_s * local_ncols + x_w].speeds[5];
+            tmp_cells[a * local_ncols + b].speeds[6] = cells[y_s * local_ncols + x_e].speeds[6];
+            tmp_cells[a * local_ncols + b].speeds[7] = cells[y_n * local_ncols + x_e].speeds[7];
+            tmp_cells[a * local_ncols + b].speeds[8] = cells[y_n * local_ncols + x_w].speeds[8];
 
             /* compute local density total */
             float local_density = 0.0;
@@ -263,20 +318,20 @@ double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* 
             }
 
             /* compute x velocity component */
-            double u_x = (tmp_cells[a * params.nx + b].speeds[1]
-                          + tmp_cells[a * params.nx + b].speeds[5]
-                          + tmp_cells[a * params.nx + b].speeds[8]
-                          - (tmp_cells[a * params.nx + b].speeds[3]
-                             + tmp_cells[a * params.nx + b].speeds[6]
-                             + tmp_cells[a * params.nx + b].speeds[7]))
+            double u_x = (tmp_cells[a * local_ncols + b].speeds[1]
+                          + tmp_cells[a * local_ncols + b].speeds[5]
+                          + tmp_cells[a * local_ncols + b].speeds[8]
+                          - (tmp_cells[a * local_ncols + b].speeds[3]
+                             + tmp_cells[a * local_ncols + b].speeds[6]
+                             + tmp_cells[a * local_ncols + b].speeds[7]))
                          / local_density;
             /* compute y velocity component */
-            double u_y = (tmp_cells[a * params.nx + b].speeds[2]
-                          + tmp_cells[a * params.nx + b].speeds[5]
-                          + tmp_cells[a * params.nx + b].speeds[6]
-                          - (tmp_cells[a * params.nx + b].speeds[4]
-                             + tmp_cells[a * params.nx + b].speeds[7]
-                             + tmp_cells[a * params.nx + b].speeds[8]))
+            double u_y = (tmp_cells[a * local_ncols + b].speeds[2]
+                          + tmp_cells[a * local_ncols + b].speeds[5]
+                          + tmp_cells[a * local_ncols + b].speeds[6]
+                          - (tmp_cells[a * local_ncols + b].speeds[4]
+                             + tmp_cells[a * local_ncols + b].speeds[7]
+                             + tmp_cells[a * local_ncols + b].speeds[8]))
                          / local_density;
 
             /* velocity squared */
@@ -328,34 +383,33 @@ double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* 
             /* relaxation step */
             for (int kk = 0; kk < NSPEEDS; kk++)
             {
-              tmp_cells[a * params.nx + b].speeds[kk] = tmp_cells[a * params.nx + b].speeds[kk]
+              tmp_cells[a * local_ncols + b].speeds[kk] = tmp_cells[a * local_ncols + b].speeds[kk]
                                                       + params.omega
-                                                      * (d_equ[kk] - tmp_cells[a * params.nx + b].speeds[kk]);
+                                                      * (d_equ[kk] - tmp_cells[a * local_ncols + b].speeds[kk]);
             }
 
             //av_velocity steps
             tot_u += sqrt(u_sq);
-            ++tot_cells;
 
           } else {
             /* called after propagate, so taking values from scratch space
             ** mirroring, and writing into main grid */
-            tmp_cells[a * params.nx + b].speeds[0] = cells[a * params.nx + b].speeds[0];
-            tmp_cells[a * params.nx + b].speeds[3] = cells[a * params.nx + x_w].speeds[1];
-            tmp_cells[a * params.nx + b].speeds[4] = cells[y_s * params.nx + b].speeds[2];
-            tmp_cells[a * params.nx + b].speeds[1] = cells[a * params.nx + x_e].speeds[3];
-            tmp_cells[a * params.nx + b].speeds[2] = cells[y_n * params.nx + b].speeds[4];
-            tmp_cells[a * params.nx + b].speeds[7] = cells[y_s * params.nx + x_w].speeds[5];
-            tmp_cells[a * params.nx + b].speeds[8] = cells[y_s * params.nx + x_e].speeds[6];
-            tmp_cells[a * params.nx + b].speeds[5] = cells[y_n * params.nx + x_e].speeds[7];
-            tmp_cells[a * params.nx + b].speeds[6] = cells[y_n * params.nx + x_w].speeds[8];
+            tmp_cells[a * local_ncols + b].speeds[0] = cells[a * local_ncols + b].speeds[0];
+            tmp_cells[a * local_ncols + b].speeds[3] = cells[a * local_ncols + x_w].speeds[1];
+            tmp_cells[a * local_ncols + b].speeds[4] = cells[y_s * local_ncols + b].speeds[2];
+            tmp_cells[a * local_ncols + b].speeds[1] = cells[a * local_ncols + x_e].speeds[3];
+            tmp_cells[a * local_ncols + b].speeds[2] = cells[y_n * local_ncols + b].speeds[4];
+            tmp_cells[a * local_ncols + b].speeds[7] = cells[y_s * local_ncols + x_w].speeds[5];
+            tmp_cells[a * local_ncols + b].speeds[8] = cells[y_s * local_ncols + x_e].speeds[6];
+            tmp_cells[a * local_ncols + b].speeds[5] = cells[y_n * local_ncols + x_e].speeds[7];
+            tmp_cells[a * local_ncols + b].speeds[6] = cells[y_n * local_ncols + x_w].speeds[8];
           }
         }
       }
     }
   }
 
-  return tot_u/(double)tot_cells;
+  return tot_u;
 }
 
 int calc_nrows(int ny, int size){
