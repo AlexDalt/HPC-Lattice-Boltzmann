@@ -487,6 +487,8 @@ int initialise(const char* paramfile, const char* obstaclefile,
   int    xx, yy;         /* generic array indices */
   int    blocked;        /* indicates whether a cell is blocked by an obstacle */
   int    retval;         /* to hold return value for checking */
+  
+  printf("rank: %d initialised called\n",rank);
 
   /* open the parameter file */
   fp = fopen(paramfile, "r");
@@ -529,6 +531,8 @@ int initialise(const char* paramfile, const char* obstaclefile,
   /* and close up the file */
   fclose(fp);
 
+  printf("rank: %d file closed\n",rank);
+
   /*
   ** Allocate memory.
   **
@@ -549,20 +553,28 @@ int initialise(const char* paramfile, const char* obstaclefile,
   */
 
   int nrows = calc_nrows(params->ny, size);
+  printf("rank: %d nrows calculated\n",rank);
+
   /* main grid */
   *local_cells_ptr = (t_speed*)malloc(sizeof(t_speed) * (nrows + 2) * params->nx);
 
   if (*local_cells_ptr == NULL) die("cannot allocate memory for local cells", __LINE__, __FILE__);
+  printf("rank: %d local cells grid malloc'd\n",rank);
 
   /* 'helper' grid, used as scratch space */
   *tmp_cells_ptr = (t_speed*)malloc(sizeof(t_speed) * (nrows + 2) * params->nx);
 
   if (*tmp_cells_ptr == NULL) die("cannot allocate memory for tmp_cells", __LINE__, __FILE__);
+  printf("rank: %d tmp cells grid malloc'd\n",rank);
 
   /* the map of obstacles */
   *obstacles_ptr = malloc(sizeof(int) * (nrows + 2) * params->nx);
 
   if (*obstacles_ptr == NULL) die("cannot allocate column memory for obstacles", __LINE__, __FILE__);
+  printf("rank: %d obstacles cells grid malloc'd\n",rank);
+
+  *global_obstacles_ptr = malloc(sizeof(int) * params->ny * params->nx);
+
 
   /* initialise densities */
   double w0 = params->density * 4.0 / 9.0;
