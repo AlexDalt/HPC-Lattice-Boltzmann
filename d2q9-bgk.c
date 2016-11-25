@@ -106,6 +106,7 @@ int main(int argc, char* argv[])
   double local_total_vel;
   double global_total_vel;
   MPI_Status status;
+  int totnobst;
 
   // initialise mpi
   MPI_Init_thread(&argc, &argv, required, &provided);
@@ -143,7 +144,7 @@ int main(int argc, char* argv[])
   printf("rank: %d parse command line\n",rank);
 
   /* initialise our data structures and load values from file */
-  initialise(paramfile, obstaclefile, &params, &local_cells,
+  totnobst = initialise(paramfile, obstaclefile, &params, &local_cells,
     &tmp_cells, &obstacles, &global_obstacles, &av_vels, size, rank);
   printf("rank: %d intialised\n",rank);
   local_nrows = calc_nrows(params.ny, size);
@@ -189,7 +190,7 @@ int main(int argc, char* argv[])
       global_total_vel = 0;
       MPI_Reduce(&local_total_vel, &global_total_vel, 1, MPI_DOUBLE, MPI_SUM, MASTER, MPI_COMM_WORLD);
       if(rank == MASTER){
-        av_vels[tt] = global_total_vel / (params.nx * params.ny);
+        av_vels[tt] = global_total_vel / totnobst;
       }
 
       // swaps pointer to local_cells and tmp_cells
@@ -485,6 +486,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
   int    xx, yy;         /* generic array indices */
   int    blocked;        /* indicates whether a cell is blocked by an obstacle */
   int    retval;         /* to hold return value for checking */
+  int    totobst = 0;
   
 
   /* open the parameter file */
@@ -625,6 +627,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
 
     // assign to global obstacle array
     (*global_obstacles_ptr)[yy * params->nx + xx] = blocked;
+    totobst++;
 
     /* assign to local array if in scope */
     if(rank*nrows <= yy && (rank+1)*nrows > yy){
@@ -642,7 +645,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
   */
   *av_vels_ptr = (double*)malloc(sizeof(double) * params->maxIters);
 
-  return EXIT_SUCCESS;
+  return (params->nx * params->ny) - totobst;
 }
 
 int finalise(const t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr,
