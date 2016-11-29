@@ -79,41 +79,39 @@ void usage(const char* exe);
 */
 int main(int argc, char* argv[])
 {
-  char*    paramfile = NULL;    /* name of the input parameter file */
-  char*    obstaclefile = NULL; /* name of a the input obstacle file */
-  t_param  params;              /* struct to hold parameter values */
-  t_speed* global_cells = NULL;    /* grid containing fluid densities */
-  t_speed* local_cells = NULL;
+  char* paramfile = NULL;       /* name of the input parameter file */
+  char* obstaclefile = NULL;    /* name of a the input obstacle file */
+  t_param params;               /* struct to hold parameter values */
+  t_speed* global_cells = NULL; /* grid containing fluid densities */
+  t_speed* local_cells = NULL;  /* grid containing local fluid densities */
   t_speed* tmp_cells = NULL;    /* scratch space */
-  int*     obstacles = NULL;    /* grid indicating which cells are blocked */
-  int*     global_obstacles = NULL;
-  double* av_vels   = NULL;     /* a record of the av. velocity computed for each timestep */
+  int* obstacles = NULL;        /* grid indicating which local cells are blocked */
+  int* global_obstacles = NULL; /* grid indicating which cells are blocked */
+  double* av_vels = NULL;       /* a record of the av. velocity computed for each timestep */
   struct timeval timstr;        /* structure to hold elapsed time */
   struct rusage ru;             /* structure to hold CPU time--system and user */
   double tic, toc;              /* floating point numbers to calculate elapsed wallclock time */
   double usrtim;                /* floating point number to record elapsed user CPU time */
   double systim;                /* floating point number to record elapsed system CPU time */
-  int ii,jj,kk;
+  int ii,jj,kk;                 /* itterating integers */
 
-  int rank;
-  int size;
-  int required=MPI_THREAD_FUNNELED;
-  int provided;
-  int local_nrows;
-  int top;
-  int bottom;
-  int tag = 0;
-  double local_total_vel;
-  double global_total_vel;
-  MPI_Status status;
-  int totnobst = 0;
+  int rank;                         // rank
+  int size;                         // size
+  int required=MPI_THREAD_FUNNELED; // required type of MPI
+  int provided;                     // provided type of MPI
+  int local_nrows;                  // local number of rows
+  int top;                          // rank above
+  int bottom;                       // rank below
+  int tag = 0;                      // pad MPI Sendrecv
+  double local_total_vel;           // local total velocity
+  double global_total_vel;          // global total velocity
+  MPI_Status status;                // status
+  int totnobst = 0;                 // total number of non-obstacle cells
 
   // initialise mpi
   MPI_Init_thread(&argc, &argv, required, &provided);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-  printf("rank: %d mpi intialised\n",rank);
 
   // define a type to send with mpi
   int block_lengths[1];
@@ -128,8 +126,6 @@ int main(int argc, char* argv[])
   MPI_Type_create_struct(1, block_lengths, displacements, typelist, &MPI_t_speed);
   MPI_Type_commit(&MPI_t_speed);
 
-  printf("rank: %d data structure created\n",rank);
-
   /* parse the command line */
   if (argc != 3)
   {
@@ -140,8 +136,6 @@ int main(int argc, char* argv[])
     paramfile = argv[1];
     obstaclefile = argv[2];
   }
-
-  printf("rank: %d parse command line\n",rank);
 
   /* initialise our data structures and load values from file */
   initialise(paramfile, obstaclefile, &params, &local_cells,
@@ -155,62 +149,47 @@ int main(int argc, char* argv[])
     }
   }
 
-  printf("rank: %d intialised\n",rank);
-  printf("rank: %d totnobst = %d\n",rank, totnobst);
-
   local_nrows = calc_nrows(params.ny, size);
-  printf("rank: %d calc_nrows \n",rank);
   top = (rank + 1) % size;
-  printf("rank: %d calculated top\n",rank);
   bottom = (rank == MASTER) ? (rank + size - 1) : (rank - 1);
-  printf("rank: %d calculated bottom\n",rank);
-
-
-  printf("rank: %d main stuff initialised\n",rank);
+  omp_set_num_threads(NUM_THREADS);
 
   /* iterate for maxIters timesteps */
   gettimeofday(&timstr, NULL);
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
 
-  omp_set_num_threads(NUM_THREADS);
-    for (int tt = 0; tt < params.maxIters; tt++)
-    {
-      // accelerates if required
-      if(rank*local_nrows <= params.ny-2 && (rank+1)*local_nrows > params.ny-2){
-        int row = (params.ny-2) % local_nrows;
-        accelerate_flow(params, local_cells, obstacles, row);
-      }
-
-      // halo exchange
-      // send to bottom, receive from top
-      MPI_Sendrecv(&(local_cells[params.nx]), params.nx, MPI_t_speed, bottom, tag,
-        &(local_cells[(local_nrows+1) * params.nx]), params.nx, MPI_t_speed, top, tag,
-        MPI_COMM_WORLD, &status);
-
-      // send to top, receive from bottom
-      MPI_Sendrecv(&(local_cells[local_nrows * params.nx]), params.nx, MPI_t_speed, top, tag,
-        &(local_cells[0]), params.nx, MPI_t_speed, bottom, tag,
-        MPI_COMM_WORLD, &status);
-
-      // bulk of computation
-      local_total_vel = comp_func(params, local_cells, tmp_cells, obstacles, local_nrows);
-
-      // reduce all totals together and divide by number of cells
-      global_total_vel = 0.0;
-      MPI_Reduce(&local_total_vel, &global_total_vel, 1, MPI_DOUBLE, MPI_SUM, MASTER, MPI_COMM_WORLD);
-      if(rank == MASTER){
-        av_vels[tt] = global_total_vel / totnobst;
-      }
-
-      // swaps pointer to local_cells and tmp_cells
-      pointer_swap(&local_cells, &tmp_cells);
-
-  #ifdef DEBUG
-      printf("==timestep: %d==\n", tt);
-      printf("av velocity: %.12E\n", av_vels[tt]);
-      printf("tot density: %.12E\n", total_density(params, cells));
-  #endif
+  for (int tt = 0; tt < params.maxIters; tt++)
+  {
+    // accelerates if required
+    if(rank*local_nrows <= params.ny-2 && (rank+1)*local_nrows > params.ny-2){
+      int row = (params.ny-2) % local_nrows;
+      accelerate_flow(params, local_cells, obstacles, row);
     }
+
+    // halo exchange
+    // send to bottom, receive from top
+    MPI_Sendrecv(&(local_cells[params.nx]), params.nx, MPI_t_speed, bottom, tag,
+      &(local_cells[(local_nrows+1) * params.nx]), params.nx, MPI_t_speed, top, tag,
+      MPI_COMM_WORLD, &status);
+
+    // send to top, receive from bottom
+    MPI_Sendrecv(&(local_cells[local_nrows * params.nx]), params.nx, MPI_t_speed, top, tag,
+      &(local_cells[0]), params.nx, MPI_t_speed, bottom, tag,
+      MPI_COMM_WORLD, &status);
+
+    // bulk of computation
+    local_total_vel = comp_func(params, local_cells, tmp_cells, obstacles, local_nrows);
+
+    // reduce all totals together and divide by number of cells
+    global_total_vel = 0.0;
+    MPI_Reduce(&local_total_vel, &global_total_vel, 1, MPI_DOUBLE, MPI_SUM, MASTER, MPI_COMM_WORLD);
+    if(rank == MASTER){
+      av_vels[tt] = global_total_vel / totnobst;
+    }
+
+    // swaps pointer to local_cells and tmp_cells
+    pointer_swap(&local_cells, &tmp_cells);
+  }
 
   gettimeofday(&timstr, NULL);
   toc = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
