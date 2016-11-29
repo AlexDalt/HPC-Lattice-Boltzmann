@@ -4,8 +4,8 @@
 #include<time.h>
 #include<sys/time.h>
 #include<sys/resource.h>
-#include <omp.h>
-#include <mpi.h>
+//#include <omp.h>
+//#include <mpi.h>
 
 #define NSPEEDS         9
 #define FINALSTATEFILE  "final_state.dat"
@@ -243,7 +243,7 @@ int accelerate_flow(const t_param params, t_speed* cells, int* obstacles, int ro
   int ii = row + 1;
   int jj = 0;
 
-#pragma omp parallel for private(jj)
+//#pragma omp parallel for private(jj)
   for (int jj = 0; jj < params.nx; jj++)
   {
     /* if the cell is not occupied and
@@ -277,7 +277,7 @@ double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* 
 
   double tot_u = 0.0;
 
-#pragma omp parallel for reduction(+:tot_u) private(ii,jj) collapse(2)
+//#pragma omp parallel for reduction(+:tot_u) private(ii,jj) collapse(2)
   for (ii = 1; ii < (nrows + 1); ii+=STEP)
   {
     for (jj = 0; jj < params.nx; jj+=STEP)
