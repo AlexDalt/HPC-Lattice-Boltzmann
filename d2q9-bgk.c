@@ -95,9 +95,9 @@ int main(int argc, char* argv[])
   double systim;                /* floating point number to record elapsed system CPU time */
   int ii,jj,kk;                 /* itterating integers */
 
-  int rank;                         // rank
-  int size;                         // size
-  int required=MPI_THREAD_FUNNELED; // required type of MPI
+  int rank = 0;                         // rank
+  int size = 1;                         // size
+  //int required=MPI_THREAD_FUNNELED; // required type of MPI
   int provided;                     // provided type of MPI
   int local_nrows;                  // local number of rows
   int top;                          // rank above
@@ -105,26 +105,26 @@ int main(int argc, char* argv[])
   int tag = 0;                      // pad MPI Sendrecv
   double local_total_vel;           // local total velocity
   double global_total_vel;          // global total velocity
-  MPI_Status status;                // status
+  //MPI_Status status;                // status
   int totnobst = 0;                 // total number of non-obstacle cells
 
   // initialise mpi
-  MPI_Init_thread(&argc, &argv, required, &provided);
-  MPI_Comm_size(MPI_COMM_WORLD, &size);
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  //MPI_Init_thread(&argc, &argv, required, &provided);
+  //MPI_Comm_size(MPI_COMM_WORLD, &size);
+  //MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
   // define a type to send with mpi
-  int block_lengths[1];
-  MPI_Aint displacements[1];
-  MPI_Datatype typelist[1];
-  MPI_Datatype MPI_t_speed;
+  //int block_lengths[1];
+ // MPI_Aint displacements[1];
+  //MPI_Datatype typelist[1];
+  //MPI_Datatype MPI_t_speed;
 
-  block_lengths[0] = NSPEEDS;
-  displacements[0] = 0;
-  typelist[0] = MPI_FLOAT;
+  //block_lengths[0] = NSPEEDS;
+  //displacements[0] = 0;
+  //typelist[0] = MPI_FLOAT;
 
-  MPI_Type_create_struct(1, block_lengths, displacements, typelist, &MPI_t_speed);
-  MPI_Type_commit(&MPI_t_speed);
+  //MPI_Type_create_struct(1, block_lengths, displacements, typelist, &MPI_t_speed);
+ // MPI_Type_commit(&MPI_t_speed);
 
   /* parse the command line */
   if (argc != 3)
@@ -149,10 +149,10 @@ int main(int argc, char* argv[])
     }
   }
 
-  local_nrows = calc_nrows(params.ny, size);
-  top = (rank + 1) % size;
-  bottom = (rank == MASTER) ? (rank + size - 1) : (rank - 1);
-  omp_set_num_threads(NUM_THREADS);
+  //local_nrows = calc_nrows(params.ny, size);
+  //top = (rank + 1) % size;
+  //bottom = (rank == MASTER) ? (rank + size - 1) : (rank - 1);
+  //omp_set_num_threads(NUM_THREADS);
 
   /* iterate for maxIters timesteps */
   gettimeofday(&timstr, NULL);
@@ -161,31 +161,31 @@ int main(int argc, char* argv[])
   for (int tt = 0; tt < params.maxIters; tt++)
   {
     // accelerates if required
-    if(rank*local_nrows <= params.ny-2 && (rank+1)*local_nrows > params.ny-2){
-      int row = (params.ny-2) % local_nrows;
-      accelerate_flow(params, local_cells, obstacles, row);
-    }
+    //if(rank*local_nrows <= params.ny-2 && (rank+1)*local_nrows > params.ny-2){
+      //int row = (params.ny-2) % local_nrows;
+      accelerate_flow(params, local_cells, obstacles, params.ny-2);
+    //}
 
     // halo exchange
     // send to bottom, receive from top
-    MPI_Sendrecv(&(local_cells[params.nx]), params.nx, MPI_t_speed, bottom, tag,
-      &(local_cells[(local_nrows+1) * params.nx]), params.nx, MPI_t_speed, top, tag,
-      MPI_COMM_WORLD, &status);
+    //MPI_Sendrecv(&(local_cells[params.nx]), params.nx, MPI_t_speed, bottom, tag,
+      //&(local_cells[(local_nrows+1) * params.nx]), params.nx, MPI_t_speed, top, tag,
+      //MPI_COMM_WORLD, &status);
 
     // send to top, receive from bottom
-    MPI_Sendrecv(&(local_cells[local_nrows * params.nx]), params.nx, MPI_t_speed, top, tag,
-      &(local_cells[0]), params.nx, MPI_t_speed, bottom, tag,
-      MPI_COMM_WORLD, &status);
+    //MPI_Sendrecv(&(local_cells[local_nrows * params.nx]), params.nx, MPI_t_speed, top, tag,
+      //&(local_cells[0]), params.nx, MPI_t_speed, bottom, tag,
+      //MPI_COMM_WORLD, &status);
 
     // bulk of computation
     local_total_vel = comp_func(params, local_cells, tmp_cells, obstacles, local_nrows);
 
     // reduce all totals together and divide by number of cells
-    global_total_vel = 0.0;
-    MPI_Reduce(&local_total_vel, &global_total_vel, 1, MPI_DOUBLE, MPI_SUM, MASTER, MPI_COMM_WORLD);
-    if(rank == MASTER){
+    global_total_vel = local_total_vel;
+    //MPI_Reduce(&local_total_vel, &global_total_vel, 1, MPI_DOUBLE, MPI_SUM, MASTER, MPI_COMM_WORLD);
+    //if(rank == MASTER){
       av_vels[tt] = global_total_vel / totnobst;
-    }
+    //}
 
     // swaps pointer to local_cells and tmp_cells
     pointer_swap(&local_cells, &tmp_cells);
@@ -200,23 +200,23 @@ int main(int argc, char* argv[])
   systim = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
 
   // gather
-  if(rank == MASTER){
-    global_cells = (t_speed*)malloc(sizeof(t_speed) * params.nx * params.ny);
-  }
+  //if(rank == MASTER){
+   // global_cells = (t_speed*)malloc(sizeof(t_speed) * params.nx * params.ny);
+  //}
 
-  MPI_Gather(&(local_cells[params.nx]), params.nx * local_nrows, MPI_t_speed,
-    global_cells, params.nx * local_nrows, MPI_t_speed,
-    MASTER, MPI_COMM_WORLD);
+  //MPI_Gather(&(local_cells[params.nx]), params.nx * local_nrows, MPI_t_speed,
+    //global_cells, params.nx * local_nrows, MPI_t_speed,
+    //MASTER, MPI_COMM_WORLD);
 
   /* write final values and free memory */
-  if(rank == MASTER){
+  //if(rank == MASTER){
     printf("==done==\n");
-    printf("Reynolds number:\t\t%.12E\n", calc_reynolds(params, global_cells, global_obstacles));
+    printf("Reynolds number:\t\t%.12E\n", calc_reynolds(params, local_cells, global_obstacles));
     printf("Elapsed time:\t\t\t%.6lf (s)\n", toc - tic);
     printf("Elapsed user CPU time:\t\t%.6lf (s)\n", usrtim);
     printf("Elapsed system CPU time:\t%.6lf (s)\n", systim);
     write_values(params, global_cells, global_obstacles, av_vels);
-  }
+  //}
   
   free(global_cells);
   finalise(&params, &local_cells, &tmp_cells, &obstacles, &av_vels);
