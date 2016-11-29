@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
   double local_total_vel;
   double global_total_vel;
   MPI_Status status;
-  int totnobst;
+  int totnobst = 0;
 
   // initialise mpi
   MPI_Init_thread(&argc, &argv, required, &provided);
@@ -144,8 +144,16 @@ int main(int argc, char* argv[])
   printf("rank: %d parse command line\n",rank);
 
   /* initialise our data structures and load values from file */
-  totnobst = initialise(paramfile, obstaclefile, &params, &local_cells,
+  initialise(paramfile, obstaclefile, &params, &local_cells,
     &tmp_cells, &obstacles, &global_obstacles, &av_vels, size, rank);
+
+  for(ii = 0; ii < params.ny; ii++){
+    for(jj = 0; jj < params.nx; jj++){
+      if(!global_obstacles[ii * params.nx + jj]){
+        totnobst++;
+      }
+    }
+  }
   printf("rank: %d intialised\n",rank);
   local_nrows = calc_nrows(params.ny, size);
   printf("rank: %d calc_nrows \n",rank);
@@ -627,7 +635,6 @@ int initialise(const char* paramfile, const char* obstaclefile,
 
     // assign to global obstacle array
     (*global_obstacles_ptr)[yy * params->nx + xx] = blocked;
-    ++totobst;
 
     /* assign to local array if in scope */
     if(rank*nrows <= yy && (rank+1)*nrows > yy){
@@ -649,7 +656,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
   printf("rank: %d returning totnobst = %d\n",rank, (params->nx * params->ny) - totobst);
 
 
-  return (params->nx * params->ny) - totobst;
+  return EXIT_SUCCESS;
 }
 
 int finalise(const t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr,
