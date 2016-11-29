@@ -185,16 +185,16 @@ int main(int argc, char* argv[])
 
       // bulk of computation
       local_total_vel = comp_func(params, local_cells, tmp_cells, obstacles, local_nrows);
-      printf("rank: %d local_total_vel = %d\n",rank,local_total_vel);
+      printf("rank: %d local_total_vel = %f\n",rank,local_total_vel);
 
       // reduce all totals together and divide by number of cells
       global_total_vel = 0.0;
       MPI_Reduce(&local_total_vel, &global_total_vel, 1, MPI_DOUBLE, MPI_SUM, MASTER, MPI_COMM_WORLD);
       if(rank == MASTER){
-        printf("rank: %d global_total_vel = \n",rank, global_total_vel);
-        printf("rank: %d totnobst = \n",rank, totnobst);
+        printf("rank: %d global_total_vel = %f\n",rank, global_total_vel);
+        printf("rank: %d totnobst = %f\n",rank, totnobst);
         av_vels[tt] = global_total_vel / totnobst;
-        printf("rank: %d av_vels[tt] = %d\n",rank, global_total_vel / totnobst);
+        printf("rank: %d av_vels[tt] = %f\n",rank, global_total_vel / totnobst);
       }
 
       // swaps pointer to local_cells and tmp_cells
