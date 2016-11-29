@@ -187,7 +187,7 @@ int main(int argc, char* argv[])
       local_total_vel = comp_func(params, local_cells, tmp_cells, obstacles, local_nrows);
 
       // reduce all totals together and divide by number of cells
-      global_total_vel = 0;
+      global_total_vel = 0.0;
       MPI_Reduce(&local_total_vel, &global_total_vel, 1, MPI_DOUBLE, MPI_SUM, MASTER, MPI_COMM_WORLD);
       if(rank == MASTER){
         av_vels[tt] = global_total_vel / totnobst;
