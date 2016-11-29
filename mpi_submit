@@ -36,9 +36,9 @@ echo This jobs runs on the following machines:
 echo `cat $PBS_NODEFILE | uniq`
  
 #! Create a machine file for MPI
-cat $PBS_NODEFILE > machine.file.$PBS_JOBID
+uniq $PBS_NODEFILE > machine.file.$PBS_JOBID
 
 numnodes=`wc $PBS_NODEFILE | awk '{ print $1 }'`
 
 #! Run the parallel MPI executable (nodes*ppn)
-KMP_AFFINITY=compact I_MPI_PIN_DOMAIN=omp mpirun -np 8 -machinefile machine.file.$PBS_JOBID $application $options
+KMP_AFFINITY=compact mpirun -np 8 -machinefile machine.file.$PBS_JOBID $application $options
