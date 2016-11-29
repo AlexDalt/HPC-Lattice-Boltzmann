@@ -652,10 +652,6 @@ int initialise(const char* paramfile, const char* obstaclefile,
   */
   *av_vels_ptr = (double*)malloc(sizeof(double) * params->maxIters);
 
-  printf("rank: %d totobst = %d\n",rank, totobst);
-  printf("rank: %d returning totnobst = %d\n",rank, (params->nx * params->ny) - totobst);
-
-
   return EXIT_SUCCESS;
 }
 
