@@ -221,7 +221,7 @@ int main(int argc, char* argv[])
   free(global_cells);
   finalise(&params, &local_cells, &tmp_cells, &obstacles, &av_vels);
   free(global_obstacles);
-  MPI_Finalize();
+  //MPI_Finalize();
 
   return EXIT_SUCCESS;
 }
@@ -420,7 +420,7 @@ double av_velocity(const t_param params, t_speed* cells, int* obstacles)
   tot_u = 0.0;
   int ii, jj = 0;
 
-#pragma omp parallel for reduction (+:tot_u,tot_cells) private(ii,jj)
+//#pragma omp parallel for reduction (+:tot_u,tot_cells) private(ii,jj)
   /* loop over all non-blocked cells */
   for (int ii = 0; ii < params.ny; ii++)
   {
