@@ -41,4 +41,4 @@ uniq $PBS_NODEFILE > machine.file.$PBS_JOBID
 numnodes=`wc $PBS_NODEFILE | awk '{ print $1 }'`
 
 #! Run the parallel MPI executable (nodes*ppn)
-KMP_AFFINITY=compact -np $numnodes -machinefile machine.file.$PBS_JOBID $application $options
+KMP_AFFINITY=compact -np 8 -machinefile machine.file.$PBS_JOBID $application $options
