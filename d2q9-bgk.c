@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
       MPI_Reduce(&local_total_vel, &global_total_vel, 1, MPI_DOUBLE, MPI_SUM, MASTER, MPI_COMM_WORLD);
       if(rank == MASTER){
         printf("rank: %d global_total_vel = %f\n",rank, global_total_vel);
-        printf("rank: %d totnobst = %f\n",rank, totnobst);
+        printf("rank: %d totnobst = %d\n",rank, totnobst);
         av_vels[tt] = global_total_vel / totnobst;
         printf("rank: %d av_vels[tt] = %f\n",rank, global_total_vel / totnobst);
       }
