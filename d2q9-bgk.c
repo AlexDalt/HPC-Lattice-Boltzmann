@@ -155,6 +155,8 @@ int main(int argc, char* argv[])
     }
   }
   printf("rank: %d intialised\n",rank);
+  printf("rank: %d totnobst = %d\n",rank, totnobst);
+
   local_nrows = calc_nrows(params.ny, size);
   printf("rank: %d calc_nrows \n",rank);
   top = (rank + 1) % size;
@@ -184,12 +186,10 @@ int main(int argc, char* argv[])
         &(local_cells[(local_nrows+1) * params.nx]), params.nx, MPI_t_speed, bottom, tag,
         MPI_COMM_WORLD, &status);
 
-
       // send to bottom, receive from top
       MPI_Sendrecv(&(local_cells[local_nrows * params.nx]), params.nx, MPI_t_speed, bottom, tag,
         &(local_cells[0]), params.nx, MPI_t_speed, top, tag,
         MPI_COMM_WORLD, &status);
-
 
       // bulk of computation
       local_total_vel = comp_func(params, local_cells, tmp_cells, obstacles, local_nrows);
