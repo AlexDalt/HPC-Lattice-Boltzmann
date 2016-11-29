@@ -293,17 +293,17 @@ double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* 
   const double w0 = 4.0 / 9.0;  /* weighting factor */
   const double w1 = 1.0 / 9.0;  /* weighting factor */
   const double w2 = 1.0 / 36.0; /* weighting factor */
-  int ii,jj = 0;
+  int ii,jj,a,b = 0;
 
   double tot_u = 0.0;
 
-#pragma omp parallel for reduction(+:tot_u) private(ii,jj) collapse(2)
+#pragma omp parallel for reduction(+:tot_u) private(ii,jj,a,b) collapse(2)
   for (ii = 1; ii < (nrows + 1); ii+=STEP)
   {
     for (jj = 0; jj < params.nx; jj+=STEP)
     {
-      for (int a = ii; a < ii+STEP && a < (nrows + 1); a++){
-        for (int b = jj; b < jj+STEP && b < params.nx; b++){
+      for (a = ii; a < ii+STEP && a < (nrows + 1); a++){
+        for (b = jj; b < jj+STEP && b < params.nx; b++){
           /* determine indices of axis-direction neighbours
           ** respecting periodic boundary conditions (wrap around) */
           int y_n = a + 1;
