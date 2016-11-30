@@ -181,23 +181,23 @@ int main(int argc, char* argv[])
     MPI_Isend(&(local_cells[local_nrows * params.nx]), params.nx, MPI_t_speed, top, tag,
       MPI_COMM_WORLD, &requests[0]);
     // Work on workable bottom half
-    local_total_vel = comp_func3(params, local_cells, tmp_cells, obstacles, local_nrows);
+    local_total_vel = comp_func2(params, local_cells, tmp_cells, obstacles, local_nrows);
     // Irecv from bottom
     MPI_Irecv(&(local_cells[0]), params.nx, MPI_t_speed, bottom, tag, MPI_COMM_WORLD, &requests[1]);
     // Wait
-    // Finish work on bottom half
-    local_total_vel += comp_func4(params, local_cells, tmp_cells, obstacles, local_nrows);
+    MPI_Ibarrier(MPI_COMM_WORLD, &requests[1]);
+    local_total_vel += comp_func3(params, local_cells, tmp_cells, obstacles, local_nrows);
     MPI_Waitall(2, requests, statuses);
     // Isend bottom row
     MPI_Isend(&(local_cells[params.nx]), params.nx, MPI_t_speed, bottom, tag,
       MPI_COMM_WORLD, &requests[0]);
     // Work on workable top half
-    local_total_vel += comp_func2(params, local_cells, tmp_cells, obstacles, local_nrows);
+    local_total_vel += comp_func4(params, local_cells, tmp_cells, obstacles, local_nrows);
     // Irecv top row
     MPI_Irecv(&(local_cells[(local_nrows+1) * params.nx]), params.nx, MPI_t_speed, top, tag,
       MPI_COMM_WORLD, &requests[1]);
     // Wait
-    // Finish work on top half
+    MPI_Ibarrier(MPI_COMM_WORLD, &requests[1]);
     local_total_vel += comp_func1(params, local_cells, tmp_cells, obstacles, local_nrows);
     MPI_Waitall(2, requests, statuses);
 
