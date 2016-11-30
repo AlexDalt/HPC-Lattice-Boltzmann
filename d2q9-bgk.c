@@ -186,6 +186,11 @@ int main(int argc, char* argv[])
     MPI_Get(&(local_cells[0]), params.nx, MPI_t_speed, bottom, 0, params.nx, MPI_t_speed, top_win);
     MPI_Win_fence(0,top_win);
 
+    local_total_vel += comp_func3(params, local_cells, tmp_cells, obstacles, local_nrows);
+
+    local_total_vel += comp_func4(params, local_cells, tmp_cells, obstacles, local_nrows);
+
+
     MPI_Win_fence(0,bottom_win);
     MPI_Get(&(local_cells[(local_nrows+1) * params.nx]), params.nx, MPI_t_speed, top, 0,
       params.nx, MPI_t_speed, bottom_win);
@@ -194,10 +199,6 @@ int main(int argc, char* argv[])
     local_total_vel = comp_func1(params, local_cells, tmp_cells, obstacles, local_nrows);
 
     local_total_vel += comp_func2(params, local_cells, tmp_cells, obstacles, local_nrows);
-
-    local_total_vel += comp_func3(params, local_cells, tmp_cells, obstacles, local_nrows);
-
-    local_total_vel += comp_func4(params, local_cells, tmp_cells, obstacles, local_nrows);
 
 
     // reduce all totals together and divide by number of cells
