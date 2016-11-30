@@ -195,7 +195,7 @@ int main(int argc, char* argv[])
     local_total_vel += comp_func2(params, local_cells, tmp_cells, obstacles, local_nrows);
     // Irecv top row
     MPI_Irecv(&(local_cells[(local_nrows+1) * params.nx]), params.nx, MPI_t_speed, top, tag,
-      MPI_COMM_WORLD, &requests[0]);
+      MPI_COMM_WORLD, &requests[1]);
     // Wait
     MPI_Waitall(2, requests, statuses);
     // Finish work on top half
