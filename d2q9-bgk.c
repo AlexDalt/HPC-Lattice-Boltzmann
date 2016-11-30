@@ -114,9 +114,8 @@ int main(int argc, char* argv[])
   int tag = 0;                      // pad MPI Sendrecv
   double local_total_vel;           // local total velocity
   double global_total_vel;          // global total velocity
-  MPI_Status statuses[2];           // status structs use by MPI_Waitall
   int totnobst = 0;                 // total number of non-obstacle cells
-  MPI_Request requests[2];         // async' comm requests
+  MPI_Win top_win, bottom_win;      // RMA windows for one-sided MPI calls
 
   // initialise mpi
   MPI_Init_thread(&argc, &argv, required, &provided);
@@ -164,6 +163,12 @@ int main(int argc, char* argv[])
   bottom = (rank == MASTER) ? (rank + size - 1) : (rank - 1);
   omp_set_num_threads(NUM_THREADS);
 
+  MPI_Win_create(&(local_cells[local_nrows * params.nx]), params.nx, sizeof(t_speed), MPI_INFO_NULL,
+    MPI_COMM_WORLD, &top_win);
+
+  MPI_Win_create(&(local_cells[params.nx]), params.nx, sizeof(t_speed), MPI_INFO_NULL,
+    MPI_COMM_WORLD, &bottom_win);
+
   /* iterate for maxIters timesteps */
   gettimeofday(&timstr, NULL);
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
@@ -176,29 +181,22 @@ int main(int argc, char* argv[])
       accelerate_flow(params, local_cells, obstacles, row);
     }
 
-    // halo exchange interspliced with work
-    // Isend top row
-    MPI_Isend(&(local_cells[local_nrows * params.nx]), params.nx, MPI_t_speed, top, tag,
-      MPI_COMM_WORLD, &requests[0]);
-    // Work on workable top half
+    // halo exchange and work
+    MPI_Win_fence(0,bottom_win);
+    MPI_Get(&(local_cells[0]), params.nx, MPI_t_speed, bottom, 0, params.nx, MPI_t_speed, bottom_win);
+    MPI_Win_fence(0,bottom_win);
+
     local_total_vel = comp_func2(params, local_cells, tmp_cells, obstacles, local_nrows);
-    // Irecv from bottom
-    MPI_Irecv(&(local_cells[0]), params.nx, MPI_t_speed, bottom, tag, MPI_COMM_WORLD, &requests[1]);
-    // Wait
-    MPI_Waitall(2, requests, statuses);
-    // Work on workable bottom half
+
     local_total_vel += comp_func3(params, local_cells, tmp_cells, obstacles, local_nrows);
-    // Isend bottom row
-    MPI_Isend(&(local_cells[params.nx]), params.nx, MPI_t_speed, bottom, tag,
-      MPI_COMM_WORLD, &requests[0]);
-    // Finish work on bottom half
+
+    MPI_Win_fence(0,top_win);
+    MPI_Get(&(local_cells[(local_nrows+1) * params.nx]), params.nx, MPI_t_speed, top, 0,
+      params.nx, MPI_t_speed, bottom_win);
+    MPI_Win_fence(0,top_win);
+
     local_total_vel += comp_func4(params, local_cells, tmp_cells, obstacles, local_nrows);
-    // Irecv top row
-    MPI_Irecv(&(local_cells[(local_nrows+1) * params.nx]), params.nx, MPI_t_speed, top, tag,
-      MPI_COMM_WORLD, &requests[1]);
-    // Wait
-    MPI_Waitall(2, requests, statuses);
-    // Finish work on top half
+
     local_total_vel += comp_func1(params, local_cells, tmp_cells, obstacles, local_nrows);
 
 
@@ -243,6 +241,8 @@ int main(int argc, char* argv[])
   free(global_cells);
   finalise(&params, &local_cells, &tmp_cells, &obstacles, &av_vels);
   free(global_obstacles);
+  MPI_Win_free(&top_win);
+  MPI_Win_free(&bottom_win);
   MPI_Finalize();
 
   return EXIT_SUCCESS;
