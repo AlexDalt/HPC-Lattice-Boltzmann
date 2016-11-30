@@ -52,10 +52,19 @@ int calc_nrows(int ny, int size);
 */
 int pointer_swap(t_speed** cells, t_speed** tmp_cells);
 int accelerate_flow(const t_param params, t_speed* cells, int* obstacles, int row);
-double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, int nrows);
-int write_values(const t_param params, t_speed* cells, int* obstacles, double* av_vels);
+
+//each comp_func works on a different part of the grid
+//top row
+double comp_func1(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, int nrows);
+//top half (- top row)
+double comp_func2(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, int nrows);
+//bottom half (-bottom row)
+double comp_func3(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, int nrows);
+//bottom row
+double comp_func4(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, int nrows);
 
 /* finalise, including freeing up allocated memory */
+int write_values(const t_param params, t_speed* cells, int* obstacles, double* av_vels);
 int finalise(const t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr,
              int** obstacles_ptr, double** av_vels_ptr);
 
@@ -105,8 +114,9 @@ int main(int argc, char* argv[])
   int tag = 0;                      // pad MPI Sendrecv
   double local_total_vel;           // local total velocity
   double global_total_vel;          // global total velocity
-  MPI_Status status;                // status
+  MPI_Status statuses[2];           // status structs use by MPI_Waitall
   int totnobst = 0;                 // total number of non-obstacle cells
+  MPI_Requests requests[2];         // async' comm requests
 
   // initialise mpi
   MPI_Init_thread(&argc, &argv, required, &provided);
@@ -166,19 +176,31 @@ int main(int argc, char* argv[])
       accelerate_flow(params, local_cells, obstacles, row);
     }
 
-    // halo exchange
-    // send to bottom, receive from top
-    MPI_Sendrecv(&(local_cells[params.nx]), params.nx, MPI_t_speed, bottom, tag,
-      &(local_cells[(local_nrows+1) * params.nx]), params.nx, MPI_t_speed, top, tag,
-      MPI_COMM_WORLD, &status);
+    // halo exchange interspliced with work
+    // Isend top row
+    MPI_Isend(&(local_cells[local_nrows * params.nx]), params.nx, MPI_t_speed, top, tag,
+      MPI_COMM_WORLD, &requests[0]);
+    // Work on workable bottom half
+    local_total_vel = comp_func3(params, local_cells, tmp_cells, obstacles, local_nrows);
+    // Irecv bottom row
+    MPI_Irecv(&(local_cells[0]), params.nx, MPI_t_speed, bottom, tag, MPI_COMM_WORLD, &requests[1]);
+    // Wait
+    MPI_Waitall(2, requests, statuses);
+    // Finish work on bottom half
+    local_total_vel += comp_func4(params, local_cells, tmp_cells, obstacles, local_nrows);
+    // Isend bottom row
+    MPI_Isend(&(local_cells[params.nx]), params.nx, MPI_t_speed, bottom, tag,
+      MPI_COMM_WORLD, &requests[0]);
+    // Work on workable top half
+    local_total_vel += comp_func2(params, local_cells, tmp_cells, obstacles, local_nrows);
+    // Irecv top row
+    MPI_Irecv(&(local_cells[(local_nrows+1) * params.nx]), params.nx, MPI_t_speed, top, tag,
+      MPI_COMM_WORLD, &requests[0]);
+    // Wait
+    MPI_Waitall(2, requests, statuses);
+    // Finish work on top half
+    local_total_vel += comp_func1(params, local_cells, tmp_cells, obstacles, local_nrows);
 
-    // send to top, receive from bottom
-    MPI_Sendrecv(&(local_cells[local_nrows * params.nx]), params.nx, MPI_t_speed, top, tag,
-      &(local_cells[0]), params.nx, MPI_t_speed, bottom, tag,
-      MPI_COMM_WORLD, &status);
-
-    // bulk of computation
-    local_total_vel = comp_func(params, local_cells, tmp_cells, obstacles, local_nrows);
 
     // reduce all totals together and divide by number of cells
     global_total_vel = 0.0;
@@ -267,18 +289,156 @@ int accelerate_flow(const t_param params, t_speed* cells, int* obstacles, int ro
   return EXIT_SUCCESS;
 }
 
-double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, int nrows){
+//only does the topmost row
+double comp_func1(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, int nrows){
   /* loop over _all_ cells */
   const double c_sq = 1.0 / 3.0; /* square of speed of sound */
   const double w0 = 4.0 / 9.0;  /* weighting factor */
   const double w1 = 1.0 / 9.0;  /* weighting factor */
   const double w2 = 1.0 / 36.0; /* weighting factor */
-  int ii,jj = 0;
+  int a = nrows + 1;
+  int jj = 0;
+
+  double tot_u = 0.0;
+
+#pragma omp parallel for reduction(+:tot_u) private(jj)
+  for (jj = 0; jj < params.nx; jj+=STEP){
+    for (int b = jj; b < jj+STEP && b < params.nx; b++){
+      /* determine indices of axis-direction neighbours
+      ** respecting periodic boundary conditions (wrap around) */
+      int y_n = a + 1;
+      int x_e = (b + 1) % params.nx;
+      int y_s = a - 1;
+      int x_w = (b == 0) ? (b + params.nx - 1) : (b - 1);
+      /* propagate densities to neighbouring cells, following
+      ** appropriate directions of travel and writing into
+      ** scratch space grid */
+      if (!obstacles[a * params.nx + b]){
+        tmp_cells[a * params.nx + b].speeds[0] = cells[a * params.nx + b].speeds[0];
+        tmp_cells[a * params.nx + b].speeds[1] = cells[a * params.nx + x_w].speeds[1];
+        tmp_cells[a * params.nx + b].speeds[2] = cells[y_s * params.nx + b].speeds[2];
+        tmp_cells[a * params.nx + b].speeds[3] = cells[a * params.nx + x_e].speeds[3];
+        tmp_cells[a * params.nx + b].speeds[4] = cells[y_n * params.nx + b].speeds[4];
+        tmp_cells[a * params.nx + b].speeds[5] = cells[y_s * params.nx + x_w].speeds[5];
+        tmp_cells[a * params.nx + b].speeds[6] = cells[y_s * params.nx + x_e].speeds[6];
+        tmp_cells[a * params.nx + b].speeds[7] = cells[y_n * params.nx + x_e].speeds[7];
+        tmp_cells[a * params.nx + b].speeds[8] = cells[y_n * params.nx + x_w].speeds[8];
+
+        /* compute local density total */
+        float local_density = 0.0;
+
+        for (int kk = 0; kk < NSPEEDS; kk++)
+        {
+          local_density += tmp_cells[a * params.nx + b].speeds[kk];
+        }
+
+        /* compute x velocity component */
+        double u_x = (tmp_cells[a * params.nx + b].speeds[1]
+                      + tmp_cells[a * params.nx + b].speeds[5]
+                      + tmp_cells[a * params.nx + b].speeds[8]
+                      - (tmp_cells[a * params.nx + b].speeds[3]
+                          + tmp_cells[a * params.nx + b].speeds[6]
+                          + tmp_cells[a * params.nx + b].speeds[7]))
+                      / local_density;
+            /* compute y velocity component */
+        double u_y = (tmp_cells[a * params.nx + b].speeds[2]
+                      + tmp_cells[a * params.nx + b].speeds[5]
+                      + tmp_cells[a * params.nx + b].speeds[6]
+                      - (tmp_cells[a * params.nx + b].speeds[4]
+                          + tmp_cells[a * params.nx + b].speeds[7]
+                          + tmp_cells[a * params.nx + b].speeds[8]))
+                      / local_density;
+
+        /* velocity squared */
+        double u_sq = u_x * u_x + u_y * u_y;
+
+        /* directional velocity components */
+        float u[NSPEEDS];
+        u[1] =   u_x;        /* east */
+        u[2] =         u_y;  /* north */
+        u[3] = - u_x;        /* west */
+        u[4] =       - u_y;  /* south */
+        u[5] =   u_x + u_y;  /* north-east */
+        u[6] = - u_x + u_y;  /* north-west */
+        u[7] = - u_x - u_y;  /* south-west */
+        u[8] =   u_x - u_y;  /* south-east */
+
+        /* equilibrium densities */
+        float d_equ[NSPEEDS];
+        /* zero velocity density: weight w0 */
+        d_equ[0] = w0 * local_density
+                   * (1.0 - u_sq / (2.0 * c_sq));
+        /* axis speeds: weight w1 */
+        d_equ[1] = w1 * local_density * (1.0 + u[1] / c_sq
+                                         + (u[1] * u[1]) / (2.0 * c_sq * c_sq)
+                                         - u_sq / (2.0 * c_sq));
+        d_equ[2] = w1 * local_density * (1.0 + u[2] / c_sq
+                                          + (u[2] * u[2]) / (2.0 * c_sq * c_sq)
+                                          - u_sq / (2.0 * c_sq));
+        d_equ[3] = w1 * local_density * (1.0 + u[3] / c_sq
+                                          + (u[3] * u[3]) / (2.0 * c_sq * c_sq)
+                                          - u_sq / (2.0 * c_sq));
+        d_equ[4] = w1 * local_density * (1.0 + u[4] / c_sq
+                                          + (u[4] * u[4]) / (2.0 * c_sq * c_sq)
+                                          - u_sq / (2.0 * c_sq));
+        /* diagonal speeds: weight w2 */
+        d_equ[5] = w2 * local_density * (1.0 + u[5] / c_sq
+                                          + (u[5] * u[5]) / (2.0 * c_sq * c_sq)
+                                          - u_sq / (2.0 * c_sq));
+        d_equ[6] = w2 * local_density * (1.0 + u[6] / c_sq
+                                          + (u[6] * u[6]) / (2.0 * c_sq * c_sq)
+                                          - u_sq / (2.0 * c_sq));
+        d_equ[7] = w2 * local_density * (1.0 + u[7] / c_sq
+                                          + (u[7] * u[7]) / (2.0 * c_sq * c_sq)
+                                          - u_sq / (2.0 * c_sq));
+        d_equ[8] = w2 * local_density * (1.0 + u[8] / c_sq
+                                          + (u[8] * u[8]) / (2.0 * c_sq * c_sq)
+                                          - u_sq / (2.0 * c_sq));
+
+        /* relaxation step */
+        for (int kk = 0; kk < NSPEEDS; kk++)
+        {
+          tmp_cells[a * params.nx + b].speeds[kk] = tmp_cells[a * params.nx + b].speeds[kk]
+                                                  + params.omega
+                                                  * (d_equ[kk] - tmp_cells[a * params.nx + b].speeds[kk]);
+        }
+
+        //av_velocity steps
+        tot_u += sqrt(u_sq);
+
+      } else {
+        /* called after propagate, so taking values from scratch space
+        ** mirroring, and writing into main grid */
+        tmp_cells[a * params.nx + b].speeds[0] = cells[a * params.nx + b].speeds[0];
+        tmp_cells[a * params.nx + b].speeds[3] = cells[a * params.nx + x_w].speeds[1];
+        tmp_cells[a * params.nx + b].speeds[4] = cells[y_s * params.nx + b].speeds[2];
+        tmp_cells[a * params.nx + b].speeds[1] = cells[a * params.nx + x_e].speeds[3];
+        tmp_cells[a * params.nx + b].speeds[2] = cells[y_n * params.nx + b].speeds[4];
+        tmp_cells[a * params.nx + b].speeds[7] = cells[y_s * params.nx + x_w].speeds[5];
+        tmp_cells[a * params.nx + b].speeds[8] = cells[y_s * params.nx + x_e].speeds[6];
+        tmp_cells[a * params.nx + b].speeds[5] = cells[y_n * params.nx + x_e].speeds[7];
+        tmp_cells[a * params.nx + b].speeds[6] = cells[y_n * params.nx + x_w].speeds[8];
+      }
+    }
+  }
+
+  return tot_u;
+}
+
+// works on top half (- top row)
+double comp_func2(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, int nrows){
+  /* loop over _all_ cells */
+  const double c_sq = 1.0 / 3.0; /* square of speed of sound */
+  const double w0 = 4.0 / 9.0;  /* weighting factor */
+  const double w1 = 1.0 / 9.0;  /* weighting factor */
+  const double w2 = 1.0 / 36.0; /* weighting factor */
+  int ii, jj = 0;
+  int half = (nrows + 2)/2;
 
   double tot_u = 0.0;
 
 #pragma omp parallel for reduction(+:tot_u) private(ii,jj) collapse(2)
-  for (ii = 1; ii < (nrows + 1); ii+=STEP)
+  for (ii = half; ii < nrows ; ii+=STEP)
   {
     for (jj = 0; jj < params.nx; jj+=STEP)
     {
@@ -400,6 +560,285 @@ double comp_func(const t_param params, t_speed* cells, t_speed* tmp_cells, int* 
             tmp_cells[a * params.nx + b].speeds[6] = cells[y_n * params.nx + x_w].speeds[8];
           }
         }
+      }
+    }
+  }
+
+  return tot_u;
+}
+
+// works on bottom half (- bottom row)
+double comp_func3(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, int nrows){
+  /* loop over _all_ cells */
+  const double c_sq = 1.0 / 3.0; /* square of speed of sound */
+  const double w0 = 4.0 / 9.0;  /* weighting factor */
+  const double w1 = 1.0 / 9.0;  /* weighting factor */
+  const double w2 = 1.0 / 36.0; /* weighting factor */
+  int ii,jj = 0;
+  int half = (nrows + 2)/2;
+
+  double tot_u = 0.0;
+
+#pragma omp parallel for reduction(+:tot_u) private(ii,jj) collapse(2)
+  for (ii = 2; ii < half; ii+=STEP)
+  {
+    for (jj = 0; jj < params.nx; jj+=STEP)
+    {
+      for (int a = ii; a < ii+STEP && a < (nrows + 1); a++){
+        for (int b = jj; b < jj+STEP && b < params.nx; b++){
+          /* determine indices of axis-direction neighbours
+          ** respecting periodic boundary conditions (wrap around) */
+          int y_n = a + 1;
+          int x_e = (b + 1) % params.nx;
+          int y_s = a - 1;
+          int x_w = (b == 0) ? (b + params.nx - 1) : (b - 1);
+          /* propagate densities to neighbouring cells, following
+          ** appropriate directions of travel and writing into
+          ** scratch space grid */
+          if (!obstacles[a * params.nx + b]){
+            tmp_cells[a * params.nx + b].speeds[0] = cells[a * params.nx + b].speeds[0];
+            tmp_cells[a * params.nx + b].speeds[1] = cells[a * params.nx + x_w].speeds[1];
+            tmp_cells[a * params.nx + b].speeds[2] = cells[y_s * params.nx + b].speeds[2];
+            tmp_cells[a * params.nx + b].speeds[3] = cells[a * params.nx + x_e].speeds[3];
+            tmp_cells[a * params.nx + b].speeds[4] = cells[y_n * params.nx + b].speeds[4];
+            tmp_cells[a * params.nx + b].speeds[5] = cells[y_s * params.nx + x_w].speeds[5];
+            tmp_cells[a * params.nx + b].speeds[6] = cells[y_s * params.nx + x_e].speeds[6];
+            tmp_cells[a * params.nx + b].speeds[7] = cells[y_n * params.nx + x_e].speeds[7];
+            tmp_cells[a * params.nx + b].speeds[8] = cells[y_n * params.nx + x_w].speeds[8];
+
+            /* compute local density total */
+            float local_density = 0.0;
+
+            for (int kk = 0; kk < NSPEEDS; kk++)
+            {
+              local_density += tmp_cells[a * params.nx + b].speeds[kk];
+            }
+
+            /* compute x velocity component */
+            double u_x = (tmp_cells[a * params.nx + b].speeds[1]
+                          + tmp_cells[a * params.nx + b].speeds[5]
+                          + tmp_cells[a * params.nx + b].speeds[8]
+                          - (tmp_cells[a * params.nx + b].speeds[3]
+                             + tmp_cells[a * params.nx + b].speeds[6]
+                             + tmp_cells[a * params.nx + b].speeds[7]))
+                         / local_density;
+            /* compute y velocity component */
+            double u_y = (tmp_cells[a * params.nx + b].speeds[2]
+                          + tmp_cells[a * params.nx + b].speeds[5]
+                          + tmp_cells[a * params.nx + b].speeds[6]
+                          - (tmp_cells[a * params.nx + b].speeds[4]
+                             + tmp_cells[a * params.nx + b].speeds[7]
+                             + tmp_cells[a * params.nx + b].speeds[8]))
+                         / local_density;
+
+            /* velocity squared */
+            double u_sq = u_x * u_x + u_y * u_y;
+
+            /* directional velocity components */
+            float u[NSPEEDS];
+            u[1] =   u_x;        /* east */
+            u[2] =         u_y;  /* north */
+            u[3] = - u_x;        /* west */
+            u[4] =       - u_y;  /* south */
+            u[5] =   u_x + u_y;  /* north-east */
+            u[6] = - u_x + u_y;  /* north-west */
+            u[7] = - u_x - u_y;  /* south-west */
+            u[8] =   u_x - u_y;  /* south-east */
+
+            /* equilibrium densities */
+            float d_equ[NSPEEDS];
+            /* zero velocity density: weight w0 */
+            d_equ[0] = w0 * local_density
+                       * (1.0 - u_sq / (2.0 * c_sq));
+            /* axis speeds: weight w1 */
+            d_equ[1] = w1 * local_density * (1.0 + u[1] / c_sq
+                                             + (u[1] * u[1]) / (2.0 * c_sq * c_sq)
+                                             - u_sq / (2.0 * c_sq));
+            d_equ[2] = w1 * local_density * (1.0 + u[2] / c_sq
+                                             + (u[2] * u[2]) / (2.0 * c_sq * c_sq)
+                                             - u_sq / (2.0 * c_sq));
+            d_equ[3] = w1 * local_density * (1.0 + u[3] / c_sq
+                                             + (u[3] * u[3]) / (2.0 * c_sq * c_sq)
+                                             - u_sq / (2.0 * c_sq));
+            d_equ[4] = w1 * local_density * (1.0 + u[4] / c_sq
+                                             + (u[4] * u[4]) / (2.0 * c_sq * c_sq)
+                                             - u_sq / (2.0 * c_sq));
+            /* diagonal speeds: weight w2 */
+            d_equ[5] = w2 * local_density * (1.0 + u[5] / c_sq
+                                             + (u[5] * u[5]) / (2.0 * c_sq * c_sq)
+                                             - u_sq / (2.0 * c_sq));
+            d_equ[6] = w2 * local_density * (1.0 + u[6] / c_sq
+                                             + (u[6] * u[6]) / (2.0 * c_sq * c_sq)
+                                             - u_sq / (2.0 * c_sq));
+            d_equ[7] = w2 * local_density * (1.0 + u[7] / c_sq
+                                             + (u[7] * u[7]) / (2.0 * c_sq * c_sq)
+                                             - u_sq / (2.0 * c_sq));
+            d_equ[8] = w2 * local_density * (1.0 + u[8] / c_sq
+                                             + (u[8] * u[8]) / (2.0 * c_sq * c_sq)
+                                             - u_sq / (2.0 * c_sq));
+
+            /* relaxation step */
+            for (int kk = 0; kk < NSPEEDS; kk++)
+            {
+              tmp_cells[a * params.nx + b].speeds[kk] = tmp_cells[a * params.nx + b].speeds[kk]
+                                                      + params.omega
+                                                      * (d_equ[kk] - tmp_cells[a * params.nx + b].speeds[kk]);
+            }
+
+            //av_velocity steps
+            tot_u += sqrt(u_sq);
+
+          } else {
+            /* called after propagate, so taking values from scratch space
+            ** mirroring, and writing into main grid */
+            tmp_cells[a * params.nx + b].speeds[0] = cells[a * params.nx + b].speeds[0];
+            tmp_cells[a * params.nx + b].speeds[3] = cells[a * params.nx + x_w].speeds[1];
+            tmp_cells[a * params.nx + b].speeds[4] = cells[y_s * params.nx + b].speeds[2];
+            tmp_cells[a * params.nx + b].speeds[1] = cells[a * params.nx + x_e].speeds[3];
+            tmp_cells[a * params.nx + b].speeds[2] = cells[y_n * params.nx + b].speeds[4];
+            tmp_cells[a * params.nx + b].speeds[7] = cells[y_s * params.nx + x_w].speeds[5];
+            tmp_cells[a * params.nx + b].speeds[8] = cells[y_s * params.nx + x_e].speeds[6];
+            tmp_cells[a * params.nx + b].speeds[5] = cells[y_n * params.nx + x_e].speeds[7];
+            tmp_cells[a * params.nx + b].speeds[6] = cells[y_n * params.nx + x_w].speeds[8];
+          }
+        }
+      }
+    }
+  }
+
+  return tot_u;
+}
+
+//works on bottom row
+double comp_func4(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, int nrows){
+  /* loop over _all_ cells */
+  const double c_sq = 1.0 / 3.0; /* square of speed of sound */
+  const double w0 = 4.0 / 9.0;  /* weighting factor */
+  const double w1 = 1.0 / 9.0;  /* weighting factor */
+  const double w2 = 1.0 / 36.0; /* weighting factor */
+  int a = 1
+  int jj = 0;
+
+  double tot_u = 0.0;
+
+#pragma omp parallel for reduction(+:tot_u) private(jj)
+  for (jj = 0; jj < params.nx; jj+=STEP)
+  {
+    for (int b = jj; b < jj+STEP && b < params.nx; b++){
+      /* determine indices of axis-direction neighbours
+      ** respecting periodic boundary conditions (wrap around) */
+      int y_n = a + 1;
+      int x_e = (b + 1) % params.nx;
+      int y_s = a - 1;
+      int x_w = (b == 0) ? (b + params.nx - 1) : (b - 1);
+      /* propagate densities to neighbouring cells, following
+      ** appropriate directions of travel and writing into
+      ** scratch space grid */
+      if (!obstacles[a * params.nx + b]){
+        tmp_cells[a * params.nx + b].speeds[0] = cells[a * params.nx + b].speeds[0];
+        tmp_cells[a * params.nx + b].speeds[1] = cells[a * params.nx + x_w].speeds[1];
+        tmp_cells[a * params.nx + b].speeds[2] = cells[y_s * params.nx + b].speeds[2];
+        tmp_cells[a * params.nx + b].speeds[3] = cells[a * params.nx + x_e].speeds[3];
+        tmp_cells[a * params.nx + b].speeds[4] = cells[y_n * params.nx + b].speeds[4];
+        tmp_cells[a * params.nx + b].speeds[5] = cells[y_s * params.nx + x_w].speeds[5];
+        tmp_cells[a * params.nx + b].speeds[6] = cells[y_s * params.nx + x_e].speeds[6];
+        tmp_cells[a * params.nx + b].speeds[7] = cells[y_n * params.nx + x_e].speeds[7];
+        tmp_cells[a * params.nx + b].speeds[8] = cells[y_n * params.nx + x_w].speeds[8];
+
+        /* compute local density total */
+        float local_density = 0.0;
+
+        for (int kk = 0; kk < NSPEEDS; kk++)
+        {
+          local_density += tmp_cells[a * params.nx + b].speeds[kk];
+        }
+
+        /* compute x velocity component */
+        double u_x = (tmp_cells[a * params.nx + b].speeds[1]
+                      + tmp_cells[a * params.nx + b].speeds[5]
+                      + tmp_cells[a * params.nx + b].speeds[8]
+                      - (tmp_cells[a * params.nx + b].speeds[3]
+                         + tmp_cells[a * params.nx + b].speeds[6]
+                         + tmp_cells[a * params.nx + b].speeds[7]))
+                     / local_density;
+        /* compute y velocity component */
+        double u_y = (tmp_cells[a * params.nx + b].speeds[2]
+                      + tmp_cells[a * params.nx + b].speeds[5]
+                      + tmp_cells[a * params.nx + b].speeds[6]
+                      - (tmp_cells[a * params.nx + b].speeds[4]
+                         + tmp_cells[a * params.nx + b].speeds[7]
+                         + tmp_cells[a * params.nx + b].speeds[8]))
+                     / local_density;
+
+        /* velocity squared */
+        double u_sq = u_x * u_x + u_y * u_y;
+
+        /* directional velocity components */
+        float u[NSPEEDS];
+        u[1] =   u_x;        /* east */
+        u[2] =         u_y;  /* north */
+        u[3] = - u_x;        /* west */
+        u[4] =       - u_y;  /* south */
+        u[5] =   u_x + u_y;  /* north-east */
+        u[6] = - u_x + u_y;  /* north-west */
+        u[7] = - u_x - u_y;  /* south-west */
+        u[8] =   u_x - u_y;  /* south-east */
+
+        /* equilibrium densities */
+        float d_equ[NSPEEDS];
+        /* zero velocity density: weight w0 */
+        d_equ[0] = w0 * local_density
+                   * (1.0 - u_sq / (2.0 * c_sq));
+        /* axis speeds: weight w1 */
+        d_equ[1] = w1 * local_density * (1.0 + u[1] / c_sq
+                                         + (u[1] * u[1]) / (2.0 * c_sq * c_sq)
+                                         - u_sq / (2.0 * c_sq));
+        d_equ[2] = w1 * local_density * (1.0 + u[2] / c_sq
+                                         + (u[2] * u[2]) / (2.0 * c_sq * c_sq)
+                                         - u_sq / (2.0 * c_sq));
+        d_equ[3] = w1 * local_density * (1.0 + u[3] / c_sq
+                                         + (u[3] * u[3]) / (2.0 * c_sq * c_sq)
+                                         - u_sq / (2.0 * c_sq));
+        d_equ[4] = w1 * local_density * (1.0 + u[4] / c_sq
+                                         + (u[4] * u[4]) / (2.0 * c_sq * c_sq)
+                                         - u_sq / (2.0 * c_sq));
+        /* diagonal speeds: weight w2 */
+        d_equ[5] = w2 * local_density * (1.0 + u[5] / c_sq
+                                         + (u[5] * u[5]) / (2.0 * c_sq * c_sq)
+                                         - u_sq / (2.0 * c_sq));
+        d_equ[6] = w2 * local_density * (1.0 + u[6] / c_sq
+                                         + (u[6] * u[6]) / (2.0 * c_sq * c_sq)
+                                         - u_sq / (2.0 * c_sq));
+        d_equ[7] = w2 * local_density * (1.0 + u[7] / c_sq
+                                         + (u[7] * u[7]) / (2.0 * c_sq * c_sq)
+                                         - u_sq / (2.0 * c_sq));
+        d_equ[8] = w2 * local_density * (1.0 + u[8] / c_sq
+                                         + (u[8] * u[8]) / (2.0 * c_sq * c_sq)
+                                         - u_sq / (2.0 * c_sq));
+
+        /* relaxation step */
+        for (int kk = 0; kk < NSPEEDS; kk++)
+        {
+          tmp_cells[a * params.nx + b].speeds[kk] = tmp_cells[a * params.nx + b].speeds[kk]
+                                                  + params.omega
+                                                  * (d_equ[kk] - tmp_cells[a * params.nx + b].speeds[kk]);
+        }
+
+        //av_velocity steps
+        tot_u += sqrt(u_sq);
+
+      } else {
+        /* called after propagate, so taking values from scratch space
+        ** mirroring, and writing into main grid */
+        tmp_cells[a * params.nx + b].speeds[0] = cells[a * params.nx + b].speeds[0];
+        tmp_cells[a * params.nx + b].speeds[3] = cells[a * params.nx + x_w].speeds[1];
+        tmp_cells[a * params.nx + b].speeds[4] = cells[y_s * params.nx + b].speeds[2];
+        tmp_cells[a * params.nx + b].speeds[1] = cells[a * params.nx + x_e].speeds[3];
+        tmp_cells[a * params.nx + b].speeds[2] = cells[y_n * params.nx + b].speeds[4];
+        tmp_cells[a * params.nx + b].speeds[7] = cells[y_s * params.nx + x_w].speeds[5];
+        tmp_cells[a * params.nx + b].speeds[8] = cells[y_s * params.nx + x_e].speeds[6];
+        tmp_cells[a * params.nx + b].speeds[5] = cells[y_n * params.nx + x_e].speeds[7];
+        tmp_cells[a * params.nx + b].speeds[6] = cells[y_n * params.nx + x_w].speeds[8];
       }
     }
   }
