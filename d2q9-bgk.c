@@ -185,9 +185,9 @@ int main(int argc, char* argv[])
     // Irecv from bottom
     MPI_Irecv(&(local_cells[0]), params.nx, MPI_t_speed, bottom, tag, MPI_COMM_WORLD, &requests[1]);
     // Wait
-    MPI_Waitall(2, requests, statuses);
     // Finish work on bottom half
     local_total_vel += comp_func4(params, local_cells, tmp_cells, obstacles, local_nrows);
+    MPI_Waitall(2, requests, statuses);
     // Isend bottom row
     MPI_Isend(&(local_cells[params.nx]), params.nx, MPI_t_speed, bottom, tag,
       MPI_COMM_WORLD, &requests[0]);
@@ -197,10 +197,9 @@ int main(int argc, char* argv[])
     MPI_Irecv(&(local_cells[(local_nrows+1) * params.nx]), params.nx, MPI_t_speed, top, tag,
       MPI_COMM_WORLD, &requests[1]);
     // Wait
-    MPI_Waitall(2, requests, statuses);
     // Finish work on top half
     local_total_vel += comp_func1(params, local_cells, tmp_cells, obstacles, local_nrows);
-
+    MPI_Waitall(2, requests, statuses);
 
     // reduce all totals together and divide by number of cells
     global_total_vel = 0.0;
