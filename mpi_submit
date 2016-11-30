@@ -9,7 +9,7 @@
 #PBS -o d2q9-bgk.out
 #PBS -q teaching
 #PBS -l epilogue=~ggdagw/epilogue.sh
-#PBS -l nodes=4:ppn=16,walltime=00:05:00
+#PBS -l nodes=2:ppn=16,walltime=00:05:00
 
 #! Mail to user if job aborts
 #PBS -m a
@@ -18,7 +18,7 @@
 application="./d2q9-bgk"
 
 #! Run options for the application
-options="input_256x256.params obstacles_256x256.dat"
+options="input_1024x1024.params obstacles_1024x1024.dat"
 
 ###############################################################
 ### You should not have to change anything below this line ####
@@ -41,4 +41,4 @@ uniq $PBS_NODEFILE > machine.file.$PBS_JOBID
 numnodes=`wc $PBS_NODEFILE | awk '{ print $1 }'`
 
 #! Run the parallel MPI executable (nodes*ppn)
-KMP_AFFINITY=compact mpirun -np 8 -machinefile machine.file.$PBS_JOBID $application $options
+KMP_AFFINITY=compact mpirun -np 4 -machinefile machine.file.$PBS_JOBID $application $options
