@@ -182,7 +182,7 @@ int main(int argc, char* argv[])
       MPI_COMM_WORLD, &requests[0]);
     // Work on workable bottom half
     local_total_vel = comp_func3(params, local_cells, tmp_cells, obstacles, local_nrows);
-    // Irecv bottom row
+    // Irecv from bottom
     MPI_Irecv(&(local_cells[0]), params.nx, MPI_t_speed, bottom, tag, MPI_COMM_WORLD, &requests[1]);
     // Wait
     MPI_Waitall(2, requests, statuses);
@@ -296,7 +296,7 @@ double comp_func1(const t_param params, t_speed* cells, t_speed* tmp_cells, int*
   const double w0 = 4.0 / 9.0;  /* weighting factor */
   const double w1 = 1.0 / 9.0;  /* weighting factor */
   const double w2 = 1.0 / 36.0; /* weighting factor */
-  int a = nrows + 1;
+  int a = nrows;
   int jj = 0;
 
   double tot_u = 0.0;
