@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
   double global_total_vel;          // global total velocity
   MPI_Status statuses[2];           // status structs use by MPI_Waitall
   int totnobst = 0;                 // total number of non-obstacle cells
-  MPI_Requests requests[2];         // async' comm requests
+  MPI_Request requests[2];         // async' comm requests
 
   // initialise mpi
   MPI_Init_thread(&argc, &argv, required, &provided);
@@ -716,7 +716,7 @@ double comp_func4(const t_param params, t_speed* cells, t_speed* tmp_cells, int*
   const double w0 = 4.0 / 9.0;  /* weighting factor */
   const double w1 = 1.0 / 9.0;  /* weighting factor */
   const double w2 = 1.0 / 36.0; /* weighting factor */
-  int a = 1
+  int a = 1;
   int jj = 0;
 
   double tot_u = 0.0;
