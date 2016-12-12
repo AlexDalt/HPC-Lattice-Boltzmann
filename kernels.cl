@@ -93,7 +93,7 @@ kernel void rebound(global t_speed* cells,
 kernel void collision(global t_speed* cells,
                     global t_speed* tmp_cells,
                     global int* obstacles,
-                    int nx, int ny)
+                    int nx, int ny, float omega)
 {
   // get column and row indices
   int jj = get_global_id(0);
@@ -181,7 +181,8 @@ kernel void collision(global t_speed* cells,
         for (int kk = 0; kk < NSPEEDS; kk++)
         {
           cells[ii * nx + jj].speeds[kk] = tmp_cells[ii * nx + jj].speeds[kk]
-                                                  + params.omega
+                                                  + omega
                                                   * (d_equ[kk] - tmp_cells[ii * nx + jj].speeds[kk]);
         }
+      }
 }
