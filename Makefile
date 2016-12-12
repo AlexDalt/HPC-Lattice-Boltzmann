@@ -2,8 +2,8 @@
 
 EXE=d2q9-bgk
 
-CC=icc
-CFLAGS= -std=c99 -Wall -Ofast -Xhost
+CC=gcc
+CFLAGS= -std=c99 -Wall -O3
 LIBS = -lm
 
 PLATFORM = $(shell uname -s)
