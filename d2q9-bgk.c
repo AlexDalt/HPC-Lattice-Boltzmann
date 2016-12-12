@@ -310,7 +310,7 @@ int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
 
   // Enqueue kernel
   size_t global[2] = {params.nx, params.ny};
-  err = clEnqueueNDRangeKernel(ocl.queue, ocl.rebound,
+  err = clEnqueueNDRangeKernel(ocl.queue, ocl.collision,
                                2, NULL, global, NULL, 0, NULL, NULL);
   checkError(err, "enqueueing collision kernel", __LINE__);
 
