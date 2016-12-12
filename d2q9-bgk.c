@@ -272,9 +272,9 @@ int rebound(const t_param params, t_speed* cells, t_speed* tmp_cells, t_ocl ocl)
   checkError(err, "setting rebound arg 1", __LINE__);
   err = clSetKernelArg(ocl.rebound, 2, sizeof(cl_mem), &ocl.obstacles);
   checkError(err, "setting rebound arg 2", __LINE__);
-  err = clSetKernelArg(ocl.rebound, 3, sizeof(cl_mem), &params.nx);
+  err = clSetKernelArg(ocl.rebound, 3, sizeof(cl_int), &params.nx);
   checkError(err, "setting rebound arg 3", __LINE__);
-  err = clSetKernelArg(ocl.rebound, 4, sizeof(cl_mem), &params.ny);
+  err = clSetKernelArg(ocl.rebound, 4, sizeof(cl_int), &params.ny);
   checkError(err, "setting rebound arg 4", __LINE__);
 
   // Enqueue kernel
@@ -286,28 +286,6 @@ int rebound(const t_param params, t_speed* cells, t_speed* tmp_cells, t_ocl ocl)
   // Wait for kernel to finish
   err = clFinish(ocl.queue);
   checkError(err, "waiting for rebound kernel", __LINE__);
-
-  /* loop over the cells in the grid */
-  for (int ii = 0; ii < params.ny; ii++)
-  {
-    for (int jj = 0; jj < params.nx; jj++)
-    {
-      /* if the cell contains an obstacle */
-      if (obstacles[ii * params.nx + jj])
-      {
-        /* called after propagate, so taking values from scratch space
-        ** mirroring, and writing into main grid */
-        cells[ii * params.nx + jj].speeds[1] = tmp_cells[ii * params.nx + jj].speeds[3];
-        cells[ii * params.nx + jj].speeds[2] = tmp_cells[ii * params.nx + jj].speeds[4];
-        cells[ii * params.nx + jj].speeds[3] = tmp_cells[ii * params.nx + jj].speeds[1];
-        cells[ii * params.nx + jj].speeds[4] = tmp_cells[ii * params.nx + jj].speeds[2];
-        cells[ii * params.nx + jj].speeds[5] = tmp_cells[ii * params.nx + jj].speeds[7];
-        cells[ii * params.nx + jj].speeds[6] = tmp_cells[ii * params.nx + jj].speeds[8];
-        cells[ii * params.nx + jj].speeds[7] = tmp_cells[ii * params.nx + jj].speeds[5];
-        cells[ii * params.nx + jj].speeds[8] = tmp_cells[ii * params.nx + jj].speeds[6];
-      }
-    }
-  }
 
   return EXIT_SUCCESS;
 }
