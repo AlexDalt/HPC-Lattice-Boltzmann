@@ -350,10 +350,20 @@ float cl_av_velocity(const t_param params, t_ocl ocl, int tot_cells)
   err = clSetKernelArg(ocl.av_velocity, 4, sizeof(cl_int), &params.ny);
   checkError(err, "setting av_velocity arg 4", __LINE__);
 
+  // Enqueue kernel
+  size_t global[2] = {params.nx, params.ny};
+  err = clEnqueueNDRangeKernel(ocl.queue, ocl.av_velocity,
+                               2, NULL, global, NULL, 0, NULL, NULL);
+  checkError(err, "enqueueing av_velocity kernel", __LINE__);
+
+  // Wait for kernel to finish
+  err = clFinish(ocl.queue);
+  checkError(err, "waiting for av_velocity kernel", __LINE__);
+
   err = clEnqueueReadBuffer(
   ocl.queue, ocl.tot_us, CL_TRUE, 0,
   sizeof(float) * params.nx * params.ny, tot_us, 0, NULL, NULL);
-  checkError(err, "reading cells data", __LINE__);
+  checkError(err, "reading tot_us data", __LINE__);
 
   for (int ii = 0; ii < params.ny; ii++){
     for (int jj = 0; jj < params.nx; jj++){
