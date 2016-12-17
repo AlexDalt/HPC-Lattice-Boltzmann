@@ -195,14 +195,15 @@ kernel void av_velocity(global t_speed* cells,
   int jj = get_global_id(0);
   int ii = get_global_id(1);
 
-  if (!obstacles[ii * params.nx + jj])
+  if (!obstacles[ii * nx + jj])
     {
       /* local density total */
       float local_density = 0.0;
+      float tot_u = 0.0;
 
       for (int kk = 0; kk < NSPEEDS; kk++)
       {
-        local_density += cells[ii * params.nx + jj].speeds[kk];
+        local_density += cells[ii * nx + jj].speeds[kk];
       }
 
       /* x-component of velocity */
@@ -226,6 +227,6 @@ kernel void av_velocity(global t_speed* cells,
 
       tot_us[ii * nx + jj] = tot_u;
     } else {
-      tot_us[ii * nc + jj] = 0;
+      tot_us[ii * nx + jj] = 0;
     }
 }
