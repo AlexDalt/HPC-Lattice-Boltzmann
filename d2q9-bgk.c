@@ -85,7 +85,7 @@ int finalise(const t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr
 float total_density(const t_param params, t_speed* cells);
 
 /* compute average velocity */
-float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
+float av_velocity(const t_param params, t_ocl ocl, int tot_cells);
 
 /* calculate Reynolds number */
 float calc_reynolds(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
@@ -330,7 +330,7 @@ int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
   return EXIT_SUCCESS;
 }
 
-float av_velocity(const t_param params, t_ocl ocl, int tot_cells;)
+float av_velocity(const t_param params, t_ocl ocl, int tot_cells)
 {
   int    tot_cells = 0;  /* no. of cells used in calculation */
   float tot_u = 0;          /* accumulated magnitudes of velocity for each cell */
