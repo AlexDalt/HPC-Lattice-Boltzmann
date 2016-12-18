@@ -66,7 +66,7 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
 int write_values(const t_param params, float** cells, int* obstacles, float* av_vels);
 
 /* finalise, including freeing up allocated memory */
-int finalise(const t_param* params, float** cells_ptr, float** tmp_cells_ptr,
+int finalise(const t_param* params, float*** cells_ptr, float*** tmp_cells_ptr,
              int** obstacles_ptr, float** av_vels_ptr, t_ocl ocl);
 
 /* Sum all the densities in the grid.
@@ -608,7 +608,7 @@ float calc_reynolds(const t_param params, float** cells, int* obstacles, t_ocl o
   return av_velocity(params, cells, obstacles, ocl) * params.reynolds_dim / viscosity;
 }
 
-float total_density(const t_param params, SOA_speeds cells)
+float total_density(const t_param params, float** cells)
 {
   float total = 0.0;  /* accumulator */
 
