@@ -397,7 +397,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
   */
 
   /* main grid */
-  cells_ptr = (SOA_speeds*)malloc(sizeof(SAO_speeds*));
+  cells_ptr = (SOA_speeds*)malloc(sizeof(SOA_speeds*));
   for(int a = 0; a < NSPEEDS; a++){
     cells_ptr->speeds[a] = (float*)malloc(sizeof(float) * params->nx * params->ny);
   }
@@ -405,7 +405,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
   if (cells_ptr == NULL) die("cannot allocate memory for cells", __LINE__, __FILE__);
 
   /* 'helper' grid, used as scratch space */
-  tmp_cells_ptr = (SOA_speeds*)malloc(sizeof(SAO_speeds*));
+  tmp_cells_ptr = (SOA_speeds*)malloc(sizeof(SOA_speeds*));
   for(int a = 0; a < NSPEEDS; a++){
     (*tmp_cells_ptr).speeds[a] = (float*)malloc(sizeof(float) * params->nx * params->ny);
   }
