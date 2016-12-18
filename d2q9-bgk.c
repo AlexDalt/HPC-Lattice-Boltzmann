@@ -147,7 +147,7 @@ int main(int argc, char* argv[])
   // Write cells to OpenCL buffer
   err = clEnqueueWriteBuffer(
     ocl.queue, ocl.cells, CL_TRUE, 0,
-    sizeof(cl_float) * (params.ny * params.nx) * NSPEEDS, cells, 0, NULL, NULL);
+    sizeof(cl_float) * (params.ny * params.nx) * NSPEEDS, &cells, 0, NULL, NULL);
   checkError(err, "writing cells data", __LINE__);
 
   // Write obstacles to OpenCL buffer
@@ -171,7 +171,7 @@ int main(int argc, char* argv[])
   // Read cells from device
   err = clEnqueueReadBuffer(
     ocl.queue, ocl.cells, CL_TRUE, 0,
-    sizeof(float) * (params->ny * params->nx) * NSPEEDS, cells, 0, NULL, NULL);
+    sizeof(cl_float) * (params.ny * params.nx) * NSPEEDS, &cells, 0, NULL, NULL);
   checkError(err, "reading cells data", __LINE__);
 
   gettimeofday(&timstr, NULL);
