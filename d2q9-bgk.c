@@ -84,7 +84,6 @@ int finalise(const t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr
 float total_density(const t_param params, t_speed* cells);
 
 /* compute average velocity */
-float cl_av_velocity(const t_param params, cl_mem* cells, t_ocl ocl, int tot_cells);
 float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
 
 
@@ -198,7 +197,6 @@ int main(int argc, char* argv[])
 float timestep(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl, int tot_cells)
 {
   accelerate_flow(params, cells, ocl);
-
   return comp_func(params, cells, tmp_cells, ocl, tot_cells);
 }
 
@@ -264,49 +262,6 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
   err = clFinish(ocl.queue);
   checkError(err, "waiting for comp_func kernel", __LINE__);
   
-  err = clEnqueueReadBuffer(
-  ocl.queue, ocl.tot_us, CL_TRUE, 0,
-  sizeof(float) * params.nx * params.ny, tot_us, 0, NULL, NULL);
-  checkError(err, "reading tot_us data", __LINE__);
-
-  for (int ii = 0; ii < params.ny; ii++){
-    for (int jj = 0; jj < params.nx; jj++){
-      tot_u += tot_us[ii * params.ny + jj];
-    }
-  }
-
-
-  return tot_u / (float)tot_cells;
-}
-
-float cl_av_velocity(const t_param params, cl_mem* cells, t_ocl ocl, int tot_cells)
-{
-  float tot_u = 0;          /* accumulated magnitudes of velocity for each cell */
-  float tot_us[params.nx * params.ny]; 
-
-  cl_int err;
-
-  err = clSetKernelArg(ocl.av_velocity, 0, sizeof(cl_mem), cells);
-  checkError(err, "setting av_velocity arg 0", __LINE__);
-  err = clSetKernelArg(ocl.av_velocity, 1, sizeof(cl_mem), &ocl.obstacles);
-  checkError(err, "setting av_velocity arg 1", __LINE__);
-  err = clSetKernelArg(ocl.av_velocity, 2, sizeof(cl_mem), &ocl.tot_us);
-  checkError(err, "setting av_velocity arg 2", __LINE__);
-  err = clSetKernelArg(ocl.av_velocity, 3, sizeof(cl_int), &params.nx);
-  checkError(err, "setting av_velocity arg 3", __LINE__);
-  err = clSetKernelArg(ocl.av_velocity, 4, sizeof(cl_int), &params.ny);
-  checkError(err, "setting av_velocity arg 4", __LINE__);
-
-  // Enqueue kernel
-  size_t global[2] = {params.nx, params.ny};
-  err = clEnqueueNDRangeKernel(ocl.queue, ocl.av_velocity,
-                               2, NULL, global, NULL, 0, NULL, NULL);
-  checkError(err, "enqueueing av_velocity kernel", __LINE__);
-
-  // Wait for kernel to finish
-  err = clFinish(ocl.queue);
-  checkError(err, "waiting for av_velocity kernel", __LINE__);
-
   err = clEnqueueReadBuffer(
   ocl.queue, ocl.tot_us, CL_TRUE, 0,
   sizeof(float) * params.nx * params.ny, tot_us, 0, NULL, NULL);
