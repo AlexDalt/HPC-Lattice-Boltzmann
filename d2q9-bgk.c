@@ -70,9 +70,9 @@ int initialise(const char* paramfile, const char* obstaclefile,
 ** timestep calls, in order, the functions:
 ** accelerate_flow(), propagate(), rebound() & collision()
 */
-int timestep(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl);
+int timestep(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl, int tot_cells);
 int accelerate_flow(const t_param params, cl_mem* cells, t_ocl ocl);
-int comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl);
+int comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl, int tot_cells);
 int write_values(const t_param params, t_speed* cells, int* obstacles, float* av_vels);
 
 /* finalise, including freeing up allocated memory */
@@ -161,7 +161,7 @@ int main(int argc, char* argv[])
   {
     cl_mem time_cells = (tt % 2) ? ocl.tmp_cells : ocl.cells;
     cl_mem time_tmp_cells = (tt % 2) ? ocl.cells : ocl.tmp_cells;
-    av_vels[tt] = timestep(params, &time_cells, &time_tmp_cells, ocl);
+    av_vels[tt] = timestep(params, &time_cells, &time_tmp_cells, ocl, tot_cells);
 #ifdef DEBUG
     printf("==timestep: %d==\n", tt);
     printf("av velocity: %.12E\n", av_vels[tt]);
@@ -195,11 +195,11 @@ int main(int argc, char* argv[])
   return EXIT_SUCCESS;
 }
 
-float timestep(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl)
+float timestep(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl, int tot_cells)
 {
   accelerate_flow(params, cells, ocl);
 
-  return comp_func(params, cells, tmp_cells, ocl);
+  return comp_func(params, cells, tmp_cells, ocl, tot_cells);
 }
 
 int accelerate_flow(const t_param params, cl_mem* cells, t_ocl ocl)
@@ -233,7 +233,7 @@ int accelerate_flow(const t_param params, cl_mem* cells, t_ocl ocl)
   return EXIT_SUCCESS;
 }
 
-float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl){
+float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl, int tot_cells){
   float tot_u = 0;          /* accumulated magnitudes of velocity for each cell */
   float tot_us[params.nx * params.ny]; 
   cl_int err;
