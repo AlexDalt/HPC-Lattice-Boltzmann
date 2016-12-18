@@ -158,7 +158,7 @@ kernel void comp_func(global t_speed* cells,
     tmp_cells[cell].speeds[kk] = (nobst) * (tmp_cells[cell].speeds[kk]
                                             + omega
                                             * (d_equ[kk] - tmp_cells[cell].speeds[kk]))
-                               + ((obst * diff[kk]);
+                               + (obst * diff[kk]);
   }
 
   tot_us[cell] = (nobst) * (sqrt((u_x * u_x) + (u_y * u_y)));
