@@ -76,7 +76,7 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
 int write_values(const t_param params, SOA_speeds cells, int* obstacles, float* av_vels);
 
 /* finalise, including freeing up allocated memory */
-int finalise(const t_param* params, SOA_speeds* cells_ptr, SOA_speed* tmp_cells_ptr,
+int finalise(const t_param* params, SOA_speeds* cells_ptr, SOA_speeds* tmp_cells_ptr,
              int** obstacles_ptr, float** av_vels_ptr, t_ocl ocl);
 
 /* Sum all the densities in the grid.
@@ -84,7 +84,7 @@ int finalise(const t_param* params, SOA_speeds* cells_ptr, SOA_speed* tmp_cells_
 float total_density(const t_param params, SOA_speeds cells);
 
 /* compute average velocity */
-float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
+float av_velocity(const t_param params, t_speeds* cells, int* obstacles, t_ocl ocl);
 
 
 /* calculate Reynolds number */
@@ -147,7 +147,7 @@ int main(int argc, char* argv[])
   // Write cells to OpenCL buffer
   err = clEnqueueWriteBuffer(
     ocl.queue, ocl.cells, CL_TRUE, 0,
-    sizeof(float) * (params->ny * params->nx) * NSPEEDS, cells, 0, NULL, NULL);
+    sizeof(cl_float) * (params.ny * params.nx) * NSPEEDS, cells, 0, NULL, NULL);
   checkError(err, "writing cells data", __LINE__);
 
   // Write obstacles to OpenCL buffer
@@ -568,7 +568,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
   return EXIT_SUCCESS;
 }
 
-int finalise(const t_param* params, SOA_speeds* cells_ptr, SOA_speed* tmp_cells_ptr,
+int finalise(const t_param* params, SOA_speeds* cells_ptr, SOA_speeds* tmp_cells_ptr,
              int** obstacles_ptr, float** av_vels_ptr, t_ocl ocl)
 {
   /*
