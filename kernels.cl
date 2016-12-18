@@ -162,8 +162,7 @@ kernel void comp_func(global t_speed* cells,
     }
 
     /* accumulate the norm of x- and y- velocity components */
-    tot_u = sqrt((u_x * u_x) + (u_y * u_y));
-    tot_us[cell] = tot_u;
+    tot_us[cell] = sqrt((u_x * u_x) + (u_y * u_y));
   }
 }
 
