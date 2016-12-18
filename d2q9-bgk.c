@@ -115,6 +115,8 @@ int main(int argc, char* argv[])
   double systim;                /* floating point number to record elapsed system CPU time */
   int tot_cells = 0;
 
+  printf("initial variables started\n");
+
   /* parse the command line */
   if (argc != 3)
   {
@@ -126,6 +128,7 @@ int main(int argc, char* argv[])
     obstaclefile = argv[2];
   }
 
+  printf("parsed command line\n");
   /* initialise our data structures and load values from file */
   initialise(paramfile, obstaclefile, &params, &cells, &tmp_cells, &obstacles, &av_vels, &ocl);
   for (int ii = 0; ii < params.ny; ii++){
@@ -136,21 +139,27 @@ int main(int argc, char* argv[])
     }
   }
 
+  printf("initialised\n");
   /* iterate for maxIters timesteps */
   gettimeofday(&timstr, NULL);
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
 
+  printf("get time of day got\n");
   // Write cells to OpenCL buffer
   err = clEnqueueWriteBuffer(
     ocl.queue, ocl.cells, CL_TRUE, 0,
     sizeof(cl_float) * (params.ny * params.nx) * NSPEEDS, &cells, 0, NULL, NULL);
   checkError(err, "writing cells data", __LINE__);
 
+  printf("written cells data\n");
+
   // Write obstacles to OpenCL buffer
   err = clEnqueueWriteBuffer(
     ocl.queue, ocl.obstacles, CL_TRUE, 0,
     sizeof(cl_int) * params.nx * params.ny, obstacles, 0, NULL, NULL);
   checkError(err, "writing obstacles data", __LINE__);
+
+  printf("wrriten obstacels data");
 
   for (int tt = 0; tt < params.maxIters; tt++)
   {
