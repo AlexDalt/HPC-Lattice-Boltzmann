@@ -153,14 +153,14 @@ kernel void comp_func(global t_speed* cells,
                                    + (u[8] * u[8]) / (2.0 * c_sq * c_sq)
                                    - u_sq / (2.0 * c_sq));
 
-  if(mask == 1.0){
+  if(!obstacles[cell]){
     for (int kk = 0; kk < NSPEEDS; kk++){
       tmp_cells[cell].speeds[kk] = tmp_cells[cell].speeds[kk]
                                     + omega
                                     * (d_equ[kk] - tmp_cells[cell].speeds[kk]);
     }
     tot_us[cell] = sqrt((u_x * u_x) + (u_y * u_y));
-  } else if(mask == 0.0){
+  } else if(obstacles[cell]){
     for (int kk = 0; kk < NSPEEDS; kk++){
       tmp_cells[cell].speeds[kk] += diff[kk];
     }
