@@ -568,7 +568,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
   return EXIT_SUCCESS;
 }
 
-int finalise(const t_param* params, AOS_speeds* cells_ptr, AOS_speed* tmp_cells_ptr,
+int finalise(const t_param* params, SOA_speeds* cells_ptr, SOA_speed* tmp_cells_ptr,
              int** obstacles_ptr, float** av_vels_ptr, t_ocl ocl)
 {
   /*
@@ -601,14 +601,14 @@ int finalise(const t_param* params, AOS_speeds* cells_ptr, AOS_speed* tmp_cells_
 }
 
 
-float calc_reynolds(const t_param params, AOS_speeds cells, int* obstacles, t_ocl ocl)
+float calc_reynolds(const t_param params, SOA_speeds cells, int* obstacles, t_ocl ocl)
 {
   const float viscosity = 1.0 / 6.0 * (2.0 / params.omega - 1.0);
 
   return av_velocity(params, cells, obstacles, ocl) * params.reynolds_dim / viscosity;
 }
 
-float total_density(const t_param params, AOS_speeds cells)
+float total_density(const t_param params, SOA_speeds cells)
 {
   float total = 0.0;  /* accumulator */
 
@@ -626,7 +626,7 @@ float total_density(const t_param params, AOS_speeds cells)
   return total;
 }
 
-int write_values(const t_param params, AOS_speeds cells, int* obstacles, float* av_vels)
+int write_values(const t_param params, SOA_speeds cells, int* obstacles, float* av_vels)
 {
   FILE* fp;                     /* file pointer */
   const float c_sq = 1.0 / 3.0; /* sq. of speed of sound */
