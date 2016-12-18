@@ -43,6 +43,7 @@ kernel void accelerate_flow(global t_speed* cells,
 kernel void comp_func(global t_speed* cells,
                       global t_speed* tmp_cells,
                       global int* obstacles,
+                      global float* tot_us,
                       int nx, int ny,
                       float omega)
 {
@@ -69,6 +70,8 @@ kernel void comp_func(global t_speed* cells,
     tmp_cells[cell].speeds[8] = cells[y_s * nx + x_e].speeds[6]; /* north-west */
     tmp_cells[cell].speeds[5] = cells[y_n * nx + x_e].speeds[7]; /* south-west */
     tmp_cells[cell].speeds[6] = cells[y_n * nx + x_w].speeds[8]; /* south-east */   
+
+    tot_us[cell] = 0;
   } else {
     tmp_cells[cell].speeds[0] = cells[ii  * nx + jj ].speeds[0]; /* central cell, no movement */
     tmp_cells[cell].speeds[1] = cells[ii  * nx + x_w].speeds[1]; /* east */
@@ -157,6 +160,10 @@ kernel void comp_func(global t_speed* cells,
                                               + omega
                                               * (d_equ[kk] - tmp_cells[cell].speeds[kk]);
     }
+
+    /* accumulate the norm of x- and y- velocity components */
+    tot_u = sqrt((u_x * u_x) + (u_y * u_y));
+    tot_us[cell] = tot_u;
   }
 }
 
