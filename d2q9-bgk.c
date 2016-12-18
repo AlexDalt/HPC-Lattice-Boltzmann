@@ -70,7 +70,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
 ** timestep calls, in order, the functions:
 ** accelerate_flow(), propagate(), rebound() & collision()
 */
-int timestep(int tt, const t_param params, t_ocl ocl);
+int timestep(int tt, const t_param params, t_ocl ocl, cl_mem* cells, cl_mem* tmp_cells);
 int accelerate_flow(const t_param params, cl_mem* cells, t_ocl ocl);
 int propagate(const t_param params, t_speed* cells, t_speed* tmp_cells, t_ocl ocl);
 int rebound(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, t_ocl ocl);
@@ -88,7 +88,7 @@ int finalise(const t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr
 float total_density(const t_param params, t_speed* cells);
 
 /* compute average velocity */
-float cl_av_velocity(const t_param params, t_ocl ocl, int tot_cells);
+float cl_av_velocity(const t_param params, t_ocl ocl, int tot_cells, cl_mem* cells);
 float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
 
 
@@ -163,8 +163,10 @@ int main(int argc, char* argv[])
 
   for (int tt = 0; tt < params.maxIters; tt++)
   {
-    timestep(tt, params, ocl);
-    av_vels[tt] = cl_av_velocity(params, ocl, tot_cells);
+    cl_mem time_cells = (tt % 2) ? ocl.tmp_cells : ocl.cells;
+    cl_mem time_tmp_cells = (tt % 2) ? ocl.cells : ocl.tmp_cells;
+    timestep(tt, params, ocl, &time_cells, &time_tmp_cells);
+    av_vels[tt] = cl_av_velocity(params, ocl, tot_cells, &time_cells);
 #ifdef DEBUG
     printf("==timestep: %d==\n", tt);
     printf("av velocity: %.12E\n", av_vels[tt]);
@@ -198,13 +200,10 @@ int main(int argc, char* argv[])
   return EXIT_SUCCESS;
 }
 
-int timestep(int tt, const t_param params, t_ocl ocl)
+int timestep(int tt, const t_param params, t_ocl ocl, cl_mem* cells, cl_mem* tmp_cells)
 {
-  cl_mem cells = (tt % 2) ? ocl.tmp_cells : ocl.cells;
-  cl_mem tmp_cells = (tt % 2) ? ocl.cells : ocl.tmp_cells;
-
-  accelerate_flow(params, &cells, ocl);
-  comp_func(params, ocl, &cells, &tmp_cells);
+  accelerate_flow(params, cells, ocl);
+  comp_func(params, ocl, cells, tmp_cells);
 
   return EXIT_SUCCESS;
 }
@@ -358,14 +357,14 @@ int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
   return EXIT_SUCCESS;
 }
 
-float cl_av_velocity(const t_param params, t_ocl ocl, int tot_cells)
+float cl_av_velocity(const t_param params, t_ocl ocl, int tot_cells, cl_mem* cells)
 {
   float tot_u = 0;          /* accumulated magnitudes of velocity for each cell */
   float tot_us[params.nx * params.ny]; 
 
   cl_int err;
 
-  err = clSetKernelArg(ocl.av_velocity, 0, sizeof(cl_mem), &ocl.cells);
+  err = clSetKernelArg(ocl.av_velocity, 0, sizeof(cl_mem), cells);
   checkError(err, "setting av_velocity arg 0", __LINE__);
   err = clSetKernelArg(ocl.av_velocity, 1, sizeof(cl_mem), &ocl.obstacles);
   checkError(err, "setting av_velocity arg 1", __LINE__);
