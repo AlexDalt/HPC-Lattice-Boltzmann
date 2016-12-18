@@ -37,24 +37,24 @@ kernel void comp_func(global t_speed* cells,
 
   if(obstacles[cell]){
     tmp_cells[cell].speeds[0] = cells[ii  * nx + jj ].speeds[0]; /* central cell, no movement */
-    tmp_cells[cell].speeds[3] = cells[ii  * nx + x_e].speeds[1]; /* east */
-    tmp_cells[cell].speeds[4] = cells[y_n * nx + jj ].speeds[2]; /* north */
-    tmp_cells[cell].speeds[1] = cells[ii  * nx + x_w].speeds[3]; /* west */
-    tmp_cells[cell].speeds[2] = cells[y_s * nx + jj ].speeds[4]; /* south */
-    tmp_cells[cell].speeds[7] = cells[y_n * nx + x_e].speeds[5]; /* north-east */
-    tmp_cells[cell].speeds[8] = cells[y_n * nx + x_w].speeds[6]; /* north-west */
-    tmp_cells[cell].speeds[5] = cells[y_s * nx + x_w].speeds[7]; /* south-west */
-    tmp_cells[cell].speeds[6] = cells[y_s * nx + x_e].speeds[8]; /* south-east */ 
+    tmp_cells[cell].speeds[3] = cells[ii  * nx + x_w].speeds[1]; /* east */
+    tmp_cells[cell].speeds[4] = cells[y_s * nx + jj ].speeds[2]; /* north */
+    tmp_cells[cell].speeds[1] = cells[ii  * nx + x_e].speeds[3]; /* west */
+    tmp_cells[cell].speeds[2] = cells[y_n * nx + jj ].speeds[4]; /* south */
+    tmp_cells[cell].speeds[7] = cells[y_s * nx + x_w].speeds[5]; /* north-east */
+    tmp_cells[cell].speeds[8] = cells[y_s * nx + x_e].speeds[6]; /* north-west */
+    tmp_cells[cell].speeds[5] = cells[y_n * nx + x_e].speeds[7]; /* south-west */
+    tmp_cells[cell].speeds[6] = cells[y_n * nx + x_w].speeds[8]; /* south-east */ 
   } else {
     tmp_cells[cell].speeds[0] = cells[ii  * nx + jj ].speeds[0]; /* central cell, no movement */
-    tmp_cells[cell].speeds[1] = cells[ii  * nx + x_e].speeds[1]; /* east */
+    tmp_cells[cell].speeds[1] = cells[ii  * nx + x_w].speeds[1]; /* east */
     tmp_cells[cell].speeds[2] = cells[y_n * nx + jj ].speeds[2]; /* north */
-    tmp_cells[cell].speeds[3] = cells[ii  * nx + x_w].speeds[3]; /* west */
-    tmp_cells[cell].speeds[4] = cells[y_s * nx + jj ].speeds[4]; /* south */
-    tmp_cells[cell].speeds[5] = cells[y_n * nx + x_e].speeds[5]; /* north-east */
-    tmp_cells[cell].speeds[6] = cells[y_n * nx + x_w].speeds[6]; /* north-west */
-    tmp_cells[cell].speeds[7] = cells[y_s * nx + x_w].speeds[7]; /* south-west */
-    tmp_cells[cell].speeds[8] = cells[y_s * nx + x_e].speeds[8]; /* south-east */
+    tmp_cells[cell].speeds[3] = cells[ii  * nx + x_e].speeds[3]; /* west */
+    tmp_cells[cell].speeds[4] = cells[y_n * nx + jj ].speeds[4]; /* south */
+    tmp_cells[cell].speeds[5] = cells[y_s * nx + x_w].speeds[5]; /* north-east */
+    tmp_cells[cell].speeds[6] = cells[y_s * nx + x_e].speeds[6]; /* north-west */
+    tmp_cells[cell].speeds[7] = cells[y_n * nx + x_e].speeds[7]; /* south-west */
+    tmp_cells[cell].speeds[8] = cells[y_n * nx + x_w].speeds[8]; /* south-east */
 
     for(int kk = 0; kk < NSPEEDS; kk++){
       local_density += tmp_cells[cell].speeds[kk];
