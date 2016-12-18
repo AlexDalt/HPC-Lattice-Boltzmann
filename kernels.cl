@@ -75,14 +75,14 @@ kernel void comp_func(global t_speed* cells,
   tmp_cells[cell].speeds[7] = cells[y_n * nx + x_e].speeds[7]; /* south-west */
   tmp_cells[cell].speeds[8] = cells[y_n * nx + x_w].speeds[8]; /* south-east */
 
-  diff[1] = tmp_cells[cell].speeds[3] - tmp_cells[cell].speeds[1];
-  diff[2] = tmp_cells[cell].speeds[4] - tmp_cells[cell].speeds[2];
-  diff[3] = tmp_cells[cell].speeds[1] - tmp_cells[cell].speeds[3];
-  diff[4] = tmp_cells[cell].speeds[2] - tmp_cells[cell].speeds[4];
-  diff[5] = tmp_cells[cell].speeds[7] - tmp_cells[cell].speeds[5];
-  diff[6] = tmp_cells[cell].speeds[8] - tmp_cells[cell].speeds[6];
-  diff[7] = tmp_cells[cell].speeds[5] - tmp_cells[cell].speeds[7];
-  diff[8] = tmp_cells[cell].speeds[6] - tmp_cells[cell].speeds[8];
+  diff[1] = tmp_cells[cell].speeds[3];
+  diff[2] = tmp_cells[cell].speeds[4];
+  diff[3] = tmp_cells[cell].speeds[1];
+  diff[4] = tmp_cells[cell].speeds[2];
+  diff[5] = tmp_cells[cell].speeds[7];
+  diff[6] = tmp_cells[cell].speeds[8];
+  diff[7] = tmp_cells[cell].speeds[5];
+  diff[8] = tmp_cells[cell].speeds[6];
 
   float local_density = 0.0;
 
@@ -158,7 +158,7 @@ kernel void comp_func(global t_speed* cells,
     tmp_cells[cell].speeds[kk] = (nobst) * (tmp_cells[cell].speeds[kk]
                                             + omega
                                             * (d_equ[kk] - tmp_cells[cell].speeds[kk]))
-                               + (obst) * diff[kk];
+                               + ((obst * diff[kk]);
   }
 
   tot_us[cell] = (nobst) * (sqrt((u_x * u_x) + (u_y * u_y)));
