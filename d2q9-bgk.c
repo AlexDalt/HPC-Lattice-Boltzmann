@@ -164,7 +164,7 @@ int main(int argc, char* argv[])
   {
     cl_mem time_cells = (tt % 2) ? ocl.tmp_cells : ocl.cells;
     cl_mem time_tmp_cells = (tt % 2) ? ocl.cells : ocl.tmp_cells;
-    av_vels[tt] = comp_func(parmas, &time_cells, &tmp_cells, ocl);
+    av_vels[tt] = comp_func(parmas, &time_cells, &tmp_cells, ocl, tot_cells);
 #ifdef DEBUG
     printf("==timestep: %d==\n", tt);
     printf("av velocity: %.12E\n", av_vels[tt]);
@@ -237,7 +237,7 @@ int accelerate_flow(const t_param params, cl_mem* cells, t_ocl ocl)
   return EXIT_SUCCESS;
 }
 
-float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl){
+float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl, int tot_cells){
   cl_int err;
 
   // Set kernel arguments
