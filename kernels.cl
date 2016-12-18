@@ -57,7 +57,7 @@ kernel void comp_func(global t_speed* cells,
     tmp_cells[cell].speeds[8] = cells[y_s * nx + x_e].speeds[8]; /* south-east */
 
     for(int kk = 0; kk < NSPEEDS; kk++){
-      local_density += tmp_cells[cell];
+      local_density += tmp_cells[cell].speeds[kk];
     }
 
     float u_x = (tmp_cells[cell].speeds[1]
@@ -119,7 +119,7 @@ kernel void comp_func(global t_speed* cells,
                                      + (u[8] * u[8]) / (2.0 * c_sq * c_sq)
                                      - u_sq / (2.0 * c_sq));
 
-    for(kk = 0; kk < NSPEEDS; kk++){
+    for(int kk = 0; kk < NSPEEDS; kk++){
       tmp_cells[ii * nx + jj].speeds[kk] = tmp_cells[ii * nx + jj].speeds[kk]
                                               + omega
                                               * (d_equ[kk] - tmp_cells[ii * nx + jj].speeds[kk]);
