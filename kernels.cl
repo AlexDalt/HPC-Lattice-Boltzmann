@@ -4,8 +4,8 @@
 
 typedef struct
 {
-  float speeds[NSPEEDS];
-} t_speed;
+  float* speeds[NSPEEDS];
+} SOA_speeds;
 
 kernel void accelerate_flow(global SOA_speeds cells,
                             global int* obstacles,
