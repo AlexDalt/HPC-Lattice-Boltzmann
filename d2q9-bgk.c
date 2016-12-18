@@ -70,7 +70,6 @@ int initialise(const char* paramfile, const char* obstaclefile,
 ** timestep calls, in order, the functions:
 ** accelerate_flow(), propagate(), rebound() & collision()
 */
-int timestep(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl);
 int accelerate_flow(const t_param params, cl_mem* cells, t_ocl ocl);
 float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl, int tot_cells);
 int propagate(const t_param params, t_speed* cells, t_speed* tmp_cells, t_ocl ocl);
@@ -194,14 +193,6 @@ int main(int argc, char* argv[])
   printf("Elapsed system CPU time:\t%.6lf (s)\n", systim);
   write_values(params, cells, obstacles, av_vels);
   finalise(&params, &cells, &tmp_cells, &obstacles, &av_vels, ocl);
-
-  return EXIT_SUCCESS;
-}
-
-int timestep(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl)
-{
-  accelerate_flow(params, cells, ocl);
-  comp_func(params, cells, tmp_cells, ocl);
 
   return EXIT_SUCCESS;
 }
@@ -726,6 +717,7 @@ int finalise(const t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr
   clReleaseMemObject(ocl.obstacles);
   clReleaseMemObject(ocl.tot_us);
   clReleaseKernel(ocl.accelerate_flow);
+  clReleaseKernel(ocl.comp_func);
   clReleaseKernel(ocl.propagate);
   clReleaseKernel(ocl.rebound);
   clReleaseProgram(ocl.program);
