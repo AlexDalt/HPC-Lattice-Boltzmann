@@ -574,11 +574,11 @@ int finalise(const t_param* params, SOA_speeds* cells_ptr, SOA_speeds* tmp_cells
   /*
   ** free up allocated memory
   */
-  free(*cells_ptr);
-  *cells_ptr = NULL;
+  free(cells_ptr);
+  cells_ptr = NULL;
 
-  free(*tmp_cells_ptr);
-  *tmp_cells_ptr = NULL;
+  free(tmp_cells_ptr);
+  tmp_cells_ptr = NULL;
 
   free(*obstacles_ptr);
   *obstacles_ptr = NULL;
