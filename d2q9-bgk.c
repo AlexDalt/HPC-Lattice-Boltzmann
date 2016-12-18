@@ -49,7 +49,7 @@ typedef struct
 /* struct to hold the 'speed' values */
 typedef struct
 {
-  float* speeds[NSPEEDS];
+  float speeds[NSPEEDS];
 } SOA_speeds;
 
 /*
