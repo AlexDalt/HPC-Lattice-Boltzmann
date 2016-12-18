@@ -60,7 +60,8 @@ kernel void comp_func(global t_speed* cells,
   int y_s = (ii == 0) ? (ii + ny - 1) : (ii - 1);
   int x_w = (jj == 0) ? (jj + nx - 1) : (jj - 1);
 
-  float mask = (obstacles[cell] ? 1.f : 0.f);
+  int obst  = (obstacles[cell] ? 1 : 0);
+  int nobst = (obstacles[cell] ? 0 : 1);
   float diff[NSPEEDS];
   diff[0] = 0.0;
 
@@ -153,17 +154,12 @@ kernel void comp_func(global t_speed* cells,
                                    + (u[8] * u[8]) / (2.0 * c_sq * c_sq)
                                    - u_sq / (2.0 * c_sq));
 
-  if(!obstacles[cell]){
-    for (int kk = 0; kk < NSPEEDS; kk++){
-      tmp_cells[cell].speeds[kk] = tmp_cells[cell].speeds[kk]
-                                    + omega
-                                    * (d_equ[kk] - tmp_cells[cell].speeds[kk]);
-    }
-    tot_us[cell] = sqrt((u_x * u_x) + (u_y * u_y));
-  } else if(obstacles[cell]){
-    for (int kk = 0; kk < NSPEEDS; kk++){
-      tmp_cells[cell].speeds[kk] += diff[kk];
-    }
-    tot_us[cell] = 0;
+  for(int kk = 0; kk < NSPEEDS; kk++){
+    tmp_cells[cell].speeds[kk] = (nobst) * (tmp_cells[cell].speeds[kk]
+                                            + omega
+                                            * (d_equ[kk] - tmp_cells[cell].speeds[kk]))
+                               + (obst) * diff[kk];
   }
+
+  tot_us[cell] = (nobst) * (sqrt((u_x * u_x) + (u_y * u_y)));
 }
