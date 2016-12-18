@@ -62,7 +62,7 @@ kernel void comp_func(global t_speed* cells,
   int x_w = (jj == 0) ? (jj + nx - 1) : (jj - 1);
 
   // mask is true if it is not an obstacle, false if it is
-  float obst = (!obstacles[cell]) ? 1.f : 0.f;
+  float obst = (obstacles[cell]) ? 1.f : 0.f;
 
   // array of the difference between if it is an obstacle (default) and if it isn't
   float diff[NSPEEDS];
