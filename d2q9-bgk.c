@@ -586,7 +586,6 @@ int finalise(const t_param* params, SOA_speeds* cells_ptr, SOA_speeds* tmp_cells
   clReleaseMemObject(ocl.tot_us);
   clReleaseKernel(ocl.accelerate_flow);
   clReleaseKernel(ocl.comp_func);
-  clReleaseKernel(ocl.av_velocity);
   clReleaseProgram(ocl.program);
   clReleaseCommandQueue(ocl.queue);
   clReleaseContext(ocl.context);
