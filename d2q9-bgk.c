@@ -329,7 +329,7 @@ float av_velocity(const t_param params, SOA_speeds cells, int* obstacles, t_ocl 
 }
 
 int initialise(const char* paramfile, const char* obstaclefile,
-               t_param* params, SOA_speed** cells_ptr, SOA_speed** tmp_cells_ptr,
+               t_param* params, SOA_speed* cells_ptr, SOA_speed* tmp_cells_ptr,
                int** obstacles_ptr, float** av_vels_ptr, t_ocl *ocl)
 {
   char   message[1024];  /* message buffer */
@@ -568,7 +568,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
   return EXIT_SUCCESS;
 }
 
-int finalise(const t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr,
+int finalise(const t_param* params, AOS_speed* cells_ptr, AOS_speed* tmp_cells_ptr,
              int** obstacles_ptr, float** av_vels_ptr, t_ocl ocl)
 {
   /*
@@ -601,14 +601,14 @@ int finalise(const t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr
 }
 
 
-float calc_reynolds(const t_param params, AOS_speed* cells, int* obstacles, t_ocl ocl)
+float calc_reynolds(const t_param params, AOS_speed cells, int* obstacles, t_ocl ocl)
 {
   const float viscosity = 1.0 / 6.0 * (2.0 / params.omega - 1.0);
 
   return av_velocity(params, cells, obstacles, ocl) * params.reynolds_dim / viscosity;
 }
 
-float total_density(const t_param params, AOS_speed* cells)
+float total_density(const t_param params, AOS_speed cells)
 {
   float total = 0.0;  /* accumulator */
 
@@ -626,7 +626,7 @@ float total_density(const t_param params, AOS_speed* cells)
   return total;
 }
 
-int write_values(const t_param params, t_speed* cells, int* obstacles, float* av_vels)
+int write_values(const t_param params, AOS_speed cells, int* obstacles, float* av_vels)
 {
   FILE* fp;                     /* file pointer */
   const float c_sq = 1.0 / 3.0; /* sq. of speed of sound */
