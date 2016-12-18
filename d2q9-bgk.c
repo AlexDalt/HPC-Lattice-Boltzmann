@@ -38,10 +38,6 @@ typedef struct
 
   cl_program program;
   cl_kernel  accelerate_flow;
-  cl_kernel  propagate;
-  cl_kernel  rebound;
-  cl_kernel  collision;
-  cl_kernel  av_velocity;
   cl_kernel  comp_func;
 
   cl_mem cells;
