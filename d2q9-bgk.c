@@ -655,20 +655,20 @@ int write_values(const t_param params, float** cells, int* obstacles, float* av_
         }
 
         /* compute x velocity component */
-        u_x = (cells[1][ii * params.nx + jj].speeds
-               + cells[5][ii * params.nx + jj].speeds
-               + cells[8][ii * params.nx + jj].speeds
-               - (cells[3][ii * params.nx + jj].speeds
-                  + cells[6][ii * params.nx + jj].speeds
-                  + cells[7][ii * params.nx + jj].speeds))
+        u_x = (cells[1][ii * params.nx + jj]
+               + cells[5][ii * params.nx + jj]
+               + cells[8][ii * params.nx + jj]
+               - (cells[3][ii * params.nx + jj]
+                  + cells[6][ii * params.nx + jj]
+                  + cells[7][ii * params.nx + jj]))
               / local_density;
         /* compute y velocity component */
-        u_y = (cells[2][ii * params.nx + jj].speeds
-               + cells[5][ii * params.nx + jj].speeds
-               + cells[6][ii * params.nx + jj].speeds
-               - (cells[4][ii * params.nx + jj].speeds
-                  + cells[7][ii * params.nx + jj].speeds
-                  + cells[8][ii * params.nx + jj].speeds))
+        u_y = (cells[2][ii * params.nx + jj]
+               + cells[5][ii * params.nx + jj]
+               + cells[6][ii * params.nx + jj]
+               - (cells[4][ii * params.nx + jj]
+                  + cells[7][ii * params.nx + jj]
+                  + cells[8][ii * params.nx + jj]))
               / local_density;
         /* compute norm of velocity */
         u = sqrt((u_x * u_x) + (u_y * u_y));
