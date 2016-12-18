@@ -569,7 +569,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
   return EXIT_SUCCESS;
 }
 
-int finalise(const t_param* params, float** cells_ptr, float** tmp_cells_ptr,
+int finalise(const t_param* params, float*** cells_ptr, float*** tmp_cells_ptr,
              int** obstacles_ptr, float** av_vels_ptr, t_ocl ocl)
 {
   /*
