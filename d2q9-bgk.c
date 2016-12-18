@@ -38,10 +38,6 @@ typedef struct
 
   cl_program program;
   cl_kernel  accelerate_flow;
-  cl_kernel  propagate;
-  cl_kernel  rebound;
-  cl_kernel  collision;
-  cl_kernel  av_velocity;
   cl_kernel  comp_func;
 
   cl_mem cells;
@@ -539,8 +535,6 @@ int initialise(const char* paramfile, const char* obstaclefile,
   checkError(err, "creating accelerate_flow kernel", __LINE__);
   ocl->comp_func = clCreateKernel(ocl->program, "comp_func", &err);
   checkError(err, "creatung comp_func kernel", __LINE__);
-  ocl->av_velocity = clCreateKernel(ocl->program, "av_velocity", &err);
-  checkError(err, "creating av_velocity kernel", __LINE__);
 
   // Allocate OpenCL buffers
   ocl->cells = clCreateBuffer(
@@ -587,7 +581,6 @@ int finalise(const t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr
   clReleaseMemObject(ocl.tot_us);
   clReleaseKernel(ocl.accelerate_flow);
   clReleaseKernel(ocl.comp_func);
-  clReleaseKernel(ocl.av_velocity);
   clReleaseProgram(ocl.program);
   clReleaseCommandQueue(ocl.queue);
   clReleaseContext(ocl.context);
