@@ -62,8 +62,8 @@ typedef struct
 
 /* load params, allocate memory, load obstacles & initialise fluid particle densities */
 int initialise(const char* paramfile, const char* obstaclefile,
-               t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr,
-               int** obstacles_ptr, float** av_vels_ptr, t_ocl* ocl);
+               t_param* params, SOA_speeds* cells_ptr, SOA_speeds* tmp_cells_ptr,
+               int** obstacles_ptr, float** av_vels_ptr, t_ocl *ocl);
 
 /*
 ** The main calculation methods.
@@ -73,22 +73,22 @@ int initialise(const char* paramfile, const char* obstaclefile,
 float timestep(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl, int tot_cells);
 int accelerate_flow(const t_param params, cl_mem* cells, t_ocl ocl);
 float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl, int tot_cells);
-int write_values(const t_param params, t_speed* cells, int* obstacles, float* av_vels);
+int write_values(const t_param params, SOA_speeds cells, int* obstacles, float* av_vels);
 
 /* finalise, including freeing up allocated memory */
-int finalise(const t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr,
+int finalise(const t_param* params, SOA_speeds* cells_ptr, SOA_speed* tmp_cells_ptr,
              int** obstacles_ptr, float** av_vels_ptr, t_ocl ocl);
 
 /* Sum all the densities in the grid.
 ** The total should remain constant from one timestep to the next. */
-float total_density(const t_param params, t_speed* cells);
+float total_density(const t_param params, SOA_speeds cells);
 
 /* compute average velocity */
 float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
 
 
 /* calculate Reynolds number */
-float calc_reynolds(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
+float calc_reynolds(const t_param params, SOA_speeds cells, int* obstacles, t_ocl ocl);
 
 /* utility functions */
 void checkError(cl_int err, const char *op, const int line);
@@ -660,7 +660,7 @@ int write_values(const t_param params, SOA_speeds cells, int* obstacles, float* 
 
         for (int kk = 0; kk < NSPEEDS; kk++)
         {
-          local_density += cells[ii * params.nx + jj].speeds[kk];
+          local_density += cells.speeds[kk][ii * params.nx + jj];
         }
 
         /* compute x velocity component */
