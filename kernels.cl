@@ -87,7 +87,7 @@ kernel void comp_func(global SOA_speeds* cells,
 
     for (int kk = 0; kk < NSPEEDS; kk++)
     {
-      local_density += tmp_cells[cell]->speeds[kk];
+      local_density += tmp_cells->speeds[kk][cell];
     }
 
     /* compute x velocity component */
