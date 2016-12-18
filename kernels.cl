@@ -87,24 +87,24 @@ kernel void comp_func(global SOA_speeds* cells,
 
     for (int kk = 0; kk < NSPEEDS; kk++)
     {
-      local_density += tmp_cells[cell].speeds[kk];
+      local_density += tmp_cells[cell]->speeds[kk];
     }
 
     /* compute x velocity component */
-    float u_x = (tmp_cells.speeds[1][cell]
-                  + tmp_cells.speeds[5][cell]
-                  + tmp_cells.speeds[8][cell]
-                  - (tmp_cells.speeds[3][cell]
-                     + tmp_cells.speeds[6][cell]
-                     + tmp_cells.speeds[7][cell]))
+    float u_x = (tmp_cells->speeds[1][cell]
+                  + tmp_cells->speeds[5][cell]
+                  + tmp_cells->speeds[8][cell]
+                  - (tmp_cells->speeds[3][cell]
+                     + tmp_cells->speeds[6][cell]
+                     + tmp_cells->speeds[7][cell]))
                   / local_density;
     /* compute y velocity component */
-    float u_y = (tmp_cells.speeds[2][cell]
-                  + tmp_cells.speeds[5][cell]
-                  + tmp_cells.speeds[6][cell]
-                  - (tmp_cells.speeds[4][cell]
-                     + tmp_cells.speeds[7][cell]
-                     + tmp_cells.speeds[8][cell]))
+    float u_y = (tmp_cells->speeds[2][cell]
+                  + tmp_cells->speeds[5][cell]
+                  + tmp_cells->speeds[6][cell]
+                  - (tmp_cells->speeds[4][cell]
+                     + tmp_cells->speeds[7][cell]
+                     + tmp_cells->speeds[8][cell]))
                   / local_density;
 
     /* velocity squared */
@@ -157,9 +157,9 @@ kernel void comp_func(global SOA_speeds* cells,
     local_density = 0;
     for (int kk = 0; kk < NSPEEDS; kk++)
     {
-      tmp_cells.speeds[kk][cell] = tmp_cells.speeds[kk][cell]
+      tmp_cells->speeds[kk][cell] = tmp_cells->speeds[kk][cell]
                                               + omega
-                                              * (d_equ[kk] - tmp_cells.speeds[kk][cell]);
+                                              * (d_equ[kk] - tmp_cells->speeds[kk][cell]);
     }
 
     tot_us[cell] = sqrt((u_x * u_x) + (u_y * u_y));
