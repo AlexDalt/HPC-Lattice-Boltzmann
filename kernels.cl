@@ -25,7 +25,7 @@ kernel void accelerate_flow(global t_speed* cells,
   /* if the cell is not occupied and
   ** we don't send a negative density */
 
-  float mask = (!obstacles[ii * nx + jj]
+  float obst = (!obstacles[ii * nx + jj]
       && (cells[ii * nx + jj].speeds[3] - w1) > 0.0
       && (cells[ii * nx + jj].speeds[6] - w2) > 0.0
       && (cells[ii * nx + jj].speeds[7] - w2) > 0.0) ? 1.f : 0.f;
@@ -161,11 +161,11 @@ kernel void comp_func(global t_speed* cells,
   local_density = 0;
   for (int kk = 0; kk < NSPEEDS; kk++)
   {
-    tmp_cells[cell].speeds[kk] = (!mask) * (tmp_cells[cell].speeds[kk]
+    tmp_cells[cell].speeds[kk] = (!obst) * (tmp_cells[cell].speeds[kk]
                                             + omega
                                             * (d_equ[kk] - tmp_cells[cell].speeds[kk]))
-                                + (mask * diff[kk]);
+                                + (obst * diff[kk]);
   }
 
-  tot_us[cell] = (mask) * (sqrt((u_x * u_x) + (u_y * u_y)));
+  tot_us[cell] = (!obst) * (sqrt((u_x * u_x) + (u_y * u_y)));
 }
