@@ -50,7 +50,6 @@ kernel void comp_func(global t_speed* cells,
   int jj = get_global_id(0);
   int ii = get_global_id(1);
   int cell = ii * nx + jj;
-
   const float c_sq = 1.0 / 3.0; /* square of speed of sound */
   const float w0 = 4.0 / 9.0;  /* weighting factor */
   const float w1 = 1.0 / 9.0;  /* weighting factor */
@@ -61,11 +60,10 @@ kernel void comp_func(global t_speed* cells,
   int y_s = (ii == 0) ? (ii + ny - 1) : (ii - 1);
   int x_w = (jj == 0) ? (jj + nx - 1) : (jj - 1);
 
-  // array of the difference between if it is an obstacle (default) and if it isn't
-  float mask = (obstacles[cell]) ? 1.f : 0.f;
+  float mask = (obstacles[cell] ? 1.f : 0.f);
   float diff[NSPEEDS];
   diff[0] = 0.0;
-    
+
   tmp_cells[cell].speeds[0] = cells[ii  * nx + jj ].speeds[0]; /* central cell, no movement */
   tmp_cells[cell].speeds[1] = cells[ii  * nx + x_w].speeds[1]; /* east */
   tmp_cells[cell].speeds[2] = cells[y_s * nx + jj ].speeds[2]; /* north */
@@ -74,7 +72,7 @@ kernel void comp_func(global t_speed* cells,
   tmp_cells[cell].speeds[5] = cells[y_s * nx + x_w].speeds[5]; /* north-east */
   tmp_cells[cell].speeds[6] = cells[y_s * nx + x_e].speeds[6]; /* north-west */
   tmp_cells[cell].speeds[7] = cells[y_n * nx + x_e].speeds[7]; /* south-west */
-  tmp_cells[cell].speeds[8] = cells[y_n * nx + x_w].speeds[8]; /* south-east */ 
+  tmp_cells[cell].speeds[8] = cells[y_n * nx + x_w].speeds[8]; /* south-east */
 
   diff[1] = tmp_cells[cell].speeds[3] - tmp_cells[cell].speeds[1];
   diff[2] = tmp_cells[cell].speeds[4] - tmp_cells[cell].speeds[2];
@@ -155,14 +153,17 @@ kernel void comp_func(global t_speed* cells,
                                    + (u[8] * u[8]) / (2.0 * c_sq * c_sq)
                                    - u_sq / (2.0 * c_sq));
 
-  /* relaxation step */
-  for (int kk = 0; kk < NSPEEDS; kk++)
-  {
-    tmp_cells[cell].speeds[kk] = (!obstacles[cell]) * (tmp_cells[cell].speeds[kk]
-                                            + omega
-                                            * (d_equ[kk] - tmp_cells[cell].speeds[kk]))
-                                + (obstacles[cell] * diff[kk]);
+  if(mask == 1.0){
+    for (int kk = 0; kk < NSPEEDS; kk++){
+      tmp_cells[cell].speeds[kk] = tmp_cells[cell].speed[kk]
+                                    + omega
+                                    * (d_equ[kk] - tmp_cells[cell].speeds[kk]);
+    }
+    tot_us[cell] = sqrt((u_x * u_x) + (u_y * u_y));
+  } else if(mask == 0.0){
+    for (int kk = 0; kk < NSPEEDS; kk++){
+      tmp_cells[cell].speeds[kk] += diff[kk];
+    }
+    tot_us[cell] = 0;
   }
-
-  tot_us[cell] = (!obstacles[cell]) * (sqrt((u_x * u_x) + (u_y * u_y)));
 }
