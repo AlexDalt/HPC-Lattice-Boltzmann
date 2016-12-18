@@ -70,8 +70,9 @@ int initialise(const char* paramfile, const char* obstaclefile,
 ** timestep calls, in order, the functions:
 ** accelerate_flow(), propagate(), rebound() & collision()
 */
+int timestep(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl);
 int accelerate_flow(const t_param params, cl_mem* cells, t_ocl ocl);
-float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl, int tot_cells);
+int comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl);
 int propagate(const t_param params, t_speed* cells, t_speed* tmp_cells, t_ocl ocl);
 int rebound(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, t_ocl ocl);
 int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, t_ocl ocl);
@@ -163,7 +164,8 @@ int main(int argc, char* argv[])
   {
     cl_mem time_cells = (tt % 2) ? ocl.tmp_cells : ocl.cells;
     cl_mem time_tmp_cells = (tt % 2) ? ocl.cells : ocl.tmp_cells;
-    av_vels[tt] = comp_func(params, &time_cells, &time_tmp_cells, ocl, tot_cells);
+    timestep(params, &time_cells, &time_tmp_cells, ocl);
+    av_vels[tt] = cl_av_velocity(params, &time_tmp_cells, ocl, tot_cells);
 #ifdef DEBUG
     printf("==timestep: %d==\n", tt);
     printf("av velocity: %.12E\n", av_vels[tt]);
@@ -193,6 +195,14 @@ int main(int argc, char* argv[])
   printf("Elapsed system CPU time:\t%.6lf (s)\n", systim);
   write_values(params, cells, obstacles, av_vels);
   finalise(&params, &cells, &tmp_cells, &obstacles, &av_vels, ocl);
+
+  return EXIT_SUCCESS;
+}
+
+int timestep(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl)
+{
+  accelerate_flow(params, cells, ocl);
+  comp_func(params, cells, tmp_cells, ocl);
 
   return EXIT_SUCCESS;
 }
@@ -228,11 +238,8 @@ int accelerate_flow(const t_param params, cl_mem* cells, t_ocl ocl)
   return EXIT_SUCCESS;
 }
 
-float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl, int tot_cells)
-{
+int comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl){
   cl_int err;
-  float tot_u = 0;          /* accumulated magnitudes of velocity for each cell */
-  float tot_us[params.nx * params.ny]; 
 
   // Set kernel arguments
   err = clSetKernelArg(ocl.comp_func, 0, sizeof(cl_mem), cells);
@@ -241,14 +248,12 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
   checkError(err, "setting comp_func arg 1", __LINE__);
   err = clSetKernelArg(ocl.comp_func, 2, sizeof(cl_mem), &ocl.obstacles);
   checkError(err, "setting comp_func arg 2", __LINE__);
-  err = clSetKernelArg(ocl.comp_func, 3, sizeof(cl_mem), &ocl.tot_us);
+  err = clSetKernelArg(ocl.comp_func, 3, sizeof(cl_int), &params.nx);
   checkError(err, "setting comp_func arg 3", __LINE__);
-  err = clSetKernelArg(ocl.comp_func, 4, sizeof(cl_int), &params.nx);
+  err = clSetKernelArg(ocl.comp_func, 4, sizeof(cl_int), &params.ny);
   checkError(err, "setting comp_func arg 4", __LINE__);
-  err = clSetKernelArg(ocl.comp_func, 5, sizeof(cl_int), &params.ny);
+  err = clSetKernelArg(ocl.comp_func, 5, sizeof(cl_float), &params.omega);
   checkError(err, "setting comp_func arg 5", __LINE__);
-  err = clSetKernelArg(ocl.comp_func, 6, sizeof(cl_float), &params.omega);
-  checkError(err, "setting comp_func arg 6", __LINE__);
 
   // Enqueue kernel
   size_t global[2] = {params.nx, params.ny};
@@ -260,18 +265,7 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
   err = clFinish(ocl.queue);
   checkError(err, "waiting for comp_func kernel", __LINE__);
 
-  err = clEnqueueReadBuffer(
-  ocl.queue, ocl.tot_us, CL_TRUE, 0,
-  sizeof(float) * params.nx * params.ny, tot_us, 0, NULL, NULL);
-  checkError(err, "reading tot_us data", __LINE__);
-
-  for (int ii = 0; ii < params.ny; ii++){
-    for (int jj = 0; jj < params.nx; jj++){
-      tot_u += tot_us[ii * params.ny + jj];
-    }
-  }
-
-  return tot_u / (float)tot_cells;
+  return EXIT_SUCCESS;
 }
 
 int propagate(const t_param params, t_speed* cells, t_speed* tmp_cells, t_ocl ocl)
@@ -720,7 +714,6 @@ int finalise(const t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr
   clReleaseMemObject(ocl.obstacles);
   clReleaseMemObject(ocl.tot_us);
   clReleaseKernel(ocl.accelerate_flow);
-  clReleaseKernel(ocl.comp_func);
   clReleaseKernel(ocl.propagate);
   clReleaseKernel(ocl.rebound);
   clReleaseProgram(ocl.program);
