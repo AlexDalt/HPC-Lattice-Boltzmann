@@ -228,8 +228,11 @@ int accelerate_flow(const t_param params, cl_mem* cells, t_ocl ocl)
   return EXIT_SUCCESS;
 }
 
-float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl, int tot_cells){
+float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl, int tot_cells)
+{
   cl_int err;
+  float tot_u = 0;          /* accumulated magnitudes of velocity for each cell */
+  float tot_us[params.nx * params.ny]; 
 
   // Set kernel arguments
   err = clSetKernelArg(ocl.comp_func, 0, sizeof(cl_mem), cells);
