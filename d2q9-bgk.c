@@ -244,7 +244,7 @@ int comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl)
   // Set kernel arguments
   err = clSetKernelArg(ocl.comp_func, 0, sizeof(cl_mem), cells);
   checkError(err, "setting comp_func arg 0", __LINE__);
-  err = clSetKernelArg(ocl.comp_func, 1, sizeof(cl_mem), tmp_cells;
+  err = clSetKernelArg(ocl.comp_func, 1, sizeof(cl_mem), tmp_cells);
   checkError(err, "setting comp_func arg 1", __LINE__);
   err = clSetKernelArg(ocl.comp_func, 2, sizeof(cl_mem), &ocl.obstacles);
   checkError(err, "setting comp_func arg 2", __LINE__);
