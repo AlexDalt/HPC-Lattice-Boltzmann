@@ -72,7 +72,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
 */
 int timestep(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl);
 int accelerate_flow(const t_param params, cl_mem* cells, t_ocl ocl);
-int comp_func(const t_params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl);
+int comp_func(const t_params params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl);
 int propagate(const t_param params, t_speed* cells, t_speed* tmp_cells, t_ocl ocl);
 int rebound(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, t_ocl ocl);
 int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, t_ocl ocl);
@@ -87,7 +87,7 @@ int finalise(const t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr
 float total_density(const t_param params, t_speed* cells);
 
 /* compute average velocity */
-float cl_av_velocity(const t_param params, t_ocl ocl, int tot_cells);
+float cl_av_velocity(const t_param params, cl_mem* cells, t_ocl ocl, int tot_cells);
 float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
 
 
