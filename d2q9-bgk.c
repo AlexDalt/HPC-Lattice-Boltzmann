@@ -161,7 +161,7 @@ int main(int argc, char* argv[])
   // Read cells from device
   err = clEnqueueReadBuffer(
     ocl.queue, ocl.cells, CL_TRUE, 0,
-    sizeof(t_speed) * params.nx * params.ny, cells, 0, NULL, NULL);
+    sizeof(float) * params.nx * params.ny * NSPEEDS, cells, 0, NULL, NULL);
   checkError(err, "reading cells data", __LINE__);
 
   gettimeofday(&timstr, NULL);
@@ -421,17 +421,17 @@ int initialise(const char* paramfile, const char* obstaclefile,
     for (int jj = 0; jj < params->nx; jj++)
     {
       /* centre */
-      (*cells_ptr)[0][ii * params->nx + jj].speeds = w0;
+      (*cells_ptr)[0][ii * params->nx + jj] = w0;
       /* axis directions */
-      (*cells_ptr)[1][ii * params->nx + jj].speeds = w1;
-      (*cells_ptr)[2][ii * params->nx + jj].speeds = w1;
-      (*cells_ptr)[3][ii * params->nx + jj].speeds = w1;
-      (*cells_ptr)[4][ii * params->nx + jj].speeds = w1;
+      (*cells_ptr)[1][ii * params->nx + jj] = w1;
+      (*cells_ptr)[2][ii * params->nx + jj] = w1;
+      (*cells_ptr)[3][ii * params->nx + jj] = w1;
+      (*cells_ptr)[4][ii * params->nx + jj] = w1;
       /* diagonals */
-      (*cells_ptr)[5][ii * params->nx + jj].speeds = w2;
-      (*cells_ptr)[6][ii * params->nx + jj].speeds = w2;
-      (*cells_ptr)[7][ii * params->nx + jj].speeds = w2;
-      (*cells_ptr)[8][ii * params->nx + jj].speeds = w2;
+      (*cells_ptr)[5][ii * params->nx + jj] = w2;
+      (*cells_ptr)[6][ii * params->nx + jj] = w2;
+      (*cells_ptr)[7][ii * params->nx + jj] = w2;
+      (*cells_ptr)[8][ii * params->nx + jj] = w2;
     }
   }
 
@@ -535,8 +535,6 @@ int initialise(const char* paramfile, const char* obstaclefile,
   checkError(err, "creating accelerate_flow kernel", __LINE__);
   ocl->comp_func = clCreateKernel(ocl->program, "comp_func", &err);
   checkError(err, "creatung comp_func kernel", __LINE__);
-  ocl->av_velocity = clCreateKernel(ocl->program, "av_velocity", &err);
-  checkError(err, "creating av_velocity kernel", __LINE__);
 
   // Allocate OpenCL buffers
   ocl->cells = clCreateBuffer(
@@ -583,7 +581,6 @@ int finalise(const t_param* params, float*** cells_ptr, float*** tmp_cells_ptr,
   clReleaseMemObject(ocl.tot_us);
   clReleaseKernel(ocl.accelerate_flow);
   clReleaseKernel(ocl.comp_func);
-  clReleaseKernel(ocl.av_velocity);
   clReleaseProgram(ocl.program);
   clReleaseCommandQueue(ocl.queue);
   clReleaseContext(ocl.context);
