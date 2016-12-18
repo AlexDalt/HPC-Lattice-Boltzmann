@@ -163,8 +163,8 @@ int main(int argc, char* argv[])
 
   for (int tt = 0; tt < params.maxIters; tt++)
   {
-    cl_mem time_cells = (tt % 2) ? ocl.tmp_cells : ocl.cells;
-    cl_mem time_tmp_cells = (tt % 2) ? ocl.cells : ocl.tmp_cells;
+    cl_mem time_tmp_cells = (tt % 2) ? ocl.tmp_cells : ocl.cells;
+    cl_mem time_cells = (tt % 2) ? ocl.cells : ocl.tmp_cells;
     timestep(tt, params, ocl, &time_cells, &time_tmp_cells);
     av_vels[tt] = cl_av_velocity(params, ocl, tot_cells, &time_cells);
 #ifdef DEBUG
