@@ -155,7 +155,7 @@ kernel void comp_func(global t_speed* cells,
 
   if(mask == 1.0){
     for (int kk = 0; kk < NSPEEDS; kk++){
-      tmp_cells[cell].speeds[kk] = tmp_cells[cell].speed[kk]
+      tmp_cells[cell].speeds[kk] = tmp_cells[cell].speeds[kk]
                                     + omega
                                     * (d_equ[kk] - tmp_cells[cell].speeds[kk]);
     }
