@@ -165,7 +165,7 @@ int main(int argc, char* argv[])
     cl_mem time_cells = (tt % 2) ? ocl.tmp_cells : ocl.cells;
     cl_mem time_tmp_cells = (tt % 2) ? ocl.cells : ocl.tmp_cells;
     timestep(params, &time_cells, &time_tmp_cells, ocl);
-    av_vels[tt] = cl_av_velocity(params, &time_cells, ocl, tot_cells);
+    av_vels[tt] = cl_av_velocity(params, &time_tmp_cells, ocl, tot_cells);
 #ifdef DEBUG
     printf("==timestep: %d==\n", tt);
     printf("av velocity: %.12E\n", av_vels[tt]);
