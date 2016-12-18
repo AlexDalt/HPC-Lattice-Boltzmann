@@ -71,7 +71,7 @@ kernel void comp_func(global t_speed* cells,
     tmp_cells[cell].speeds[5] = cells[y_n * nx + x_e].speeds[7]; /* south-west */
     tmp_cells[cell].speeds[6] = cells[y_n * nx + x_w].speeds[8]; /* south-east */   
 
-    tot_us[cells] = 0;
+    tot_us[cell] = 0;
   } else {
     tmp_cells[cell].speeds[0] = cells[ii  * nx + jj ].speeds[0]; /* central cell, no movement */
     tmp_cells[cell].speeds[1] = cells[ii  * nx + x_w].speeds[1]; /* east */
@@ -181,7 +181,7 @@ kernel void comp_func(global t_speed* cells,
             /local_density;
             */
 
-    tot_us[cells] = sqrt((u_x * u_x) + (u_y * u_y));
+    tot_us[cell] = sqrt((u_x * u_x) + (u_y * u_y));
   }
 }
 
