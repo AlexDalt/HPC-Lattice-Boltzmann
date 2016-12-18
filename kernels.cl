@@ -62,6 +62,7 @@ kernel void comp_func(global t_speed* cells,
   int x_w = (jj == 0) ? (jj + nx - 1) : (jj - 1);
 
   // array of the difference between if it is an obstacle (default) and if it isn't
+  float mask = (obstacles[cell]) ? 1.f : 0.f;
   float diff[NSPEEDS];
   diff[0] = 0.0;
     
@@ -155,7 +156,6 @@ kernel void comp_func(global t_speed* cells,
                                    - u_sq / (2.0 * c_sq));
 
   /* relaxation step */
-  local_density = 0;
   for (int kk = 0; kk < NSPEEDS; kk++)
   {
     tmp_cells[cell].speeds[kk] = (!obstacles[cell]) * (tmp_cells[cell].speeds[kk]
