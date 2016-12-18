@@ -61,27 +61,27 @@ kernel void comp_func(global SOA_speeds* cells,
   int x_w = (jj == 0) ? (jj + nx - 1) : (jj - 1);
 
   if(obstacles[cell]){
-    tmp_cells->speeds[0][cell] = cells->speeds[0][ii  * nx + jj ]; /* central cell, no movement */
-    tmp_cells->speeds[3][cell] = cells->speeds[1][ii  * nx + x_w]; /* east */
-    tmp_cells->speeds[4][cell] = cells->speeds[2][y_s * nx + jj ]; /* north */
-    tmp_cells->speeds[1][cell] = cells->speeds[3][ii  * nx + x_e]; /* west */
-    tmp_cells->speeds[2][cell] = cells->speeds[4][y_n * nx + jj ]; /* south */
-    tmp_cells->speeds[7][cell] = cells->speeds[5][y_s * nx + x_w]; /* north-east */
-    tmp_cells->speeds[8][cell] = cells->speeds[6][y_s * nx + x_e]; /* north-west */
-    tmp_cells->speeds[5][cell] = cells->speeds[7][y_n * nx + x_e]; /* south-west */
-    tmp_cells->speeds[6][cell] = cells->speeds[8][y_n * nx + x_w]; /* south-east */   
+    tmp_cells[0][cell] = cells[0][ii  * nx + jj ]; /* central cell, no movement */
+    tmp_cells[3][cell] = cells[1][ii  * nx + x_w]; /* east */
+    tmp_cells[4][cell] = cells[2][y_s * nx + jj ]; /* north */
+    tmp_cells[1][cell] = cells[3][ii  * nx + x_e]; /* west */
+    tmp_cells[2][cell] = cells[4][y_n * nx + jj ]; /* south */
+    tmp_cells[7][cell] = cells[5][y_s * nx + x_w]; /* north-east */
+    tmp_cells[8][cell] = cells[6][y_s * nx + x_e]; /* north-west */
+    tmp_cells[5][cell] = cells[7][y_n * nx + x_e]; /* south-west */
+    tmp_cells[6][cell] = cells[8][y_n * nx + x_w]; /* south-east */   
 
     tot_us[cell] = 0;
   } else {
-    tmp_cells->speeds[0][cell] = cells->speeds[0][ii  * nx + jj ]; /* central cell, no movement */
-    tmp_cells->speeds[1][cell] = cells->speeds[1][ii  * nx + x_w]; /* east */
-    tmp_cells->speeds[2][cell] = cells->speeds[2][y_s * nx + jj ]; /* north */
-    tmp_cells->speeds[3][cell] = cells->speeds[3][ii  * nx + x_e]; /* west */
-    tmp_cells->speeds[4][cell] = cells->speeds[4][y_n * nx + jj ]; /* south */
-    tmp_cells->speeds[5][cell] = cells->speeds[5][y_s * nx + x_w]; /* north-east */
-    tmp_cells->speeds[6][cell] = cells->speeds[6][y_s * nx + x_e]; /* north-west */
-    tmp_cells->speeds[7][cell] = cells->speeds[7][y_n * nx + x_e]; /* south-west */
-    tmp_cells->speeds[8][cell] = cells->speeds[8][y_n * nx + x_w]; /* south-east */ 
+    tmp_cells[0][cell] = cells[0][ii  * nx + jj ]; /* central cell, no movement */
+    tmp_cells[1][cell] = cells[1][ii  * nx + x_w]; /* east */
+    tmp_cells[2][cell] = cells[2][y_s * nx + jj ]; /* north */
+    tmp_cells[3][cell] = cells[3][ii  * nx + x_e]; /* west */
+    tmp_cells[4][cell] = cells[4][y_n * nx + jj ]; /* south */
+    tmp_cells[5][cell] = cells[5][y_s * nx + x_w]; /* north-east */
+    tmp_cells[6][cell] = cells[6][y_s * nx + x_e]; /* north-west */
+    tmp_cells[7][cell] = cells[7][y_n * nx + x_e]; /* south-west */
+    tmp_cells[8][cell] = cells[8][y_n * nx + x_w]; /* south-east */ 
 
     float local_density = 0.0;
 
@@ -91,20 +91,20 @@ kernel void comp_func(global SOA_speeds* cells,
     }
 
     /* compute x velocity component */
-    float u_x = (tmp_cells->speeds[1][cell]
-                  + tmp_cells->speeds[5][cell]
-                  + tmp_cells->speeds[8][cell]
-                  - (tmp_cells->speeds[3][cell]
-                     + tmp_cells->speeds[6][cell]
-                     + tmp_cells->speeds[7][cell]))
+    float u_x = (tmp_cells[1][cell]
+                  + tmp_cells[5][cell]
+                  + tmp_cells[8][cell]
+                  - (tmp_cells[3][cell]
+                     + tmp_cells[6][cell]
+                     + tmp_cells[7][cell]))
                   / local_density;
     /* compute y velocity component */
-    float u_y = (tmp_cells->speeds[2][cell]
-                  + tmp_cells->speeds[5][cell]
-                  + tmp_cells->speeds[6][cell]
-                  - (tmp_cells->speeds[4][cell]
-                     + tmp_cells->speeds[7][cell]
-                     + tmp_cells->speeds[8][cell]))
+    float u_y = (tmp_cells[2][cell]
+                  + tmp_cells[5][cell]
+                  + tmp_cells[6][cell]
+                  - (tmp_cells[4][cell]
+                     + tmp_cells[7][cell]
+                     + tmp_cells[8][cell]))
                   / local_density;
 
     /* velocity squared */
@@ -157,9 +157,9 @@ kernel void comp_func(global SOA_speeds* cells,
     local_density = 0;
     for (int kk = 0; kk < NSPEEDS; kk++)
     {
-      tmp_cells->speeds[kk][cell] = tmp_cells->speeds[kk][cell]
+      tmp_cells[kk][cell] = tmp_cells[kk][cell]
                                               + omega
-                                              * (d_equ[kk] - tmp_cells->speeds[kk][cell]);
+                                              * (d_equ[kk] - tmp_cells[kk][cell]);
     }
 
     tot_us[cell] = sqrt((u_x * u_x) + (u_y * u_y));
