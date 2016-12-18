@@ -61,9 +61,6 @@ kernel void comp_func(global t_speed* cells,
   int y_s = (ii == 0) ? (ii + ny - 1) : (ii - 1);
   int x_w = (jj == 0) ? (jj + nx - 1) : (jj - 1);
 
-  // mask is true if it is not an obstacle, false if it is
-  float obst = (obstacles[cell]) ? 1.f : 0.f;
-
   // array of the difference between if it is an obstacle (default) and if it isn't
   float diff[NSPEEDS];
   diff[0] = 0.0;
@@ -161,11 +158,11 @@ kernel void comp_func(global t_speed* cells,
   local_density = 0;
   for (int kk = 0; kk < NSPEEDS; kk++)
   {
-    tmp_cells[cell].speeds[kk] = (!obst) * (tmp_cells[cell].speeds[kk]
+    tmp_cells[cell].speeds[kk] = (!obstacles[cell]) * (tmp_cells[cell].speeds[kk]
                                             + omega
                                             * (d_equ[kk] - tmp_cells[cell].speeds[kk]))
-                                + (obst * diff[kk]);
+                                + (obstacles[cell] * diff[kk]);
   }
 
-  tot_us[cell] = (!obst) * (sqrt((u_x * u_x) + (u_y * u_y)));
+  tot_us[cell] = (!obstacles[cell]) * (sqrt((u_x * u_x) + (u_y * u_y)));
 }
