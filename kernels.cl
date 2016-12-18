@@ -42,6 +42,7 @@ kernel void accelerate_flow(global t_speed* cells,
 
 kernel void comp_func(global t_speed* cells,
                       global t_speed* tmp_cells,
+                      global float* tot_us,
                       global int* obstacles,
                       int nx, int ny,
                       float omega)
@@ -69,6 +70,8 @@ kernel void comp_func(global t_speed* cells,
     tmp_cells[cell].speeds[8] = cells[y_s * nx + x_e].speeds[6]; /* north-west */
     tmp_cells[cell].speeds[5] = cells[y_n * nx + x_e].speeds[7]; /* south-west */
     tmp_cells[cell].speeds[6] = cells[y_n * nx + x_w].speeds[8]; /* south-east */   
+
+    tot_us[cells] = 0;
   } else {
     tmp_cells[cell].speeds[0] = cells[ii  * nx + jj ].speeds[0]; /* central cell, no movement */
     tmp_cells[cell].speeds[1] = cells[ii  * nx + x_w].speeds[1]; /* east */
@@ -151,12 +154,34 @@ kernel void comp_func(global t_speed* cells,
                                      - u_sq / (2.0 * c_sq));
 
     /* relaxation step */
+    local_density = 0;
     for (int kk = 0; kk < NSPEEDS; kk++)
     {
       tmp_cells[cell].speeds[kk] = tmp_cells[cell].speeds[kk]
                                               + omega
                                               * (d_equ[kk] - tmp_cells[cell].speeds[kk]);
+      //local_density += tmp_cells[cell].speeds[kk];
     }
+
+    /*
+    u_x = (tmp_cells[cell].speeds[1]
+              + tmp_cells[cell].speeds[5]
+              + tmp_cells[cell].speeds[8]
+              - (cells[cell].speeds[3]
+                + cells[cell].speeds[6]
+                + cells[cell].speeds[7]))
+            /local_density;
+
+    u_y = (tmp_cells[cell].speeds[2]
+              + tmp_cells[cell].speeds[5]
+              + tmp_cells[cell].speeds[6]
+              - (cells[cell].speeds[4]
+                + cells[cell].speeds[7]
+                + cells[cell].speeds[8]))
+            /local_density;
+            */
+
+    tot_us[cells] = sqrt((u_x * u_x) + (u_y * u_y));
   }
 }
 
