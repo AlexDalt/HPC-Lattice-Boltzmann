@@ -238,7 +238,7 @@ int accelerate_flow(const t_param params, cl_mem* cells, t_ocl ocl)
   return EXIT_SUCCESS;
 }
 
-int comp_func(const t_params params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl){
+int comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl){
   cl_int err;
 
   // Set kernel arguments
