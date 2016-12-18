@@ -248,11 +248,11 @@ int comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl)
   checkError(err, "setting comp_func arg 1", __LINE__);
   err = clSetKernelArg(ocl.comp_func, 2, sizeof(cl_mem), &ocl.obstacles);
   checkError(err, "setting comp_func arg 2", __LINE__);
-  err = clSetKernelArg(ocl.comp_func, 3, sizeof(cl_mem), &params.nx);
+  err = clSetKernelArg(ocl.comp_func, 3, sizeof(cl_int), &params.nx);
   checkError(err, "setting comp_func arg 3", __LINE__);
-  err = clSetKernelArg(ocl.comp_func, 4, sizeof(cl_mem), &params.ny);
+  err = clSetKernelArg(ocl.comp_func, 4, sizeof(cl_int), &params.ny);
   checkError(err, "setting comp_func arg 4", __LINE__);
-  err = clSetKernelArg(ocl.comp_func, 5, sizeof(cl_mem), &params.omega);
+  err = clSetKernelArg(ocl.comp_func, 5, sizeof(cl_float), &params.omega);
   checkError(err, "setting comp_func arg 5", __LINE__);
 
   // Enqueue kernel
