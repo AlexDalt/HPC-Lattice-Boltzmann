@@ -160,26 +160,7 @@ kernel void comp_func(global t_speed* cells,
       tmp_cells[cell].speeds[kk] = tmp_cells[cell].speeds[kk]
                                               + omega
                                               * (d_equ[kk] - tmp_cells[cell].speeds[kk]);
-      //local_density += tmp_cells[cell].speeds[kk];
     }
-
-    /*
-    u_x = (tmp_cells[cell].speeds[1]
-              + tmp_cells[cell].speeds[5]
-              + tmp_cells[cell].speeds[8]
-              - (cells[cell].speeds[3]
-                + cells[cell].speeds[6]
-                + cells[cell].speeds[7]))
-            /local_density;
-
-    u_y = (tmp_cells[cell].speeds[2]
-              + tmp_cells[cell].speeds[5]
-              + tmp_cells[cell].speeds[6]
-              - (cells[cell].speeds[4]
-                + cells[cell].speeds[7]
-                + cells[cell].speeds[8]))
-            /local_density;
-            */
 
     tot_us[cell] = sqrt((u_x * u_x) + (u_y * u_y));
   }
