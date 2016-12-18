@@ -84,7 +84,7 @@ int finalise(const t_param* params, SOA_speeds* cells_ptr, SOA_speeds* tmp_cells
 float total_density(const t_param params, SOA_speeds cells);
 
 /* compute average velocity */
-float av_velocity(const t_param params, t_speeds* cells, int* obstacles, t_ocl ocl);
+float av_velocity(const t_param params, SOA_speeds cells, int* obstacles, t_ocl ocl);
 
 
 /* calculate Reynolds number */
