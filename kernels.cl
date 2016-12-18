@@ -7,7 +7,7 @@ typedef struct
   float* speeds[NSPEEDS];
 } SOA_speeds;
 
-kernel void accelerate_flow(global SOA_speeds cells,
+kernel void accelerate_flow(global SOA_speeds* cells,
                             global int* obstacles,
                             int nx, int ny,
                             float density, float accel)
@@ -40,8 +40,8 @@ kernel void accelerate_flow(global SOA_speeds cells,
   }
 }
 
-kernel void comp_func(global SOA_speeds cells,
-                      global SOA_speeds tmp_cells,
+kernel void comp_func(global SOA_speeds* cells,
+                      global SOA_speeds* tmp_cells,
                       global float* tot_us,
                       global int* obstacles,
                       int nx, int ny,
