@@ -80,7 +80,7 @@ kernel void comp_func(global t_speed* cells,
       int jj = g_id_jj * max_b + local_b;
 
       int cell = ii * nx + jj;
-      
+
       int local_y_n = (a + 1);
       int local_x_e = (b + 1);
       int local_y_s = (a - 1);
@@ -91,11 +91,11 @@ kernel void comp_func(global t_speed* cells,
       float diff[NSPEEDS];
       diff[0] = 0.0;
 
-      tmp_cells[cell].speeds[0] = local_cells[local_a * (max_b+2) + local_b].speeds[0];
-      tmp_cells[cell].speeds[1] = local_cells[local_a * (max_b+2) + local_x_w].speeds[1];
-      tmp_cells[cell].speeds[2] = local_cells[local_y_s * (max_b+2) + local_b].speeds[2];
-      tmp_cells[cell].speeds[3] = local_cells[local_a * (max_b+2) + local_x_e].speeds[3];
-      tmp_cells[cell].speeds[4] = local_cells[local_y_n * (max_b+2) + local_b].speeds[4];
+      tmp_cells[cell].speeds[0] = local_cells[a * (max_b+2) + b].speeds[0];
+      tmp_cells[cell].speeds[1] = local_cells[a * (max_b+2) + local_x_w].speeds[1];
+      tmp_cells[cell].speeds[2] = local_cells[local_y_s * (max_b+2) + b].speeds[2];
+      tmp_cells[cell].speeds[3] = local_cells[a * (max_b+2) + local_x_e].speeds[3];
+      tmp_cells[cell].speeds[4] = local_cells[local_y_n * (max_b+2) + b].speeds[4];
       tmp_cells[cell].speeds[5] = local_cells[local_y_s * (max_b+2) + local_x_w].speeds[5];
       tmp_cells[cell].speeds[6] = local_cells[local_y_s * (max_b+2) + local_x_e].speeds[6];
       tmp_cells[cell].speeds[7] = local_cells[local_y_n * (max_b+2) + local_x_e].speeds[7];
