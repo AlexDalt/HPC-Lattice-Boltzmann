@@ -114,9 +114,6 @@ int main(int argc, char* argv[])
   double usrtim;                /* floating point number to record elapsed user CPU time */
   double systim;                /* floating point number to record elapsed system CPU time */
   int tot_cells = 0;
-  cl_ulong comp_units;                 // the max number of compute units on a device
-
-
 
   /* parse the command line */
   if (argc != 3)
@@ -138,14 +135,6 @@ int main(int argc, char* argv[])
       }
     }
   }
-
-  err = clGetDeviceInfo(ocl.device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(cl_ulong), &comp_units, NULL);
-    if (err != CL_SUCCESS)
-    {
-        printf("Error: Failed to access device number of compute units !\n");
-        return EXIT_FAILURE;
-    }
-    printf(" with a max local memory of %lu \n",comp_units);
 
   /* iterate for maxIters timesteps */
   gettimeofday(&timstr, NULL);
@@ -243,12 +232,6 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
   float tot_us[params.nx * params.ny]; 
   cl_int err;
 
-  int yrank = 16;
-  int xrank = 16;
-
-  int size = (params.nx/xrank + 2) * (params.ny/yrank + 2);
-
-
   // Set kernel arguments
   err = clSetKernelArg(ocl.comp_func, 0, sizeof(cl_mem), cells);
   checkError(err, "setting comp_func arg 0", __LINE__);
@@ -267,7 +250,7 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
 
   // Enqueue kernel
   size_t global[2] = {params.nx, params.ny};
-  size_t local[2] = {params.nx/xrank,params.ny/yrank};
+  size_t local[2] = {32,32};
   err = clEnqueueNDRangeKernel(ocl.queue, ocl.comp_func,
                                2, NULL, global, local, 0, NULL, NULL);
   checkError(err, "enqueueing comp_func kernel", __LINE__);
