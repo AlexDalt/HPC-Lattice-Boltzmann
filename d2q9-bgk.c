@@ -244,18 +244,16 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
   checkError(err, "setting comp_func arg 0", __LINE__);
   err = clSetKernelArg(ocl.comp_func, 1, sizeof(cl_mem), tmp_cells);
   checkError(err, "setting comp_func arg 1", __LINE__);
-  err = clSetKernelArg(ocl.comp_func, 2, size * sizeof(t_speed), NULL);
+  err = clSetKernelArg(ocl.comp_func, 2, sizeof(cl_mem), &ocl.tot_us);
   checkError(err, "setting comp_func arg 2", __LINE__);
-  err = clSetKernelArg(ocl.comp_func, 3, sizeof(cl_mem), &ocl.tot_us);
+  err = clSetKernelArg(ocl.comp_func, 3, sizeof(cl_mem), &ocl.obstacles);
   checkError(err, "setting comp_func arg 3", __LINE__);
-  err = clSetKernelArg(ocl.comp_func, 4, sizeof(cl_mem), &ocl.obstacles);
+  err = clSetKernelArg(ocl.comp_func, 4, sizeof(cl_int), &params.nx);
   checkError(err, "setting comp_func arg 4", __LINE__);
-  err = clSetKernelArg(ocl.comp_func, 5, sizeof(cl_int), &params.nx);
+  err = clSetKernelArg(ocl.comp_func, 5, sizeof(cl_int), &params.ny);
   checkError(err, "setting comp_func arg 5", __LINE__);
-  err = clSetKernelArg(ocl.comp_func, 6, sizeof(cl_int), &params.ny);
+  err = clSetKernelArg(ocl.comp_func, 6, sizeof(cl_float), &params.omega);
   checkError(err, "setting comp_func arg 6", __LINE__);
-  err = clSetKernelArg(ocl.comp_func, 7, sizeof(cl_float), &params.omega);
-  checkError(err, "setting comp_func arg 7", __LINE__);
 
   // Enqueue kernel
   size_t global[2] = {params.nx, params.ny};
