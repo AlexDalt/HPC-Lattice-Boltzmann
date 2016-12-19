@@ -114,7 +114,6 @@ int main(int argc, char* argv[])
   double usrtim;                /* floating point number to record elapsed user CPU time */
   double systim;                /* floating point number to record elapsed system CPU time */
   int tot_cells = 0;
-  cl_uint comp_units;                 // the max number of compute units on a device
 
 
   /* parse the command line */
@@ -233,6 +232,8 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
   float tot_u = 0;          /* accumulated magnitudes of velocity for each cell */
   float tot_us[params.nx * params.ny]; 
   cl_int err;
+    cl_uint comp_units;                 // the max number of compute units on a device
+
 
   // Set kernel arguments
   err = clSetKernelArg(ocl.comp_func, 0, sizeof(cl_mem), cells);
