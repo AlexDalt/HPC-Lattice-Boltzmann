@@ -79,6 +79,7 @@ kernel void comp_func(global t_speed* cells,
 
   for(int a = 0; a < max_a; a++){
     for(int b = 0; b < max_b; b++){
+      t_speed tmp;
       ii = g_id_ii * max_a + a;
       jj = g_id_jj * max_b + b;
 
@@ -97,47 +98,47 @@ kernel void comp_func(global t_speed* cells,
       float diff[NSPEEDS];
       diff[0] = 0.0;
 
-      tmp_cells[cell].speeds[0] = private_cells[private_a  * 10 + private_b ].speeds[0]; /* central cell, no movement */
-      tmp_cells[cell].speeds[1] = private_cells[private_a  * 10 + x_w].speeds[1]; /* east */
-      tmp_cells[cell].speeds[2] = private_cells[y_s * 10 + private_b ].speeds[2]; /* north */
-      tmp_cells[cell].speeds[3] = private_cells[private_a  * 10 + x_e].speeds[3]; /* west */
-      tmp_cells[cell].speeds[4] = private_cells[y_n * 10 + private_b ].speeds[4]; /* south */
-      tmp_cells[cell].speeds[5] = private_cells[y_s * 10 + x_w].speeds[5]; /* north-east */
-      tmp_cells[cell].speeds[6] = private_cells[y_s * 10 + x_e].speeds[6]; /* north-west */
-      tmp_cells[cell].speeds[7] = private_cells[y_n * 10 + x_e].speeds[7]; /* south-west */
-      tmp_cells[cell].speeds[8] = private_cells[y_n * 10 + x_w].speeds[8]; /* south-east */
+      tmp.speeds[0] = private_cells[private_a  * 10 + private_b ].speeds[0]; /* central cell, no movement */
+      tmp.speeds[1] = private_cells[private_a  * 10 + x_w].speeds[1]; /* east */
+      tmp.speeds[2] = private_cells[y_s * 10 + private_b ].speeds[2]; /* north */
+      tmp.speeds[3] = private_cells[private_a  * 10 + x_e].speeds[3]; /* west */
+      tmp.speeds[4] = private_cells[y_n * 10 + private_b ].speeds[4]; /* south */
+      tmp.speeds[5] = private_cells[y_s * 10 + x_w].speeds[5]; /* north-east */
+      tmp.speeds[6] = private_cells[y_s * 10 + x_e].speeds[6]; /* north-west */
+      tmp.speeds[7] = private_cells[y_n * 10 + x_e].speeds[7]; /* south-west */
+      tmp.speeds[8] = private_cells[y_n * 10 + x_w].speeds[8]; /* south-east */
 
-      diff[1] = tmp_cells[cell].speeds[3];
-      diff[2] = tmp_cells[cell].speeds[4];
-      diff[3] = tmp_cells[cell].speeds[1];
-      diff[4] = tmp_cells[cell].speeds[2];
-      diff[5] = tmp_cells[cell].speeds[7];
-      diff[6] = tmp_cells[cell].speeds[8];
-      diff[7] = tmp_cells[cell].speeds[5];
-      diff[8] = tmp_cells[cell].speeds[6];
+      diff[1] = tmp.speeds[3];
+      diff[2] = tmp.speeds[4];
+      diff[3] = tmp.speeds[1];
+      diff[4] = tmp.speeds[2];
+      diff[5] = tmp.speeds[7];
+      diff[6] = tmp.speeds[8];
+      diff[7] = tmp.speeds[5];
+      diff[8] = tmp.speeds[6];
 
       float local_density = 0.0;
 
       for (int kk = 0; kk < NSPEEDS; kk++)
       {
-        local_density += tmp_cells[cell].speeds[kk];
+        local_density += tmp.speeds[kk];
       }
 
       /* compute x velocity component */
-      float u_x = (tmp_cells[cell].speeds[1]
-                    + tmp_cells[cell].speeds[5]
-                    + tmp_cells[cell].speeds[8]
-                    - (tmp_cells[cell].speeds[3]
-                       + tmp_cells[cell].speeds[6]
-                       + tmp_cells[cell].speeds[7]))
+      float u_x = (tmp.speeds[1]
+                    + tmp.speeds[5]
+                    + tmp.speeds[8]
+                    - (tmp.speeds[3]
+                       + tmp.speeds[6]
+                       + tmp.speeds[7]))
                     / local_density;
       /* compute y velocity component */
-      float u_y = (tmp_cells[cell].speeds[2]
-                    + tmp_cells[cell].speeds[5]
-                    + tmp_cells[cell].speeds[6]
-                    - (tmp_cells[cell].speeds[4]
-                       + tmp_cells[cell].speeds[7]
-                       + tmp_cells[cell].speeds[8]))
+      float u_y = (tmp.speeds[2]
+                    + tmp.speeds[5]
+                    + tmp.speeds[6]
+                    - (tmp.speeds[4]
+                       + tmp.speeds[7]
+                       + tmp.speeds[8]))
                     / local_density;
 
       /* velocity squared */
@@ -187,11 +188,13 @@ kernel void comp_func(global t_speed* cells,
                                        - u_sq / (2.0 * c_sq));
 
       for(int kk = 0; kk < NSPEEDS; kk++){
-        tmp_cells[cell].speeds[kk] = (nobst) * (tmp_cells[cell].speeds[kk]
+        tmp.speeds[kk] = (nobst) * (tmp.speeds[kk]
                                                 + omega
-                                                * (d_equ[kk] - tmp_cells[cell].speeds[kk]))
+                                                * (d_equ[kk] - tmp.speeds[kk]))
                                    + (obst * diff[kk]);
       }
+
+      tmp_cells[cell] = tmp;
 
       tot_us[cell] = (nobst) * (sqrt((u_x * u_x) + (u_y * u_y)));
     }
