@@ -16,6 +16,8 @@
 #define FINALSTATEFILE  "final_state.dat"
 #define AVVELSFILE      "av_vels.dat"
 #define OCLFILE         "kernels.cl"
+#define blksz 16
+
 
 /* struct to hold the parameter values */
 typedef struct
@@ -114,6 +116,7 @@ int main(int argc, char* argv[])
   double usrtim;                /* floating point number to record elapsed user CPU time */
   double systim;                /* floating point number to record elapsed system CPU time */
   int tot_cells = 0;
+
 
   /* parse the command line */
   if (argc != 3)
@@ -232,6 +235,9 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
   float tot_us[params.nx * params.ny]; 
   cl_int err;
 
+  int size = (params.nx/xrank + 2) * (params.ny/yrank + 2);
+
+
   // Set kernel arguments
   err = clSetKernelArg(ocl.comp_func, 0, sizeof(cl_mem), cells);
   checkError(err, "setting comp_func arg 0", __LINE__);
@@ -247,11 +253,12 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
   checkError(err, "setting comp_func arg 5", __LINE__);
   err = clSetKernelArg(ocl.comp_func, 6, sizeof(cl_float), &params.omega);
   checkError(err, "setting comp_func arg 6", __LINE__);
-
+  err = clSetKernelArg(ocl.comp_func, 7, sizeof(cl_float) * blksz * blksz, NULL);
+  checkError(err, "setting comp_func arg 7", __LINE__);
 
   // Enqueue kernel
   size_t global[2] = {params.nx, params.ny};
-  size_t local[2] = {8,8};
+  size_t local[2] = {blksz, blksz};
   err = clEnqueueNDRangeKernel(ocl.queue, ocl.comp_func,
                                2, NULL, global, local, 0, NULL, NULL);
   checkError(err, "enqueueing comp_func kernel", __LINE__);
