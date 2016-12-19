@@ -42,7 +42,7 @@ kernel void accelerate_flow(global t_speed* cells,
 
 kernel void comp_func(global t_speed* cells,
                       global t_speed* tmp_cells,
-                      local float* local_cells;
+                      local float* local_cells,
                       global float* tot_us,
                       global int* obstacles,
                       int nx, int ny,
