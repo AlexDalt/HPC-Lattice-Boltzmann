@@ -45,15 +45,14 @@ kernel void comp_func(global t_speed* cells,
                       global float* tot_us,
                       global int* obstacles,
                       int nx, int ny,
-                      float omega,
-                      local t_speed* local_cells)
+                      float omega)
 {
-  int g_id_jj = get_global_id(0);   // global work-item ID
+  int g_id_jj = get_global_id(0);
   int g_id_ii = get_global_id(1);
-  int max_jj = get_global_size(0);  // num of work-items
+  int max_jj = get_global_size(0);
   int max_ii = get_global_size(1);
-  int max_b = ny/(max_jj);
-  int max_a = nx/(max_ii);
+  int max_b = ny/max_jj;
+  int max_a = nx/max_ii;
 
   const float c_sq = 1.0 / 3.0; /* square of speed of sound */
   const float w0 = 4.0 / 9.0;  /* weighting factor */
