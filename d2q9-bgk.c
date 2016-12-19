@@ -116,6 +116,7 @@ int main(int argc, char* argv[])
   double usrtim;                /* floating point number to record elapsed user CPU time */
   double systim;                /* floating point number to record elapsed system CPU time */
   int tot_cells = 0;
+  cl_uint comp_units;                 // the max number of compute units on a device
 
   /* parse the command line */
   if (argc != 3)
@@ -137,6 +138,14 @@ int main(int argc, char* argv[])
       }
     }
   }
+
+  err = clGetDeviceInfo(ocl.device, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &comp_units, NULL);
+  if (err != CL_SUCCESS)
+  {
+    printf("Error: Failed to access device number of compute units !\n");
+    return EXIT_FAILURE;
+  }
+  printf(" with a max of %d compute units \n",comp_units);
 
   /* iterate for maxIters timesteps */
   gettimeofday(&timstr, NULL);
