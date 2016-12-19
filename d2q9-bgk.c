@@ -251,7 +251,7 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
   // Enqueue kernel
   size_t global[2] = {params.nx, params.ny};
   err = clEnqueueNDRangeKernel(ocl.queue, ocl.comp_func,
-                               2, NULL, global, NULL, 0, NULL, NULL);
+                               2, NULL, global, {params.nx/4,params.ny/4}, 0, NULL, NULL);
   checkError(err, "enqueueing comp_func kernel", __LINE__);
 
   // Wait for kernel to finish
