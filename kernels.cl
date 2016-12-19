@@ -51,13 +51,14 @@ kernel void comp_func(global t_speed* cells,
   int g_id_ii = get_global_id(1);
   int max_b = 32;
   int max_a = 32;
+  int ii,jj;
 
   local t_speed local_cells[34*34];
 
   for(int a = 0; a < max_a+2; a++){
     for(int b = 0; b < max_b+2; b++){
-      int ii = g_id_ii * max_a + a - 1;
-      int ii = g_id_jj * max_b + b - 1;
+      ii = g_id_ii * max_a + a - 1;
+      jj = g_id_jj * max_b + b - 1;
 
       ii = (ii < 0) ? (ny - 1) : ii;
       ii = (ii >= ny) ? 0 : ii;
@@ -76,8 +77,8 @@ kernel void comp_func(global t_speed* cells,
 
   for(int a = 0; a < max_a; a++){
     for(int b = 0; b < max_b; b++){
-      int ii = g_id_ii * max_a + a;
-      int jj = g_id_jj * max_b + b;
+      ii = g_id_ii * max_a + a;
+      jj = g_id_jj * max_b + b;
 
       int cell = ii * nx + jj;
 
