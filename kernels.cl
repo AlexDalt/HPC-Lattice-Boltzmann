@@ -49,6 +49,10 @@ kernel void comp_func(global t_speed* cells,
                       float omega,
                       local t_speed* cells_wrk)
 {
+  const float c_sq = 1.0 / 3.0; /* square of speed of sound */
+  const float w0 = 4.0 / 9.0;  /* weighting factor */
+  const float w1 = 1.0 / 9.0;  /* weighting factor */
+  const float w2 = 1.0 / 36.0; /* weighting factor */
   int Jblk, Iblk;
   t_speed tmp;
   t_speed diff;
@@ -99,14 +103,14 @@ kernel void comp_func(global t_speed* cells,
   tmp.speeds[8] = cells_wrk[y_n * blksz + x_w].speeds[8]; /* south-east */
 
   diff.speeds[0] = 0.0;
-  diff[1] = tmp.speeds[3];
-  diff[2] = tmp.speeds[4];
-  diff[3] = tmp.speeds[1];
-  diff[4] = tmp.speeds[2];
-  diff[5] = tmp.speeds[7];
-  diff[6] = tmp.speeds[8];
-  diff[7] = tmp.speeds[5];
-  diff[8] = tmp.speeds[6];
+  diff.speeds[1] = tmp.speeds[3];
+  diff.speeds[2] = tmp.speeds[4];
+  diff.speeds[3] = tmp.speeds[1];
+  diff.speeds[4] = tmp.speeds[2];
+  diff.speeds[5] = tmp.speeds[7];
+  diff.speeds[6] = tmp.speeds[8];
+  diff.speeds[7] = tmp.speeds[5];
+  diff.speeds[8] = tmp.speeds[6];
 
   float local_density = 0.0;
   #pragma unroll
