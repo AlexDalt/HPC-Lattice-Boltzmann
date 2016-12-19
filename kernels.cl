@@ -46,59 +46,46 @@ kernel void comp_func(global t_speed* cells,
                       global int* obstacles,
                       int nx, int ny,
                       float omega,
-                      local t_speed* local_cells)
+                      t_speed* local_cells)
 {
-  int g_id_ii = get_global_id(0);
-  int g_id_jj = get_global_id(1);
-  int max_ii = get_global_size(0);
-  int max_jj = get_global_size(1);
-  int max_a = ny/(max_jj+1);
-  int max_b = nx/(max_ii+1);
+  int g_id_jj = get_global_id(0);
+  int g_id_ii = get_global_id(1);
+  int max_jj = get_global_size(0);
+  int max_ii = get_global_size(1);
+  int max_b = ny/max_jj;
+  int max_a = nx/max_ii;
 
   const float c_sq = 1.0 / 3.0; /* square of speed of sound */
   const float w0 = 4.0 / 9.0;  /* weighting factor */
   const float w1 = 1.0 / 9.0;  /* weighting factor */
   const float w2 = 1.0 / 36.0; /* weighting factor */
 
-  for(int a = -1; a < max_a+1; a++){
-    for(int b = -1; b < max_b+1; b++){
-      int ref_a = a + 1;
-      int ref_b = b + 1;
-
-      int i = max_a * g_id_ii + a;
-      int j = max_b * g_id_jj + b;
-      for(int kk = 0; kk < NSPEEDS; kk++){
-        local_cells[ref_a * (max_b+2) + ref_b].speeds[kk] = cells[i * nx + j].speeds[kk];
-      }
-    }
-  }
-
-  for(int a = 1; a < max_a+1; a++){
-    for(int b = 1; b < max_b+1; b++){
-      int ii = g_id_ii * max_a + a - 1;
-      int jj = g_id_jj * max_b + b - 1;
+  for(int a = 0; a < max_a; a++){
+    for(int b = 0; b < max_b; b++){
+      int ii = g_id_ii * max_a + a;
+      int jj = g_id_jj * max_b + b;
 
       int cell = ii * nx + jj;
 
-      int y_n = a + 1;
-      int x_e = b + 1;
-      int y_s = a - 1;
-      int x_w = b - 1;
+      int y_n = (ii + 1) % ny;
+      int x_e = (jj + 1) % nx;
+      int y_s = (ii == 0) ? (ii + ny - 1) : (ii - 1);
+      int x_w = (jj == 0) ? (jj + nx - 1) : (jj - 1);
 
       int obst  = (obstacles[cell] ? 1 : 0);
       int nobst = (obstacles[cell] ? 0 : 1);
       float diff[NSPEEDS];
       diff[0] = 0.0;
 
-      tmp_cells[cell].speeds[0] = local_cells[a  * nx + b ].speeds[0]; /* central cell, no movement */
-      tmp_cells[cell].speeds[1] = local_cells[a  * nx + x_w].speeds[1]; /* east */
-      tmp_cells[cell].speeds[2] = local_cells[y_s * nx + b ].speeds[2]; /* north */
-      tmp_cells[cell].speeds[3] = local_cells[a  * nx + x_e].speeds[3]; /* west */
-      tmp_cells[cell].speeds[4] = local_cells[y_n * nx + b ].speeds[4]; /* south */
-      tmp_cells[cell].speeds[5] = local_cells[y_s * nx + x_w].speeds[5]; /* north-east */
-      tmp_cells[cell].speeds[6] = local_cells[y_s * nx + x_e].speeds[6]; /* north-west */
-      tmp_cells[cell].speeds[7] = local_cells[y_n * nx + x_e].speeds[7]; /* south-west */
-      tmp_cells[cell].speeds[8] = local_cells[y_n * nx + x_w].speeds[8]; /* south-east */
+      tmp_cells[cell].speeds[0] = cells[ii  * nx + jj ].speeds[0]; /* central cell, no movement */
+      tmp_cells[cell].speeds[1] = cells[ii  * nx + x_w].speeds[1]; /* east */
+      tmp_cells[cell].speeds[2] = cells[y_s * nx + jj ].speeds[2]; /* north */
+      tmp_cells[cell].speeds[3] = cells[ii  * nx + x_e].speeds[3]; /* west */
+      tmp_cells[cell].speeds[4] = cells[y_n * nx + jj ].speeds[4]; /* south */
+      tmp_cells[cell].speeds[5] = cells[y_s * nx + x_w].speeds[5]; /* north-east */
+      tmp_cells[cell].speeds[6] = cells[y_s * nx + x_e].speeds[6]; /* north-west */
+      tmp_cells[cell].speeds[7] = cells[y_n * nx + x_e].speeds[7]; /* south-west */
+      tmp_cells[cell].speeds[8] = cells[y_n * nx + x_w].speeds[8]; /* south-east */
 
       diff[1] = tmp_cells[cell].speeds[3];
       diff[2] = tmp_cells[cell].speeds[4];
