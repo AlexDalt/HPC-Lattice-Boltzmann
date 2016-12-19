@@ -4,7 +4,15 @@
 
 typedef struct
 {
-  float* s0,s1,s2,s3,s4,s5,s6,s7,s8;
+  float* s0;
+  float* s1;
+  float* s2;
+  float* s3;
+  float* s4;
+  float* s5;
+  float* s6;
+  float* s7;
+  float* s8;
 } SOA_speed;
 
 kernel void accelerate_flow(global SOA_speed* cells,
