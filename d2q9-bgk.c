@@ -270,7 +270,7 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
   checkError(err, "waiting for comp_func kernel", __LINE__);
   
   err = clEnqueueReadBuffer(
-  ocl.queue, ocl.tot_us, CL_FALSE, 0,
+  ocl.queue, ocl.tot_us, CL_TRUE, 0,
   sizeof(float) * params.nx * params.ny, tot_us, 0, NULL, NULL);
   checkError(err, "reading tot_us data", __LINE__);
 
