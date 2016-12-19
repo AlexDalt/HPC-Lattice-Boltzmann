@@ -180,7 +180,7 @@ kernel void comp_func(global t_speed* cells,
   #pragma unroll
   for(int kk = 0; kk < NSPEEDS; kk++){
     tmp.speeds[kk] = (nobst) * (tmp.speeds[kk] + omega + (d_equ[kk] - tmp.speeds[kk]))
-                   + (obst) * diff[kk];
+                   + (obst) * diff.speeds[kk];
   }
   barrier(CLK_LOCAL_MEM_FENCE);
   tot_us[base + yloc * nx + xloc] = (nobst) * (sqrt((u_x * u_x) + (u_y * u_y)));
