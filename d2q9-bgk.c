@@ -139,13 +139,13 @@ int main(int argc, char* argv[])
     }
   }
 
-  err = clGetDeviceInfo(device_id, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(cl_ulong), &comp_units, NULL);
+  err = clGetDeviceInfo(ocl.device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(cl_ulong), &comp_units, NULL);
     if (err != CL_SUCCESS)
     {
         printf("Error: Failed to access device number of compute units !\n");
         return EXIT_FAILURE;
     }
-    printf(" with a max local memory of %d \n",comp_units);
+    printf(" with a max local memory of %lu \n",comp_units);
 
   /* iterate for maxIters timesteps */
   gettimeofday(&timstr, NULL);
