@@ -99,7 +99,7 @@ kernel void comp_func(global t_speed* cells,
       tmp_cells[cell].speeds[5] = local_cells[local_y_s * (max_b+2) + local_x_w].speeds[5];
       tmp_cells[cell].speeds[6] = local_cells[local_y_s * (max_b+2) + local_x_e].speeds[6];
       tmp_cells[cell].speeds[7] = local_cells[local_y_n * (max_b+2) + local_x_e].speeds[7];
-      tmp_cells[cell].speeds[8] = local_cells[local_y_n * (max_b+2) + local_x_w].speeds[8]
+      tmp_cells[cell].speeds[8] = local_cells[local_y_n * (max_b+2) + local_x_w].speeds[8];
 
       diff[1] = tmp_cells[cell].speeds[3];
       diff[2] = tmp_cells[cell].speeds[4];
