@@ -71,7 +71,7 @@ kernel void comp_func(global t_speed* cells,
       real_b = (real_b > ny) ? 0 : real_b;
 
       for(int kk = 0; kk < NSPEEDS; kk++){
-        local_cells[(a+1) * max_b + (b+1).speeds[kk] = cells[real_a * ny + real_b].speeds[kk];
+        local_cells[(a+1) * max_b + (b+1)].speeds[kk] = cells[real_a * ny + real_b].speeds[kk];
       }
     }
   }
