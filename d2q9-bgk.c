@@ -234,7 +234,7 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
   cl_int err;
 
   int yrank = 32;
-  int xrank = 32;
+  int xrank = 16;
 
   int size = (params.nx/xrank + 2) * (params.ny/yrank + 2);
 
