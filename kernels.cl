@@ -65,9 +65,9 @@ kernel void comp_func(global t_speed* cells,
       int real_a = a + (g_id_ii * max_a);
       int real_b = b + (g_id_jj * max_b);
 
-      real_a = (real_a < 0) ? real_a + nx - 1 : real_a;
+      real_a = (real_a < 0) ? nx - 1 : real_a;
       real_a = (real_a > nx) ? 0 : real_a;
-      real_b = (real_b < 0) ? real_b + ny - 1 : real_b;
+      real_b = (real_b < 0) ? ny - 1 : real_b;
       real_b = (real_b > ny) ? 0 : real_b;
 
       for(int kk = 0; kk < NSPEEDS; kk++){
