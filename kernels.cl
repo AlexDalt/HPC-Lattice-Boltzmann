@@ -87,10 +87,10 @@ kernel void comp_func(global t_speed* cells,
 
       int cell = ii * nx + jj;
 
-      int y_n = (ii + 1);
-      int x_e = (jj + 1);
-      int y_s = (ii - 1);
-      int x_w = (jj - 1);
+      int y_n = (private_a + 1);
+      int x_e = (private_b + 1);
+      int y_s = (private_a - 1);
+      int x_w = (private_b - 1);
 
       int obst  = (obstacles[cell] ? 1 : 0);
       int nobst = (obstacles[cell] ? 0 : 1);
