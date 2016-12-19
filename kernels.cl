@@ -80,10 +80,7 @@ kernel void comp_func(global t_speed* cells,
       int jj = g_id_jj * max_b + local_b;
 
       int cell = ii * nx + jj;
-
-      int local_a = a-1;
-      int local_b = b-1;
-
+      
       int local_y_n = (a + 1);
       int local_x_e = (b + 1);
       int local_y_s = (a - 1);
