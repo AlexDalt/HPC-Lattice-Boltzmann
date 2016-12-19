@@ -42,9 +42,10 @@ kernel void accelerate_flow(global t_speed* cells,
 
 kernel void comp_func(global t_speed* cells,
                       global t_speed* tmp_cells,
+                      local float* local_cells;
                       global float* tot_us,
                       global int* obstacles,
-                      int nx, int ny, const int size,
+                      int nx, int ny,
                       float omega)
 {
   int g_id_jj = get_global_id(0);
@@ -58,8 +59,6 @@ kernel void comp_func(global t_speed* cells,
   const float w0 = 4.0 / 9.0;  /* weighting factor */
   const float w1 = 1.0 / 9.0;  /* weighting factor */
   const float w2 = 1.0 / 36.0; /* weighting factor */
-
-  float local_cells[size * NSPEEDS];
 
   for(int a = -1; a < max_a + 1; a++){
     for(int b = -1; b < max_b + 1; b++){
