@@ -42,7 +42,7 @@ kernel void accelerate_flow(global t_speed* cells,
 
 kernel void comp_func(global t_speed* cells,
                       global t_speed* tmp_cells,
-                      local float* local_cells,
+                      local t_speed* local_cells,
                       global float* tot_us,
                       global int* obstacles,
                       int nx, int ny,
@@ -71,7 +71,7 @@ kernel void comp_func(global t_speed* cells,
       real_b = (real_b > ny) ? 0 : real_b;
 
       for(int kk = 0; kk < NSPEEDS; kk++){
-        local_cells[(a+1) * max_b + (b+1) * NSPEEDS + kk] = cells[real_a * ny + real_b].speeds[kk];
+        local_cells[(a+1) * max_b + (b+1).speeds[kk] = cells[real_a * ny + real_b].speeds[kk];
       }
     }
   }
@@ -97,15 +97,15 @@ kernel void comp_func(global t_speed* cells,
       float diff[NSPEEDS];
       diff[0] = 0.0;
 
-      tmp_cells[cell].speeds[0] = local_cells[local_a * max_b + local_b * NSPEEDS + 0];
-      tmp_cells[cell].speeds[1] = local_cells[local_a * max_b + local_x_w * NSPEEDS + 0];
-      tmp_cells[cell].speeds[2] = local_cells[local_y_s * max_b + local_b * NSPEEDS + 0];
-      tmp_cells[cell].speeds[3] = local_cells[local_a * max_b + local_x_e * NSPEEDS + 0];
-      tmp_cells[cell].speeds[4] = local_cells[local_y_n * max_b + local_b * NSPEEDS + 0];
-      tmp_cells[cell].speeds[5] = local_cells[local_y_s * max_b + local_x_w * NSPEEDS + 0];
-      tmp_cells[cell].speeds[6] = local_cells[local_y_s * max_b + local_x_e * NSPEEDS + 0];
-      tmp_cells[cell].speeds[7] = local_cells[local_y_n * max_b + local_x_e * NSPEEDS + 0];
-      tmp_cells[cell].speeds[8] = local_cells[local_y_n * max_b + local_x_w * NSPEEDS + 0];
+      tmp_cells[cell].speeds[0] = local_cells[local_a * max_b + local_b].speeds[0];
+      tmp_cells[cell].speeds[1] = local_cells[local_a * max_b + local_x_w].speeds[1];
+      tmp_cells[cell].speeds[2] = local_cells[local_y_s * max_b + local_b].speeds[2];
+      tmp_cells[cell].speeds[3] = local_cells[local_a * max_b + local_x_e].speeds[3];
+      tmp_cells[cell].speeds[4] = local_cells[local_y_n * max_b + local_b].speeds[4];
+      tmp_cells[cell].speeds[5] = local_cells[local_y_s * max_b + local_x_w].speeds[5];
+      tmp_cells[cell].speeds[6] = local_cells[local_y_s * max_b + local_x_e].speeds[6];
+      tmp_cells[cell].speeds[7] = local_cells[local_y_n * max_b + local_x_e].speeds[7];
+      tmp_cells[cell].speeds[8] = local_cells[local_y_n * max_b + local_x_w].speeds[8];
 
       diff[1] = tmp_cells[cell].speeds[3];
       diff[2] = tmp_cells[cell].speeds[4];
