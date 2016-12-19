@@ -26,18 +26,18 @@ kernel void accelerate_flow(global SOA_speed* cells,
   ** we don't send a negative density */
 
   float mask = (!obstacles[ii * nx + jj]
-      && (cells.s3[ii * nx + jj] - w1) > 0.0
-      && (cells.s6[ii * nx + jj] - w2) > 0.0
-      && (cells.s7[ii * nx + jj] - w2) > 0.0) ? 1.f : 0.f;
+      && (cells->s3[ii * nx + jj] - w1) > 0.0
+      && (cells->s6[ii * nx + jj] - w2) > 0.0
+      && (cells->s7[ii * nx + jj] - w2) > 0.0) ? 1.f : 0.f;
 
   /* increase 'east-side' densities */
-  cells.s1[ii * nx + jj] += w1 * mask;
-  cells.s5[ii * nx + jj] += w2 * mask;
-  cells.s8[ii * nx + jj] += w2 * mask;
+  cells->s1[ii * nx + jj] += w1 * mask;
+  cells->s5[ii * nx + jj] += w2 * mask;
+  cells->s8[ii * nx + jj] += w2 * mask;
   /* decrease 'west-side' densities */
-  cells.s3[ii * nx + jj] -= w1 * mask;
-  cells.s6[ii * nx + jj] -= w2 * mask;
-  cells.s7[ii * nx + jj] -= w2 * mask;
+  cells->s3[ii * nx + jj] -= w1 * mask;
+  cells->s6[ii * nx + jj] -= w2 * mask;
+  cells->s7[ii * nx + jj] -= w2 * mask;
 }
 
 kernel void comp_func(global SOA_speed* cells,
