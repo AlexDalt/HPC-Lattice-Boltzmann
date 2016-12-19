@@ -48,12 +48,12 @@ kernel void comp_func(global t_speed* cells,
                       float omega,
                       local t_speed* local_cells)
 {
-  int g_id_jj = get_global_id(0);
-  int g_id_ii = get_global_id(1);
-  int max_jj = get_global_size(0);
-  int max_ii = get_global_size(1);
-  int max_b = ny/(max_jj+1);
-  int max_a = nx/(max_ii+1);
+  int g_id_ii = get_global_id(0);
+  int g_id_jj = get_global_id(1);
+  int max_ii = get_global_size(0);
+  int max_jj = get_global_size(1);
+  int max_a = ny/(max_jj+1);
+  int max_b = nx/(max_ii+1);
 
   const float c_sq = 1.0 / 3.0; /* square of speed of sound */
   const float w0 = 4.0 / 9.0;  /* weighting factor */
@@ -80,10 +80,10 @@ kernel void comp_func(global t_speed* cells,
 
       int cell = ii * nx + jj;
 
-      int y_n = b + 1;
-      int x_e = a + 1;
-      int y_s = b - 1;
-      int x_w = a - 1;
+      int y_n = a + 1;
+      int x_e = b + 1;
+      int y_s = a - 1;
+      int x_w = b - 1;
 
       int obst  = (obstacles[cell] ? 1 : 0);
       int nobst = (obstacles[cell] ? 0 : 1);
