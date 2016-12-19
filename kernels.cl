@@ -52,8 +52,8 @@ kernel void comp_func(global t_speed* cells,
   int g_id_ii = get_global_id(1);
   int max_jj = get_global_size(0);  // num of work-items
   int max_ii = get_global_size(1);
-  int max_b = ny/(max_jj+1);
-  int max_a = nx/(max_ii+1);
+  int max_b = ny/(max_jj);
+  int max_a = nx/(max_ii);
 
   const float c_sq = 1.0 / 3.0; /* square of speed of sound */
   const float w0 = 4.0 / 9.0;  /* weighting factor */
