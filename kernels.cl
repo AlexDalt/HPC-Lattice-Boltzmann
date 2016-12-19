@@ -97,15 +97,15 @@ kernel void comp_func(global t_speed* cells,
       float diff[NSPEEDS];
       diff[0] = 0.0;
 
-      tmp_cells[cell].speeds[0] = private_cells[ii  * max_b + jj ].speeds[0]; /* central cell, no movement */
-      tmp_cells[cell].speeds[1] = private_cells[ii  * max_b + x_w].speeds[1]; /* east */
-      tmp_cells[cell].speeds[2] = private_cells[y_s * max_b + jj ].speeds[2]; /* north */
-      tmp_cells[cell].speeds[3] = private_cells[ii  * max_b + x_e].speeds[3]; /* west */
-      tmp_cells[cell].speeds[4] = private_cells[y_n * max_b + jj ].speeds[4]; /* south */
-      tmp_cells[cell].speeds[5] = private_cells[y_s * max_b + x_w].speeds[5]; /* north-east */
-      tmp_cells[cell].speeds[6] = private_cells[y_s * max_b + x_e].speeds[6]; /* north-west */
-      tmp_cells[cell].speeds[7] = private_cells[y_n * max_b + x_e].speeds[7]; /* south-west */
-      tmp_cells[cell].speeds[8] = private_cells[y_n * max_b + x_w].speeds[8]; /* south-east */
+      tmp_cells[cell].speeds[0] = private_cells[ii  * 10 + jj ].speeds[0]; /* central cell, no movement */
+      tmp_cells[cell].speeds[1] = private_cells[ii  * 10 + x_w].speeds[1]; /* east */
+      tmp_cells[cell].speeds[2] = private_cells[y_s * 10 + jj ].speeds[2]; /* north */
+      tmp_cells[cell].speeds[3] = private_cells[ii  * 10 + x_e].speeds[3]; /* west */
+      tmp_cells[cell].speeds[4] = private_cells[y_n * 10 + jj ].speeds[4]; /* south */
+      tmp_cells[cell].speeds[5] = private_cells[y_s * 10 + x_w].speeds[5]; /* north-east */
+      tmp_cells[cell].speeds[6] = private_cells[y_s * 10 + x_e].speeds[6]; /* north-west */
+      tmp_cells[cell].speeds[7] = private_cells[y_n * 10 + x_e].speeds[7]; /* south-west */
+      tmp_cells[cell].speeds[8] = private_cells[y_n * 10 + x_w].speeds[8]; /* south-east */
 
       diff[1] = tmp_cells[cell].speeds[3];
       diff[2] = tmp_cells[cell].speeds[4];
