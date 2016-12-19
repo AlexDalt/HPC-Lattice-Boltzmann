@@ -60,7 +60,7 @@ kernel void comp_func(global t_speed* cells,
   const float w2 = 1.0 / 36.0; /* weighting factor */
 
   int size = (max_a + 2) * (max_b + 2);
-  t_speed* local = malloc(sizeof(t_speed) * size);
+  float local_cells[size * NSPEEDS];
 
   for(int a = -1; a < max_a + 1; a++){
     for(int b = -1; b < max_b + 1; b++){
@@ -73,7 +73,7 @@ kernel void comp_func(global t_speed* cells,
       real_b = (real_b > ny) ? 0 : real_b;
 
       for(int kk = 0; kk < NSPEEDS; kk++){
-        local[(a+1) * max_b + (b+1)].speeds[kk] = cells[real_a * ny + real_b].speeds[kk];
+        local_cells[(a+1) * max_b + (b+1) * NSPEEDS + kk] = cells[real_a * ny + real_b].speeds[kk];
       }
     }
   }
@@ -99,15 +99,15 @@ kernel void comp_func(global t_speed* cells,
       float diff[NSPEEDS];
       diff[0] = 0.0;
 
-      tmp_cells[cell].speeds[0] = local[local_a * max_b + local_b].speeds[0];
-      tmp_cells[cell].speeds[1] = local[local_a * max_b + local_x_w].speeds[1];
-      tmp_cells[cell].speeds[2] = local[local_y_s * max_b + local_b].speeds[2];
-      tmp_cells[cell].speeds[3] = local[local_a * max_b + local_x_e].speeds[3];
-      tmp_cells[cell].speeds[4] = local[local_y_n * max_b + local_b].speeds[4];
-      tmp_cells[cell].speeds[5] = local[local_y_s * max_b + local_x_w].speeds[5];
-      tmp_cells[cell].speeds[6] = local[local_y_s * max_b + local_x_e].speeds[6];
-      tmp_cells[cell].speeds[7] = local[local_y_n * max_b + local_x_e].speeds[7];
-      tmp_cells[cell].speeds[8] = local[local_y_n * max_b + local_x_w].speeds[8];
+      tmp_cells[cell].speeds[0] = local_cells[local_a * max_b + local_b * NSPEEDS + 0];
+      tmp_cells[cell].speeds[1] = local_cells[local_a * max_b + local_x_w * NSPEEDS + 0];
+      tmp_cells[cell].speeds[2] = local_cells[local_y_s * max_b + local_b * NSPEEDS + 0];
+      tmp_cells[cell].speeds[3] = local_cells[local_a * max_b + local_x_e * NSPEEDS + 0];
+      tmp_cells[cell].speeds[4] = local_cells[local_y_n * max_b + local_b * NSPEEDS + 0];
+      tmp_cells[cell].speeds[5] = local_cells[local_y_s * max_b + local_x_w * NSPEEDS + 0];
+      tmp_cells[cell].speeds[6] = local_cells[local_y_s * max_b + local_x_e * NSPEEDS + 0];
+      tmp_cells[cell].speeds[7] = local_cells[local_y_n * max_b + local_x_e * NSPEEDS + 0];
+      tmp_cells[cell].speeds[8] = local_cells[local_y_n * max_b + local_x_w * NSPEEDS + 0];
 
       diff[1] = tmp_cells[cell].speeds[3];
       diff[2] = tmp_cells[cell].speeds[4];
