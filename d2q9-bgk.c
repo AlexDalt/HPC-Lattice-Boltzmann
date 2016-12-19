@@ -297,14 +297,9 @@ float av_velocity(const t_param params, SOA_speed* cells, int* obstacles, t_ocl 
         /* local density total */
         float local_density = 0.0;
 
-        for (int kk = 0; kk < NSPEEDS; kk++)
-        {
-          local_density += cells[ii * params.nx + jj].speeds[kk];
-        }
-
-        local_density += cells.s0[ii * params.nx + jj];
-        local_density += cells.s1[ii * params.nx + jj];
-        local_density += cells.s2[ii * params.nx + jj];
+        local_density += cells->s0[ii * params.nx + jj];
+        local_density += cells->s1[ii * params.nx + jj];
+        local_density += cells->s2[ii * params.nx + jj];
         local_density += cells.s3[ii * params.nx + jj];
         local_density += cells.s4[ii * params.nx + jj];
         local_density += cells.s5[ii * params.nx + jj];
