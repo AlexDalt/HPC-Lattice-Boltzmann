@@ -244,7 +244,7 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
   checkError(err, "setting comp_func arg 0", __LINE__);
   err = clSetKernelArg(ocl.comp_func, 1, sizeof(cl_mem), tmp_cells);
   checkError(err, "setting comp_func arg 1", __LINE__);
-  err = clSetKernelArg(ocl.comp_func, 2, NSPEEDS * size * sizeof(cl_float), NULL);
+  err = clSetKernelArg(ocl.comp_func, 2, size * sizeof(t_speed), NULL);
   checkError(err, "setting comp_func arg 2", __LINE__);
   err = clSetKernelArg(ocl.comp_func, 3, sizeof(cl_mem), &ocl.tot_us);
   checkError(err, "setting comp_func arg 3", __LINE__);
