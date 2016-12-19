@@ -16,6 +16,8 @@
 #define FINALSTATEFILE  "final_state.dat"
 #define AVVELSFILE      "av_vels.dat"
 #define OCLFILE         "kernels.cl"
+#define WORKGROUP_I     4
+#define WORKGROUP_J     4
 
 /* struct to hold the parameter values */
 typedef struct
@@ -249,7 +251,7 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
   checkError(err, "setting comp_func arg 6", __LINE__);
 
   // Enqueue kernel
-  size_t global[2] = {params.nx, params.ny};
+  size_t global[2] = {params.nx/4, params.ny/4};
   err = clEnqueueNDRangeKernel(ocl.queue, ocl.comp_func,
                                2, NULL, global, NULL, 0, NULL, NULL);
   checkError(err, "enqueueing comp_func kernel", __LINE__);
