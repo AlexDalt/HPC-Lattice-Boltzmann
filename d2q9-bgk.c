@@ -233,6 +233,11 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
   float tot_us[params.nx * params.ny]; 
   cl_int err;
 
+  int yrank = 16;
+  int xrank = 16;
+
+  int size = (nx/xrank + 2) * (ny/yrank + 2);
+
 
   // Set kernel arguments
   err = clSetKernelArg(ocl.comp_func, 0, sizeof(cl_mem), cells);
@@ -247,12 +252,14 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
   checkError(err, "setting comp_func arg 4", __LINE__);
   err = clSetKernelArg(ocl.comp_func, 5, sizeof(cl_int), &params.ny);
   checkError(err, "setting comp_func arg 5", __LINE__);
-  err = clSetKernelArg(ocl.comp_func, 6, sizeof(cl_float), &params.omega);
+  err = clSetKernelArg(ocl.comp_func, 6, sizeof(cl_int), size);
   checkError(err, "setting comp_func arg 6", __LINE__);
+  err = clSetKernelArg(ocl.comp_func, 7, sizeof(cl_float), &params.omega);
+  checkError(err, "setting comp_func arg 7", __LINE__);
 
   // Enqueue kernel
   size_t global[2] = {params.nx, params.ny};
-  size_t local[2] = {params.nx/16,params.ny/16};
+  size_t local[2] = {params.nx/xrank,params.ny/yrank};
   err = clEnqueueNDRangeKernel(ocl.queue, ocl.comp_func,
                                2, NULL, global, local, 0, NULL, NULL);
   checkError(err, "enqueueing comp_func kernel", __LINE__);

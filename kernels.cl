@@ -44,7 +44,7 @@ kernel void comp_func(global t_speed* cells,
                       global t_speed* tmp_cells,
                       global float* tot_us,
                       global int* obstacles,
-                      int nx, int ny,
+                      int nx, int ny, int size,
                       float omega)
 {
   int g_id_jj = get_global_id(0);
@@ -59,7 +59,6 @@ kernel void comp_func(global t_speed* cells,
   const float w1 = 1.0 / 9.0;  /* weighting factor */
   const float w2 = 1.0 / 36.0; /* weighting factor */
 
-  const int size = (max_a + 2) * (max_b + 2);
   float local_cells[size * NSPEEDS];
 
   for(int a = -1; a < max_a + 1; a++){
