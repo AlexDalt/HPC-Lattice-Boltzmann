@@ -232,7 +232,6 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
   float tot_u = 0;          /* accumulated magnitudes of velocity for each cell */
   float tot_us[params.nx * params.ny]; 
   cl_int err;
-    cl_uint comp_units;                 // the max number of compute units on a device
 
 
   // Set kernel arguments
