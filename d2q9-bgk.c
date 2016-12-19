@@ -74,7 +74,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
 float timestep(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl, int tot_cells);
 int accelerate_flow(const t_param params, cl_mem* cells, t_ocl ocl);
 float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl ocl, int tot_cells);
-int write_values(const t_param params, SOA_speed* cells, int* obstacles, float* av_vels);
+int write_values(const t_param params, SOA_speed cells, int* obstacles, float* av_vels);
 
 /* finalise, including freeing up allocated memory */
 int finalise(const t_param* params, SOA_speed** cells_ptr, SOA_speed** tmp_cells_ptr,
@@ -82,14 +82,14 @@ int finalise(const t_param* params, SOA_speed** cells_ptr, SOA_speed** tmp_cells
 
 /* Sum all the densities in the grid.
 ** The total should remain constant from one timestep to the next. */
-float total_density(const t_param params, SOA_speed* cells);
+float total_density(const t_param params, SOA_speed cells);
 
 /* compute average velocity */
-float av_velocity(const t_param params, SOA_speed* cells, int* obstacles, t_ocl ocl);
+float av_velocity(const t_param params, SOA_speed cells, int* obstacles, t_ocl ocl);
 
 
 /* calculate Reynolds number */
-float calc_reynolds(const t_param params, SOA_speed* cells, int* obstacles, t_ocl ocl);
+float calc_reynolds(const t_param params, SOA_speed cells, int* obstacles, t_ocl ocl);
 
 /* utility functions */
 void checkError(cl_int err, const char *op, const int line);
@@ -278,7 +278,7 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
   return tot_u / (float)tot_cells;
 }
 
-float av_velocity(const t_param params, SOA_speed* cells, int* obstacles, t_ocl ocl)
+float av_velocity(const t_param params, SOA_speed cells, int* obstacles, t_ocl ocl)
 {
   int    tot_cells = 0;  /* no. of cells used in calculation */
   float tot_u;          /* accumulated magnitudes of velocity for each cell */
@@ -297,9 +297,9 @@ float av_velocity(const t_param params, SOA_speed* cells, int* obstacles, t_ocl 
         /* local density total */
         float local_density = 0.0;
 
-        local_density += cells->s0[ii * params.nx + jj];
-        local_density += cells->s1[ii * params.nx + jj];
-        local_density += cells->s2[ii * params.nx + jj];
+        local_density += cells.s0[ii * params.nx + jj];
+        local_density += cells.s1[ii * params.nx + jj];
+        local_density += cells.s2[ii * params.nx + jj];
         local_density += cells.s3[ii * params.nx + jj];
         local_density += cells.s4[ii * params.nx + jj];
         local_density += cells.s5[ii * params.nx + jj];
@@ -637,14 +637,14 @@ int finalise(const t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr
 }
 
 
-float calc_reynolds(const t_param params, SOA_speed* cells, int* obstacles, t_ocl ocl)
+float calc_reynolds(const t_param params, SOA_speed cells, int* obstacles, t_ocl ocl)
 {
   const float viscosity = 1.0 / 6.0 * (2.0 / params.omega - 1.0);
 
   return av_velocity(params, cells, obstacles, ocl) * params.reynolds_dim / viscosity;
 }
 
-float total_density(const t_param params, SOA_speed* cells)
+float total_density(const t_param params, SOA_speed cells)
 {
   float total = 0.0;  /* accumulator */
 
@@ -667,7 +667,7 @@ float total_density(const t_param params, SOA_speed* cells)
   return total;
 }
 
-int write_values(const t_param params, SOA_speed* cells, int* obstacles, float* av_vels)
+int write_values(const t_param params, SOA_speed cells, int* obstacles, float* av_vels)
 {
   FILE* fp;                     /* file pointer */
   const float c_sq = 1.0 / 3.0; /* sq. of speed of sound */
