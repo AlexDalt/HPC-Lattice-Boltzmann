@@ -48,8 +48,8 @@ kernel void comp_func(global t_speed* cells,
                       int nx, int ny,
                       float omega)
 {
-  int g_id_jj = get_group_id(0);
-  int g_id_ii = get_group_id(1);
+  int g_id_jj = get_global_id(0);
+  int g_id_ii = get_global_id(1);
   int max_jj = get_global_size(0);
   int max_ii = get_global_size(1);
   int max_b = ny/(max_jj+1);
@@ -86,10 +86,10 @@ kernel void comp_func(global t_speed* cells,
 
       int cell = ii * nx + jj;
 
-      int local_y_n = (a + 1);
-      int local_x_e = (b + 1);
-      int local_y_s = (a - 1);
-      int local_x_w = (b - 1);
+      int local_y_n = (local_a + 1);
+      int local_x_e = (local_b + 1);
+      int local_y_s = (local_a - 1);
+      int local_x_w = (local_b - 1);
 
       int obst  = (obstacles[cell] ? 1 : 0);
       int nobst = (obstacles[cell] ? 0 : 1);
