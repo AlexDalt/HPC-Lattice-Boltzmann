@@ -4,18 +4,10 @@
 
 typedef struct
 {
-  float* s0;
-  float* s1;
-  float* s2;
-  float* s3;
-  float* s4;
-  float* s5;
-  float* s6;
-  float* s7;
-  float* s8;
-} SOA_speed;
+  float speeds[NSPEEDS];
+} t_speed;
 
-kernel void accelerate_flow(global SOA_speed* cells,
+kernel void accelerate_flow(global t_speed* cells,
                             global int* obstacles,
                             int nx, int ny,
                             float density, float accel)
@@ -34,22 +26,22 @@ kernel void accelerate_flow(global SOA_speed* cells,
   ** we don't send a negative density */
 
   float mask = (!obstacles[ii * nx + jj]
-      && (cells->s3[ii * nx + jj] - w1) > 0.0
-      && (cells->s6[ii * nx + jj] - w2) > 0.0
-      && (cells->s7[ii * nx + jj] - w2) > 0.0) ? 1.f : 0.f;
+      && (cells[ii * nx + jj].speeds[3] - w1) > 0.0
+      && (cells[ii * nx + jj].speeds[6] - w2) > 0.0
+      && (cells[ii * nx + jj].speeds[7] - w2) > 0.0) ? 1.f : 0.f;
 
   /* increase 'east-side' densities */
-  cells->s1[ii * nx + jj] += w1 * mask;
-  cells->s5[ii * nx + jj] += w2 * mask;
-  cells->s8[ii * nx + jj] += w2 * mask;
+  cells[ii * nx + jj].speeds[1] += w1 * mask;
+  cells[ii * nx + jj].speeds[5] += w2 * mask;
+  cells[ii * nx + jj].speeds[8] += w2 * mask;
   /* decrease 'west-side' densities */
-  cells->s3[ii * nx + jj] -= w1 * mask;
-  cells->s6[ii * nx + jj] -= w2 * mask;
-  cells->s7[ii * nx + jj] -= w2 * mask;
+  cells[ii * nx + jj].speeds[3] -= w1 * mask;
+  cells[ii * nx + jj].speeds[6] -= w2 * mask;
+  cells[ii * nx + jj].speeds[7] -= w2 * mask;
 }
 
-kernel void comp_func(global SOA_speed* cells,
-                      global SOA_speed* tmp_cells,
+kernel void comp_func(global t_speed* cells,
+                      global t_speed* tmp_cells,
                       global float* tot_us,
                       global int* obstacles,
                       int nx, int ny,
@@ -73,52 +65,47 @@ kernel void comp_func(global SOA_speed* cells,
   float diff[NSPEEDS];
   diff[0] = 0.0;
 
-  tmp_cells->s0[cell] = cells->s0[ii  * nx + jj ]; /* central cell, no movement */
-  tmp_cells->s1[cell] = cells->s1[ii  * nx + x_w]; /* east */
-  tmp_cells->s2[cell] = cells->s2[y_s * nx + jj ]; /* north */
-  tmp_cells->s3[cell] = cells->s3[ii  * nx + x_e]; /* west */
-  tmp_cells->s4[cell] = cells->s4[y_n * nx + jj ]; /* south */
-  tmp_cells->s5[cell] = cells->s5[y_s * nx + x_w]; /* north-east */
-  tmp_cells->s6[cell] = cells->s6[y_s * nx + x_e]; /* north-west */
-  tmp_cells->s7[cell] = cells->s7[y_n * nx + x_e]; /* south-west */
-  tmp_cells->s8[cell] = cells->s8[y_n * nx + x_w]; /* south-east */
+  tmp_cells[cell].speeds[0] = cells[ii  * nx + jj ].speeds[0]; /* central cell, no movement */
+  tmp_cells[cell].speeds[1] = cells[ii  * nx + x_w].speeds[1]; /* east */
+  tmp_cells[cell].speeds[2] = cells[y_s * nx + jj ].speeds[2]; /* north */
+  tmp_cells[cell].speeds[3] = cells[ii  * nx + x_e].speeds[3]; /* west */
+  tmp_cells[cell].speeds[4] = cells[y_n * nx + jj ].speeds[4]; /* south */
+  tmp_cells[cell].speeds[5] = cells[y_s * nx + x_w].speeds[5]; /* north-east */
+  tmp_cells[cell].speeds[6] = cells[y_s * nx + x_e].speeds[6]; /* north-west */
+  tmp_cells[cell].speeds[7] = cells[y_n * nx + x_e].speeds[7]; /* south-west */
+  tmp_cells[cell].speeds[8] = cells[y_n * nx + x_w].speeds[8]; /* south-east */
 
-  diff[1] = tmp_cells->s3[cell];
-  diff[2] = tmp_cells->s4[cell];
-  diff[3] = tmp_cells->s1[cell];
-  diff[4] = tmp_cells->s2[cell];
-  diff[5] = tmp_cells->s7[cell];
-  diff[6] = tmp_cells->s8[cell];
-  diff[7] = tmp_cells->s5[cell];
-  diff[8] = tmp_cells->s6[cell];
+  diff[1] = tmp_cells[cell].speeds[3];
+  diff[2] = tmp_cells[cell].speeds[4];
+  diff[3] = tmp_cells[cell].speeds[1];
+  diff[4] = tmp_cells[cell].speeds[2];
+  diff[5] = tmp_cells[cell].speeds[7];
+  diff[6] = tmp_cells[cell].speeds[8];
+  diff[7] = tmp_cells[cell].speeds[5];
+  diff[8] = tmp_cells[cell].speeds[6];
 
   float local_density = 0.0;
 
-  local_density += tmp_cells->s0[cell];
-  local_density += tmp_cells->s1[cell];
-  local_density += tmp_cells->s2[cell];
-  local_density += tmp_cells->s3[cell];
-  local_density += tmp_cells->s4[cell];
-  local_density += tmp_cells->s5[cell];
-  local_density += tmp_cells->s6[cell];
-  local_density += tmp_cells->s7[cell];
-  local_density += tmp_cells->s8[cell];
+  for (int kk = 0; kk < NSPEEDS; kk++)
+  {
+    local_density += tmp_cells[cell].speeds[kk];
+  }
 
   /* compute x velocity component */
-  float u_x = (tmp_cells->s1[cell]
-                + tmp_cells->s5[cell]
-                + tmp_cells->s8[cell]
-                - (tmp_cells->s3[cell]
-                   + tmp_cells->s6[cell]
-                   + tmp_cells->s7[cell]))
+  float u_x = (tmp_cells[cell].speeds[1]
+                + tmp_cells[cell].speeds[5]
+                + tmp_cells[cell].speeds[8]
+                - (tmp_cells[cell].speeds[3]
+                   + tmp_cells[cell].speeds[6]
+                   + tmp_cells[cell].speeds[7]))
                 / local_density;
   /* compute y velocity component */
-  float u_y = (tmp_cells->s2[cell]
-                + tmp_cells->s5[cell]
-                + tmp_cells->s6[cell]
-                - (tmp_cells->s4[cell]
-                   + tmp_cells->s7[cell]
-                   + tmp_cells->s8[cell]))
+  float u_y = (tmp_cells[cell].speeds[2]
+                + tmp_cells[cell].speeds[5]
+                + tmp_cells[cell].speeds[6]
+                - (tmp_cells[cell].speeds[4]
+                   + tmp_cells[cell].speeds[7]
+                   + tmp_cells[cell].speeds[8]))
                 / local_density;
 
   /* velocity squared */
@@ -167,42 +154,12 @@ kernel void comp_func(global SOA_speed* cells,
                                    + (u[8] * u[8]) / (2.0 * c_sq * c_sq)
                                    - u_sq / (2.0 * c_sq));
 
-  tmp_cells->s0[cell] = (nobst) * (tmp_cells->s0[cell]
+  for(int kk = 0; kk < NSPEEDS; kk++){
+    tmp_cells[cell].speeds[kk] = (nobst) * (tmp_cells[cell].speeds[kk]
                                             + omega
-                                            * (d_equ[0] - tmp_cells->s0[cell]))
-                               + (obst * diff[0]);
-  tmp_cells->s1[cell] = (nobst) * (tmp_cells->s1[cell]
-                                            + omega
-                                            * (d_equ[1] - tmp_cells->s1[cell]))
-                               + (obst * diff[1]);
-  tmp_cells->s2[cell] = (nobst) * (tmp_cells->s2[cell]
-                                            + omega
-                                            * (d_equ[2] - tmp_cells->s2[cell]))
-                               + (obst * diff[2]);
-  tmp_cells->s3[cell] = (nobst) * (tmp_cells->s3[cell]
-                                            + omega
-                                            * (d_equ[3] - tmp_cells->s3[cell]))
-                               + (obst * diff[3]);
-  tmp_cells->s4[cell] = (nobst) * (tmp_cells->s4[cell]
-                                            + omega
-                                            * (d_equ[4] - tmp_cells->s4[cell]))
-                               + (obst * diff[4]);
-  tmp_cells->s5[cell] = (nobst) * (tmp_cells->s5[cell]
-                                            + omega
-                                            * (d_equ[5] - tmp_cells->s5[cell]))
-                               + (obst * diff[5]);
-  tmp_cells->s6[cell] = (nobst) * (tmp_cells->s6[cell]
-                                            + omega
-                                            * (d_equ[6] - tmp_cells->s6[cell]))
-                               + (obst * diff[6]);
-  tmp_cells->s7[cell] = (nobst) * (tmp_cells->s7[cell]
-                                            + omega
-                                            * (d_equ[7] - tmp_cells->s7[cell]))
-                               + (obst * diff[7]);
-  tmp_cells->s8[cell] = (nobst) * (tmp_cells->s8[cell]
-                                            + omega
-                                            * (d_equ[8] - tmp_cells->s8[cell]))
-                               + (obst * diff[8]);
+                                            * (d_equ[kk] - tmp_cells[cell].speeds[kk]))
+                               + (obst * diff[kk]);
+  }
 
   tot_us[cell] = (nobst) * (sqrt((u_x * u_x) + (u_y * u_y)));
 }
