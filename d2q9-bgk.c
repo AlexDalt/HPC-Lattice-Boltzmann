@@ -114,6 +114,8 @@ int main(int argc, char* argv[])
   double usrtim;                /* floating point number to record elapsed user CPU time */
   double systim;                /* floating point number to record elapsed system CPU time */
   int tot_cells = 0;
+  cl_ulong comp_units;                 // the max number of compute units on a device
+
 
 
   /* parse the command line */
@@ -136,6 +138,14 @@ int main(int argc, char* argv[])
       }
     }
   }
+
+  err = clGetDeviceInfo(device_id, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(cl_ulong), &comp_units, NULL);
+    if (err != CL_SUCCESS)
+    {
+        printf("Error: Failed to access device number of compute units !\n");
+        return EXIT_FAILURE;
+    }
+    printf(" with a max local memory of %d \n",comp_units);
 
   /* iterate for maxIters timesteps */
   gettimeofday(&timstr, NULL);
@@ -254,8 +264,6 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
   checkError(err, "setting comp_func arg 5", __LINE__);
   err = clSetKernelArg(ocl.comp_func, 6, sizeof(cl_float), &params.omega);
   checkError(err, "setting comp_func arg 6", __LINE__);
-  err = clSetKernelArg(ocl.comp_func, 7, sizeof(t_speed) * size, NULL);
-  checkError(err, "setting comp_func arg 7", __LINE__);
 
   // Enqueue kernel
   size_t global[2] = {params.nx, params.ny};
