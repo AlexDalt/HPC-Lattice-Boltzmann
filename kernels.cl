@@ -47,28 +47,13 @@ kernel void comp_func(global t_speed* cells,
                       int nx, int ny,
                       float omega)
 {
-  int g_id_jj = get_group_id(0);
-  int g_id_ii = get_group_id(1);
-  int max_b = 32;
-  int max_a = 32;
+  int g_id_jj = get_global_id(0);
+  int g_id_ii = get_global_id(1);
+  int max_b = ny/get_global_size(0);
+  int max_a = nx/get_global_size(1);
   int ii,jj;
 
-  local t_speed local_cells[34*34];
-
-  for(int a = 0; a < 34; a++){
-    for(int b = 0; b < 34; b++){
-      ii = g_id_ii * max_a + a - 1;
-      jj = g_id_jj * max_b + b - 1;
-
-      ii = (ii < 0) ? (ny - 1) : ii;
-      ii = (ii >= ny) ? 0 : ii;
-      jj = (jj < 0) ? (nx - 1) : jj;
-      jj = (jj >= nx) ? 0 : jj;
-      for(int kk = 0; kk < NSPEEDS; kk++){
-        local_cells[a * 34 + b].speeds[kk] = cells[ii * nx + jj].speeds[kk];
-      }
-    }
-  }
+  local t_speed local_cells[3*3];
 
   const float c_sq = 1.0 / 3.0; /* square of speed of sound */
   const float w0 = 4.0 / 9.0;  /* weighting factor */
