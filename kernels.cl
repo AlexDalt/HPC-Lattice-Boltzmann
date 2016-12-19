@@ -49,8 +49,8 @@ kernel void comp_func(global t_speed* cells,
 {
   int g_id_jj = get_global_id(0);
   int g_id_ii = get_global_id(1);
-  int max_b = ny/get_global_size(0);
-  int max_a = nx/get_global_size(1);
+  int max_b = 8;
+  int max_a = 8;
 
   int ii,jj;
 
@@ -82,27 +82,30 @@ kernel void comp_func(global t_speed* cells,
       ii = g_id_ii * max_a + a;
       jj = g_id_jj * max_b + b;
 
+      int private_a = a + 1;
+      int private_b = b + 1;
+
       int cell = ii * nx + jj;
 
-      int y_n = (ii + 1) % ny;
-      int x_e = (jj + 1) % nx;
-      int y_s = (ii == 0) ? (ii + ny - 1) : (ii - 1);
-      int x_w = (jj == 0) ? (jj + nx - 1) : (jj - 1);
+      int y_n = (ii + 1);
+      int x_e = (jj + 1);
+      int y_s = (ii - 1);
+      int x_w = (jj - 1);
 
       int obst  = (obstacles[cell] ? 1 : 0);
       int nobst = (obstacles[cell] ? 0 : 1);
       float diff[NSPEEDS];
       diff[0] = 0.0;
 
-      tmp_cells[cell].speeds[0] = cells[ii  * nx + jj ].speeds[0]; /* central cell, no movement */
-      tmp_cells[cell].speeds[1] = cells[ii  * nx + x_w].speeds[1]; /* east */
-      tmp_cells[cell].speeds[2] = cells[y_s * nx + jj ].speeds[2]; /* north */
-      tmp_cells[cell].speeds[3] = cells[ii  * nx + x_e].speeds[3]; /* west */
-      tmp_cells[cell].speeds[4] = cells[y_n * nx + jj ].speeds[4]; /* south */
-      tmp_cells[cell].speeds[5] = cells[y_s * nx + x_w].speeds[5]; /* north-east */
-      tmp_cells[cell].speeds[6] = cells[y_s * nx + x_e].speeds[6]; /* north-west */
-      tmp_cells[cell].speeds[7] = cells[y_n * nx + x_e].speeds[7]; /* south-west */
-      tmp_cells[cell].speeds[8] = cells[y_n * nx + x_w].speeds[8]; /* south-east */
+      tmp_cells[cell].speeds[0] = private_cells[ii  * nx + jj ].speeds[0]; /* central cell, no movement */
+      tmp_cells[cell].speeds[1] = private_cells[ii  * nx + x_w].speeds[1]; /* east */
+      tmp_cells[cell].speeds[2] = private_cells[y_s * nx + jj ].speeds[2]; /* north */
+      tmp_cells[cell].speeds[3] = private_cells[ii  * nx + x_e].speeds[3]; /* west */
+      tmp_cells[cell].speeds[4] = private_cells[y_n * nx + jj ].speeds[4]; /* south */
+      tmp_cells[cell].speeds[5] = private_cells[y_s * nx + x_w].speeds[5]; /* north-east */
+      tmp_cells[cell].speeds[6] = private_cells[y_s * nx + x_e].speeds[6]; /* north-west */
+      tmp_cells[cell].speeds[7] = private_cells[y_n * nx + x_e].speeds[7]; /* south-west */
+      tmp_cells[cell].speeds[8] = private_cells[y_n * nx + x_w].speeds[8]; /* south-east */
 
       diff[1] = tmp_cells[cell].speeds[3];
       diff[2] = tmp_cells[cell].speeds[4];
