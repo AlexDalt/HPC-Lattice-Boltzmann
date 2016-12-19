@@ -61,9 +61,9 @@ kernel void comp_func(global t_speed* cells,
       ii = g_id_ii * max_a + a - 1;
       jj = g_id_jj * max_b + b - 1;
 
-      ii = (ii < 0) ? nx - 1 : ii;
+      ii = (ii < 0) ? ii + nx - 1 : ii;
       ii = (ii == nx) ? 0 : ii;
-      jj = (jj < 0) ? ny - 1 : jj;
+      jj = (jj < 0) ? jj + ny - 1 : jj;
       jj = (jj == ny) ? 0 : jj;
 
       for(int kk = 0; kk < NSPEEDS; kk++){
