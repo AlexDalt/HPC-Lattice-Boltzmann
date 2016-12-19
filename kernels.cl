@@ -59,7 +59,8 @@ kernel void comp_func(global t_speed* cells,
   const float w1 = 1.0 / 9.0;  /* weighting factor */
   const float w2 = 1.0 / 36.0; /* weighting factor */
 
-  t_speed* local[(max_a + 2) * (max_b + 2)];
+  int size = (max_a + 2) * (max_b + 2);
+  t_speed* local[size];
 
   for(int a = -1; a < max_a + 1; a++){
     for(int b = -1; b < max_b + 1; b++){
