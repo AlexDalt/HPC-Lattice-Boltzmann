@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
   }
 
 
-    err = clGetDeviceInfo(device_id, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(cl_uint), &comp_units, NULL);
+    err = clGetDeviceInfo(ocl.device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(cl_uint), &comp_units, NULL);
     if (err != CL_SUCCESS)
     {
         printf("Error: Failed to access device number of compute units !\n");
