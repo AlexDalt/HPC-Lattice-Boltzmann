@@ -84,12 +84,12 @@ kernel void comp_func(global t_speed* cells,
       int local_a = a+1;
       int local_b = b+1;
 
-      int cell = ii * nx + jj;
+      int cell = ii * ny + jj;
 
-      int local_y_n = (local_a + 1);
-      int local_x_e = (local_b + 1);
-      int local_y_s = (local_a - 1);
-      int local_x_w = (local_b - 1);
+      int local_y_n = (local_b + 1);
+      int local_x_e = (local_a + 1);
+      int local_y_s = (local_b - 1);
+      int local_x_w = (local_a - 1);
 
       int obst  = (obstacles[cell] ? 1 : 0);
       int nobst = (obstacles[cell] ? 0 : 1);
