@@ -66,7 +66,7 @@ kernel void comp_func(global t_speed* cells,
       int ref_b = b + 1;
 
       int i = max_a * g_id_ii + a;
-      int j = max_b * g_id_jj _ b;
+      int j = max_b * g_id_jj + b;
       for(int kk = 0; kk < NSPEEDS; kk++){
         local_cells[ref_a * (max_b+2) + ref_b].speeds[kk] = cells[i * nx + j].speeds[kk];
       }
