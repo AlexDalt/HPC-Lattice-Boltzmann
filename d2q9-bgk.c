@@ -235,9 +235,6 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
   float tot_us[params.nx * params.ny]; 
   cl_int err;
 
-  int size = (params.nx/xrank + 2) * (params.ny/yrank + 2);
-
-
   // Set kernel arguments
   err = clSetKernelArg(ocl.comp_func, 0, sizeof(cl_mem), cells);
   checkError(err, "setting comp_func arg 0", __LINE__);
