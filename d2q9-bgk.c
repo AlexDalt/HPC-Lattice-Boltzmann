@@ -138,15 +138,6 @@ int main(int argc, char* argv[])
     }
   }
 
-
-    err = clGetDeviceInfo(ocl.device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(cl_uint), &comp_units, NULL);
-    if (err != CL_SUCCESS)
-    {
-        printf("Error: Failed to access device number of compute units !\n");
-        return EXIT_FAILURE;
-    }
-    printf(" with a max work group size of %d \n",comp_units);
-
   /* iterate for maxIters timesteps */
   gettimeofday(&timstr, NULL);
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
@@ -258,6 +249,15 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
   checkError(err, "setting comp_func arg 5", __LINE__);
   err = clSetKernelArg(ocl.comp_func, 6, sizeof(cl_float), &params.omega);
   checkError(err, "setting comp_func arg 6", __LINE__);
+
+  err = clGetDeviceInfo(ocl.device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(cl_uint), &comp_units, NULL);
+    if (err != CL_SUCCESS)
+    {
+        printf("Error: Failed to access device number of compute units !\n");
+        return EXIT_FAILURE;
+    }
+    printf(" with a max work group size of %d \n",comp_units);
+
 
   // Enqueue kernel
   size_t global[2] = {params.nx, params.ny};
