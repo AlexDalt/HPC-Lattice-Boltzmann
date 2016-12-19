@@ -236,7 +236,7 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
   int yrank = 16;
   int xrank = 16;
 
-  int size = (nx/xrank + 2) * (ny/yrank + 2);
+  int size = (params.nx/xrank + 2) * (params.ny/yrank + 2);
 
 
   // Set kernel arguments
