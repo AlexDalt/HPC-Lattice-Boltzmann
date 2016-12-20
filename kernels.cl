@@ -93,9 +93,9 @@ kernel void comp_func(global t_speed* cells,
       // top row
       cells_wrk[(blksz+1) * (blksz+2) + i] = cells[y_above * nx + ((x_west + i)%nx)];
       // left row
-      cells_wrk[i * (blksz+2)] = cells[((y_below+i)%ny) * nx + x_west]
+      cells_wrk[i * (blksz+2)] = cells[((y_below+i)%ny) * nx + x_west];
       // right row
-      cells_wrk[i * (blksz+2) + (blksz+1)] = cells[((y_below+i)%ny) * nx + x_east]
+      cells_wrk[i * (blksz+2) + (blksz+1)] = cells[((y_below+i)%ny) * nx + x_east];
     }
   }
 
