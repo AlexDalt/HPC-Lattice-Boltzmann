@@ -77,12 +77,23 @@ kernel void comp_func(global t_speed* cells,
 
   int y_above = ((Yblk+1) * blksz) % ny;
   int x_east = ((Xblk+1) * blksz) % nx;
-  int y_below = (Yblk == 0) ? ny - 1 : Yblk * blksz - 1;
-  int x_west = (Xblk == 0) ? nx - 1 : Xblk * blksz - 1;
+  if(Yblk == 0){
+    int y_below = ny - 1;
+  } else {
+    int y_below = Yblk * blksz - 1;
+  }
+  if(Xblk == 0){
+    int x_west = nx - 1;
+  } else {
+    int x_west = Xblk * blksz - 1;
+  }
+  //int y_below = (Yblk == 0) ? ny - 1 : Yblk * blksz - 1;
+  //int x_west = (Xblk == 0) ? nx - 1 : Xblk * blksz - 1;
 
   #pragma unroll
   for(int k = 0; k < NSPEEDS; k++){
     cells_wrk[ywrk * (blksz+2) + xwrk].speeds[k]      = cells[y * nx + x].speeds[k];
+    
     cells_wrk[xwrk].speeds[k]                         = cells[y_below * nx + x].speeds[k];
     cells_wrk[(blksz+1) * (blksz+2) + xwrk].speeds[k] = cells[y_above * nx + x].speeds[k];
     cells_wrk[ywrk * (blksz+2)].speeds[k]             = cells[y * nx + x_west].speeds[k];
