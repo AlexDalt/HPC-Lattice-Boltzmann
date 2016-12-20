@@ -81,19 +81,51 @@ kernel void comp_func(global t_speed* cells,
   int y_below = (Yblk == 0) ? ny - 1 : Yblk * blksz - 1;
   int x_west = (Xblk == 0) ? nx - 1 : Xblk * blksz - 1;
 
+
+  if (x == 5 && y == 12) {
+    printf("x = %d, y = %d\n Xblk = %d, Yblk = %d\n xloc = %d, yloc = %d\n xwrk = %d, ywrk = %d\n y_a = %d, y_b = %d, x_e = %d, x_w = %d\n",x,y,Xblk,Yblk,xloc,yloc,xwrk,ywrk,y_above,y_below,x_east,x_west);
+  }
+
   #pragma unroll
   for(int k = 0; k < NSPEEDS; k++){
     cells_wrk[ywrk * (blksz+2) + xwrk].speeds[k]      = cells[y * nx + x].speeds[k];
+    if (x == 5 && y == 12) {
+      printf("cells_wrk[ywrk * (blksz+2) + xwrk].speeds[%d] = %f\n cells[y * nx + x].speeds[%d] = %f\n\n",k,cells_wrk[ywrk * (blksz+2) + xwrk].speeds[k],k,cells[y * nx + x].speeds[k]);
+    }
     
     cells_wrk[xwrk].speeds[k]                         = cells[y_below * nx + x].speeds[k];
+    if (x == 5 && y == 12) {
+      printf("cells_wrk[xwrk].speeds[%d] = %f\n cells[y_below * nx + x].speeds[%d] = %f\n\n",k,cells_wrk[xwrk].speeds[k],k,cells[y_below * nx + x].speeds[k]);
+    }
     cells_wrk[(blksz+1) * (blksz+2) + xwrk].speeds[k] = cells[y_above * nx + x].speeds[k];
+    if (x == 5 && y == 12) {
+      printf("cells_wrk[(blksz+1) * (blksz+2) + xwrk].speeds[%d] = %f\n cells[y_above * nx + x].speeds[%d] = %f\n\n",k,cells_wrk[(blksz+1) * (blksz+2) + xwrk].speeds[k],k,cells[y_above * nx + x].speeds[k]);
+    }
     cells_wrk[ywrk * (blksz+2)].speeds[k]             = cells[y * nx + x_west].speeds[k];
+    if (x == 5 && y == 12) {
+      printf("cells_wrk[ywrk * (blksz+2)].speeds[%d]  = %f\n cells[y * nx + x_west].speeds[&d] = %f\n\n",k,cells_wrk[ywrk * (blksz+2)].speeds[k],k,cells[y * nx + x_west].speeds[k]);
+    }
     cells_wrk[ywrk * (blksz+2) + (blksz+1)].speeds[k] = cells[y * nx + x_east].speeds[k];
+    if (x == 5 && y == 12) {
+      printf("cells_wrk[ywrk * (blksz+2) + (blksz+1)].speeds[%d] = %f\n cells[y * nx + x_east].speeds[%d] = %f\n\n",k,cells_wrk[ywrk * (blksz+2) + (blksz+1)].speeds[k],k,cells[y * nx + x_east].speeds[k]);
+    }
 
     cells_wrk[0].speeds[k]                                  = cells[y_below * nx + x_west].speeds[k];
+    if (x == 5 && y == 12) {
+      printf("cells_wrk[0].speeds[%d] = %f\n cells[y_below * nx + x].speeds[%d] = %f\n\n",k,cells_wrk[0].speeds[k],k,cells[y_below * nx + x_west].speeds[k]);
+    }
     cells_wrk[blksz+1].speeds[k]                            = cells[y_below * nx + x_east].speeds[k];
+    if (x == 5 && y == 12) {
+      printf("cells_wrk[blksz+1].speeds[%d]  = %f\n cells[y_below * nx + x_east].speeds[%d] = %f\n\n",k,cells_wrk[blksz+1].speeds[k],k,cells[y_below * nx + x_east].speeds[k]);
+    }
     cells_wrk[(blksz+1) * (blksz+2)].speeds[k]              = cells[y_above * nx + x_west].speeds[k];
+    if (x == 5 && y == 12) {
+      printf("cells_wrk[(blksz+1) * (blksz+2)].speeds[%d]  = %f\n ells[y_above * nx + x_west].speeds[%d] = %f\n\n",k,cells_wrk[(blksz+1) * (blksz+2)].speeds[k],k,ells[y_above * nx + x_west].speeds[k]);
+    }
     cells_wrk[(blksz+1) * (blksz+2) + (blksz+1)].speeds[k]  = cells[y_above * nx + x_east].speeds[k];
+    if (x == 5 && y == 12) {
+      printf("cells_wrk[(blksz+1) * (blksz+2) + (blksz+1)].speeds[k] = %f\n cells[y_above * nx + x_east].speeds[k] = %f\n\n",k,cells_wrk[(blksz+1) * (blksz+2) + (blksz+1)].speeds[k],k,cells[y_above * nx + x_east].speeds[k]);
+    }
   }
 
   barrier(CLK_LOCAL_MEM_FENCE);
@@ -200,7 +232,7 @@ kernel void comp_func(global t_speed* cells,
   tot_us[y * nx + x] = (nobst) * (sqrt((u_x * u_x) + (u_y * u_y)));
   barrier(CLK_LOCAL_MEM_FENCE);
 
-  if (x == 126 && y == 126) {
+  if (x == 5 && y == 12) {
     printf("x = %d, y = %d\n Xblk = %d, Yblk = %d\n xloc = %d, yloc = %d\n xwrk = %d, ywrk = %d\n y_a = %d, y_b = %d, x_e = %d, x_w = %d\n y_n = %d, y_s = %d, x_e = %d, x_w = %d\n",x,y,Xblk,Yblk,xloc,yloc,xwrk,ywrk,y_above,y_below,x_east,x_west,y_n, y_s, x_e, x_w);
   }
 
