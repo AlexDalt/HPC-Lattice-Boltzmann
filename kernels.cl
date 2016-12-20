@@ -80,9 +80,9 @@ kernel void comp_func(global t_speed* cells,
   // which is shared with the entire work-group
 
   int y_above = ((Yblk+1) * blksz) % ny;
-  int x_east = ((Xblk+1) * blksz) % nx;
+  int x_east  = ((Xblk+1) * blksz) % nx;
   int y_below = (Yblk == 0) ? ny - 1 : Yblk * blksz - 1;
-  int x_west = (Xblk == 0) ? nx - 1 : Xblk * blksz - 1;
+  int x_west  = (Xblk == 0) ? nx - 1 : Xblk * blksz - 1;
   
   // load in working cell
   #pragma unroll
@@ -93,7 +93,7 @@ kernel void comp_func(global t_speed* cells,
   int y_corner = (yloc < YMAX/2) ? 0 : blksz + 2;
   int x_corner = (xloc < XMAX/2) ? 0 : blksz + 2;
   int y_global = (yloc < YMAX/2) ? y_below : y_above;
-  int x_global = (xloc < XMAX/2) ? x_east : x_west;
+  int x_global = (xloc < XMAX/2) ? x_west : x_east;
 
   if(yloc == xloc || xloc == (blksz - yloc)){
     //load x is corner
