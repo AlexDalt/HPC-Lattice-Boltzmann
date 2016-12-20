@@ -98,15 +98,18 @@ kernel void comp_func(global t_speed* cells,
   if(yloc == xloc || xloc == (blksz - yloc - 1)){
     //printf("x = %d, y = %d\n xloc = %d, yloc = %d\n y_above = %d, y_below = %d\n x_east = %d, x_west = %d\n x_corner = %d, y_corner = %d\n x_global = %d, y_global = %d\n",x,y,xloc,yloc,y_above,y_below,x_east,x_west,x_corner,y_corner,x_global,y_global);
     //load x is corner
+    #pragma unroll
     for(int k = 0; k < NSPEEDS; k++){
       cells_wrk[ywrk * (blksz + 2) + x_corner].speeds[k] = cells[y * nx + x_global].speeds[k];
     }
 
+    #pragma unroll
     //load y is corner
     for(int k = 0; k < NSPEEDS; k++){
       cells_wrk[y_corner * (blksz + 2) + xwrk].speeds[k] = cells[y_global * nx + x].speeds[k];
     }
 
+    #pragma unroll
     //load corner
     for(int k = 0; k < NSPEEDS; k++){
       cells_wrk[y_corner * (blksz + 2) + x_corner].speeds[k] = cells[y_global * nx + x_global].speeds[k];
