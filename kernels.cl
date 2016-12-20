@@ -81,17 +81,22 @@ kernel void comp_func(global t_speed* cells,
   // Each work-item loads a single element of cells
   // which is shared with the entire work-group
 
-  // "master" thread writes in the edge cases
   int y_above = ((Yblk+1) * blksz) % ny;
   int x_east = ((Xblk+1) * blksz) % nx;
   int y_below = (Yblk == 0) ? ny - 1 : Yblk * blksz - 1;
   int x_west = (Xblk == 0) ? nx - 1 : Xblk * blksz - 1;
 
   cells_wrk[ywrk * (blksz+2) + xwrk] = cells[y * nx + x];
+
   cells_wrk[xwrk] = cells[y_above * nx + x];
   cells_wrk[(blksz+1) * (blksz+2) + xwrk] = cells[y_below * nx + x];
   cells_wrk[ywrk * (blksz+2)] = cells[y * nx + x_west];
   cells_wrk[ywrk * (blksz+2) + (blksz+1)] = cells[y * nx + x_east];
+
+  cells_wrk[0] = cells[y_below * nx + x_west];
+  cells_wrk[blksz+1] = cells[y_below * nx + x_east];
+  cells_wrk[(blksz+1) * (blksz+2)] = cells[y_above * nx + x_west];
+  cells_wrk[(blksz+1) * (blksz+2) + (blksz+1)] = cells[y_above * nx + x_east];
 
   barrier(CLK_LOCAL_MEM_FENCE);
 
