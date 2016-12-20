@@ -800,8 +800,6 @@ int finalise(const t_param* params, float*** cells_ptr, float*** tmp_cells_ptr,
   free(*av_vels_ptr);
   *av_vels_ptr = NULL;
 
-  clReleaseMemObject(ocl.cells);
-  clReleaseMemObject(ocl.tmp_cells);
   clReleaseMemObject(ocl.obstacles);
   clReleaseMemObject(ocl.tot_us);
   clReleaseKernel(ocl.accelerate_flow);
