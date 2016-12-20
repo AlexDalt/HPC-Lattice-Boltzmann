@@ -68,9 +68,10 @@ kernel void comp_func(global t_speed* cells,
   // cell (x,y) is element cell (xloc, yloc) of block (Xblk, Yblk)
   int xloc = get_local_id(0);
   int yloc = get_local_id(1);
-  int Num_BLK = nx / blksz;
+  int X_Num_BLK = nx / blksz;
+  int Y_Num_BLK = ny / blksz;
 
-  // upper-left-corner and inc for A and B
+  // lower-left-corner
   int base = Yblk * nx * blksz + Xblk * blksz;
 
   // tmp_cell(Xblk, Yblk) = comp(cell(Xblk, Yblk))
@@ -181,6 +182,8 @@ kernel void comp_func(global t_speed* cells,
     tmp.speeds[kk] = (nobst) * (tmp.speeds[kk] + omega + (d_equ[kk] - tmp.speeds[kk]))
                    + (obst) * diff.speeds[kk];
   }
+  
+  tmp_cells[base + yloc * nx + xloc] = tmp;
   tot_us[base + yloc * nx + xloc] = (nobst) * (sqrt((u_x * u_x) + (u_y * u_y)));
   barrier(CLK_LOCAL_MEM_FENCE);
 }
