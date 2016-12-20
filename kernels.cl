@@ -61,8 +61,8 @@ kernel void comp_func(global float* tot_us,
   const float w2 = 1.0 / 36.0; /* weighting factor */
   float tmp[NSPEEDS];
   float diff[NSPEEDS];
-  int x = get_global_id(0);
-  int y = get_global_id(1);
+  int g_id_jj = get_global_id(0);
+  int g_id_ii = get_global_id(1);
   int max_jj = get_global_size(0);
   int max_ii = get_global_size(1);
   int max_b = ny/max_jj;
@@ -174,24 +174,24 @@ kernel void comp_func(global float* tot_us,
                                        + (u[8] * u[8]) / (2.0 * c_sq * c_sq)
                                        - u_sq / (2.0 * c_sq));
 
-      tmp_cells_s0[y * nx + x] = (nobst) * (tmp[0] + omega * (d_equ[0] - tmp[0]))
-                               + (obst) * diff[0];
-      tmp_cells_s1[y * nx + x] = (nobst) * (tmp[1] + omega * (d_equ[1] - tmp[1]))
-                               + (obst) * diff[1];
-      tmp_cells_s2[y * nx + x] = (nobst) * (tmp[2] + omega * (d_equ[2] - tmp[2]))
-                               + (obst) * diff[2];
-      tmp_cells_s3[y * nx + x] = (nobst) * (tmp[3] + omega * (d_equ[3] - tmp[3]))
-                               + (obst) * diff[3];
-      tmp_cells_s4[y * nx + x] = (nobst) * (tmp[4] + omega * (d_equ[4] - tmp[4]))
-                               + (obst) * diff[4];
-      tmp_cells_s5[y * nx + x] = (nobst) * (tmp[5] + omega * (d_equ[5] - tmp[5]))
-                               + (obst) * diff[5];
-      tmp_cells_s6[y * nx + x] = (nobst) * (tmp[6] + omega * (d_equ[6] - tmp[6]))
-                               + (obst) * diff[6];
-      tmp_cells_s7[y * nx + x] = (nobst) * (tmp[7] + omega * (d_equ[7] - tmp[7]))
-                               + (obst) * diff[7];
-      tmp_cells_s8[y * nx + x] = (nobst) * (tmp[8] + omega * (d_equ[8] - tmp[8]))
-                               + (obst) * diff[8];
+      tmp_cells_s0[cell] = (nobst) * (tmp[0] + omega * (d_equ[0] - tmp[0]))
+                         + (obst) * diff[0];
+      tmp_cells_s1[cell] = (nobst) * (tmp[1] + omega * (d_equ[1] - tmp[1]))
+                         + (obst) * diff[1];
+      tmp_cells_s2[cell] = (nobst) * (tmp[2] + omega * (d_equ[2] - tmp[2]))
+                         + (obst) * diff[2];
+      tmp_cells_s3[cell] = (nobst) * (tmp[3] + omega * (d_equ[3] - tmp[3]))
+                         + (obst) * diff[3];
+      tmp_cells_s4[cell] = (nobst) * (tmp[4] + omega * (d_equ[4] - tmp[4]))
+                         + (obst) * diff[4];
+      tmp_cells_s5[cell] = (nobst) * (tmp[5] + omega * (d_equ[5] - tmp[5]))
+                         + (obst) * diff[5];
+      tmp_cells_s6[cell] = (nobst) * (tmp[6] + omega * (d_equ[6] - tmp[6]))
+                         + (obst) * diff[6];
+      tmp_cells_s7[cell] = (nobst) * (tmp[7] + omega * (d_equ[7] - tmp[7]))
+                         + (obst) * diff[7];
+      tmp_cells_s8[cell] = (nobst) * (tmp[8] + omega * (d_equ[8] - tmp[8]))
+                         + (obst) * diff[8];
 
       tot_us[cell] = (nobst) * (sqrt((u_x * u_x) + (u_y * u_y)));
     }
