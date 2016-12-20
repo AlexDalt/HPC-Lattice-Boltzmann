@@ -85,7 +85,7 @@ kernel void comp_func(global t_speed* cells,
                       Xblk = &d, Yblk = &d\n
                       xloc = &d, yloc = &d\n
                       xwrk = &d, ywrk = &d\n
-                      y_a = &d, y_b = &d, x_e = %d, x_w = &d\n",x,y,Xblk,Yblk,xloc,yloc,xwrk,ywrk,y_above,y_below,x_east,x_west);
+                      y_a = &d, y_b = &d, x_e = %d, x_w = &d\n ",x,y,Xblk,Yblk,xloc,yloc,xwrk,ywrk,y_above,y_below,x_east,x_west);
 
   #pragma unroll
   for(int k = 0; k < NSPEEDS; k++){
