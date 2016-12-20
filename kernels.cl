@@ -109,14 +109,14 @@ kernel void comp_func(global float* tot_us,
       diff[0] = 0.0;
 
       tmp[0] = s0[a * blksz + b];
-      tmp[1] = (b == 0) cells_s1[ii  * nx + x_w] : s1[a * blksz + b-1];
-      tmp[2] = (a == 0) cells_s2[y_s * nx + jj ] : s2[(a-1) * blksz + b];
-      tmp[3] = (b == blksz-1) cells_s3[ii  * nx + x_e] : s3[a * blksz + b+1];
-      tmp[4] = (a == blksz-1) cells_s4[y_n * nx + jj ] : s4[(a+1) * blksz + b];
-      tmp[5] = (a == 0 || b == 0) cells_s5[y_s * nx + x_w] : s5[(a-1) * blksz + (b-1)];
-      tmp[6] = (a == 0 || b == blksz-1) cells_s6[y_s * nx + x_e] : s6[(a-1) * blksz + (b+1)];
-      tmp[7] = (a == blksz-1 || b == blksz-1) cells_s7[y_n * nx + x_e] : s5[(a+1) * blksz + (b+1)];
-      tmp[8] = (a == blksz-1 || b == 0) cells_s8[y_n * nx + x_w] : s8[(a+1) * blksz + (b-1)];
+      tmp[1] = (b == 0) ? cells_s1[ii  * nx + x_w] : s1[a * blksz + b-1];
+      tmp[2] = (a == 0) ? cells_s2[y_s * nx + jj ] : s2[(a-1) * blksz + b];
+      tmp[3] = (b == blksz-1) ? cells_s3[ii  * nx + x_e] : s3[a * blksz + b+1];
+      tmp[4] = (a == blksz-1) ? cells_s4[y_n * nx + jj ] : s4[(a+1) * blksz + b];
+      tmp[5] = (a == 0 || b == 0) ? cells_s5[y_s * nx + x_w] : s5[(a-1) * blksz + (b-1)];
+      tmp[6] = (a == 0 || b == blksz-1) ? cells_s6[y_s * nx + x_e] : s6[(a-1) * blksz + (b+1)];
+      tmp[7] = (a == blksz-1 || b == blksz-1) ? cells_s7[y_n * nx + x_e] : s5[(a+1) * blksz + (b+1)];
+      tmp[8] = (a == blksz-1 || b == 0) ? cells_s8[y_n * nx + x_w] : s8[(a+1) * blksz + (b-1)];
 
       diff[1] = tmp[3];
       diff[2] = tmp[4];
