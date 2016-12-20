@@ -60,15 +60,6 @@ kernel void comp_func(global float* tot_us,
   const float w2 = 1.0 / 36.0; /* weighting factor */
   float tmp[NSPEEDS];
   float diff[NSPEEDS];
-  local float s0[blksz*blksz];
-  local float s1[blksz*blksz];
-  local float s2[blksz*blksz];
-  local float s3[blksz*blksz];
-  local float s4[blksz*blksz];
-  local float s5[blksz*blksz];
-  local float s6[blksz*blksz];
-  local float s7[blksz*blksz];
-  local float s8[blksz*blksz];
 
   int g_id_jj = get_global_id(0);
   int g_id_ii = get_global_id(1);
