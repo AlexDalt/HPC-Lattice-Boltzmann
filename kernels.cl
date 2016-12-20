@@ -101,8 +101,8 @@ kernel void comp_func(global t_speed* cells,
   int y_s = (ywrk - 1);
   int x_w = (xwrk - 1);
 
-  int obst = (obstacles[base + yloc * nx + xloc]) ? 1 : 0;
-  int nobst = (obstacles[base + yloc * nx + xloc]) ? 0 : 1;
+  int obst = (obstacles[y * nx + x]) ? 1 : 0;
+  int nobst = (obstacles[y * nx + x]) ? 0 : 1;
 
   tmp.speeds[0] = cells_wrk[ywrk * (blksz+2) + xwrk].speeds[0]; /* central cell, no movement */
   tmp.speeds[1] = cells_wrk[ywrk * (blksz+2) + x_w].speeds[1]; /* east */
