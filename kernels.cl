@@ -81,8 +81,8 @@ kernel void comp_func(global t_speed* cells,
   // Each work-item loads a single element of cells
   // which is shared with the entire work-group
 
-  int y_above = ((Yblk+1) * blksz) % ny;
-  int x_east = ((Xblk+1) * blksz) % nx;
+  int y_above = ((int) ceil(y/blksz) + 1) % ny;
+  int x_east = ((int) ceil(x/blksz) + 1) % nx;
   int y_below = (Yblk == 0) ? ny - 1 : Yblk * blksz - 1;
   int x_west = (Xblk == 0) ? nx - 1 : Xblk * blksz - 1;
 
