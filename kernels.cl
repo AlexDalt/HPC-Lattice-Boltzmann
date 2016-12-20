@@ -45,8 +45,7 @@ kernel void comp_func(global t_speed* cells,
                       global float* tot_us,
                       global int* obstacles,
                       int nx, int ny,
-                      float omega,
-                      t_speed* local_cells)
+                      float omega)
 {
   int g_id_jj = get_global_id(0);
   int g_id_ii = get_global_id(1);
