@@ -57,17 +57,17 @@ kernel void comp_func(global t_speed* cells,
   local t_speed cells_wrk[18*18];
 
   // work on cell (x,y) (x == jj, y == ii)
-  int x = get_global_id(1);
-  int y = get_global_id(0);
+  int x = get_global_id(0);
+  int y = get_global_id(1);
 
 
   // cell (x,y) is in block (Xblk,Yblk)
-  int Xblk = get_group_id(1);
-  int Yblk = get_group_id(0);
+  int Xblk = get_group_id(0);
+  int Yblk = get_group_id(1);
 
   // cell (x,y) is element cell (xloc, yloc) of block (Xblk, Yblk)
-  int xloc = get_local_id(1);
-  int yloc = get_local_id(0);
+  int xloc = get_local_id(0);
+  int yloc = get_local_id(1);
   int xwrk = xloc + 1;
   int ywrk = yloc + 1;
 
