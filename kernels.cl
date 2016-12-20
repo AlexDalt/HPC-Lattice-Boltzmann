@@ -1,8 +1,8 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
 #define NSPEEDS         9
-#define blksz 64
-#define arsize 66*66
+#define blksz 8
+#define arsize 10*10
 
 typedef struct
 {
@@ -85,15 +85,38 @@ kernel void comp_func(global t_speed* cells,
   #pragma unroll
   for(int k = 0; k < NSPEEDS; k++){
     cells_wrk[ywrk * (blksz+2) + xwrk].speeds[k]      = cells[y * nx + x].speeds[k];
-    
+  }
+  #pragma unroll
+  for(int k = 0; k < NSPEEDS; k++){
     cells_wrk[xwrk].speeds[k]                         = cells[y_below * nx + x].speeds[k];
+  }
+  #pragma unroll
+  for(int k = 0; k < NSPEEDS; k++){
     cells_wrk[(blksz+1) * (blksz+2) + xwrk].speeds[k] = cells[y_above * nx + x].speeds[k];
+  }
+  #pragma unroll
+  for(int k = 0; k < NSPEEDS; k++){
     cells_wrk[ywrk * (blksz+2)].speeds[k]             = cells[y * nx + x_west].speeds[k];
+  }
+  #pragma unroll
+  for(int k = 0; k < NSPEEDS; k++){
     cells_wrk[ywrk * (blksz+2) + (blksz+1)].speeds[k] = cells[y * nx + x_east].speeds[k];
+  }
 
+  #pragma unroll
+  for(int k = 0; k < NSPEEDS; k++){
     cells_wrk[0].speeds[k]                                  = cells[y_below * nx + x_west].speeds[k];
+  }
+  #pragma unroll
+  for(int k = 0; k < NSPEEDS; k++){
     cells_wrk[blksz+1].speeds[k]                            = cells[y_below * nx + x_east].speeds[k];
+  }
+  #pragma unroll
+  for(int k = 0; k < NSPEEDS; k++){
     cells_wrk[(blksz+1) * (blksz+2)].speeds[k]              = cells[y_above * nx + x_west].speeds[k];
+  }
+  #pragma unroll
+  for(int k = 0; k < NSPEEDS; k++){
     cells_wrk[(blksz+1) * (blksz+2) + (blksz+1)].speeds[k]  = cells[y_above * nx + x_east].speeds[k];
   }
 
