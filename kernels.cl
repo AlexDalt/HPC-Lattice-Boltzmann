@@ -103,14 +103,14 @@ kernel void comp_func(global t_speed* cells,
       cells_wrk[ywrk * (blksz + 2) + x_corner].speeds[k] = cells[y * nx + x_global].speeds[k];
     }
 
-    #pragma unroll
     //load y is corner
+    #pragma unroll
     for(int k = 0; k < NSPEEDS; k++){
       cells_wrk[y_corner * (blksz + 2) + xwrk].speeds[k] = cells[y_global * nx + x].speeds[k];
     }
 
-    #pragma unroll
     //load corner
+    #pragma unroll
     for(int k = 0; k < NSPEEDS; k++){
       cells_wrk[y_corner * (blksz + 2) + x_corner].speeds[k] = cells[y_global * nx + x_global].speeds[k];
     }
