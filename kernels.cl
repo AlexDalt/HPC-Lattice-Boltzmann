@@ -108,7 +108,7 @@ kernel void comp_func(global t_speed* cells,
     }
 
     //load corner
-    if(yloc == 0 || yloc == (blksz-1) || xloc == 0 || xloc = (blksz-1)){
+    if(yloc == 0 || yloc == (blksz-1) || xloc == 0 || xloc == (blksz-1)){
       for(int k = 0; k < NSPEEDS; k++){
         cells_wrk[y_corner * (blksz + 2) + x_corner].speeds[k] = cells[y_global * nx + x_global].speeds[k];
       }
