@@ -192,7 +192,7 @@ kernel void comp_func(global t_speed* cells,
 
   #pragma unroll
   for(int kk = 0; kk < NSPEEDS; kk++){
-    tmp_cells[y * nx + x].speeds[k] = (nobst) * (tmp.speeds[kk] + omega + (d_equ[kk] - tmp.speeds[kk]))
+    tmp_cells[y * nx + x].speeds[kk] = (nobst) * (tmp.speeds[kk] + omega + (d_equ[kk] - tmp.speeds[kk]))
                    + (obst) * diff.speeds[kk];
   }
   tot_us[y * nx + x] = (nobst) * (sqrt((u_x * u_x) + (u_y * u_y)));
