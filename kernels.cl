@@ -86,8 +86,9 @@ kernel void comp_func(global t_speed* cells,
   int x_east = ((Xblk+1) * blksz) % nx;
   int y_below = (Yblk == 0) ? ny - 1 : Yblk * blksz - 1;
   int x_west = (Xblk == 0) ? nx - 1 : Xblk * blksz - 1;
+
   if(xloc == 0 && yloc == 0){
-    for(int i = 0; i < blksz + 2; i++){
+    for(int i = 0; i < (blksz+2); i++){
       // bottom row
       cells_wrk[i] = cells[y_below * nx + ((x_west + i)%nx)];
       // top row
