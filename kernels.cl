@@ -90,12 +90,12 @@ kernel void comp_func(global t_speed* cells,
     cells_wrk[ywrk * (blksz+2) + xwrk].speeds[k]      = cells[y * nx + x].speeds[k];
   }
 
-  int y_corner = (y < YMAX/2) ? 0 : blksz + 2;
-  int x_corner = (x < XMAX/2) ? 0 : blksz + 2;
-  int y_global = (y < YMAX/2) ? y_below : y_above;
-  int x_global = (x < XMAX/2) ? x_east : x_west;
+  int y_corner = (yloc < YMAX/2) ? 0 : blksz + 2;
+  int x_corner = (xloc < XMAX/2) ? 0 : blksz + 2;
+  int y_global = (yloc < YMAX/2) ? y_below : y_above;
+  int x_global = (xloc < XMAX/2) ? x_east : x_west;
 
-  if(xwrk == ywrk || xwrk == (blksz + 2 - ywrk)){
+  if(yloc == xloc || xloc == (blksz - yloc)){
     //load x is corner
     for(int k = 0; k < NSPEEDS; k++){
       cells_wrk[ywrk * (blksz + 2) + x_corner].speeds[k] = cells[y * nx + x_global].speeds[k];
