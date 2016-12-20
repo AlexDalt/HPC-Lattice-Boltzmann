@@ -99,19 +99,19 @@ kernel void comp_func(global t_speed* cells,
     //load x is corner
     #pramga unroll
     for(int k = 0; k < NSPEEDS; k++){
-      cells_wrk[ywrk * (blksz + 2) + x_corner].speeds[k] = cells[y * nx + x_global];
+      cells_wrk[ywrk * (blksz + 2) + x_corner].speeds[k] = cells[y * nx + x_global].speeds[k];
     }
 
     //load y is corner
     #pramga unroll
     for(int k = 0; k < NSPEEDS; k++){
-      cells_wrk[y_corner * (blksz + 2) + xwrk].speeds[k] = cells[y_global * nx + x];
+      cells_wrk[y_corner * (blksz + 2) + xwrk].speeds[k] = cells[y_global * nx + x].speeds[k];
     }
 
     //load corner
     #pramga unroll
     for(int k = 0; k < NSPEEDS; k++){
-      cells_wrk[y_corner * (blksz + 2) + x_corner].speeds[k] = cells[y_global * nx + x_global];
+      cells_wrk[y_corner * (blksz + 2) + x_corner].speeds[k] = cells[y_global * nx + x_global].speeds[k];
     }
   }
 
