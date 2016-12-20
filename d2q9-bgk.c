@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
     sizeof(cl_int) * params.nx * params.ny, obstacles, 0, NULL, NULL);
   checkError(err, "writing obstacles data", __LINE__);
 
-  for (int tt = 0; tt < 1; tt++) //params.maxIters
+  for (int tt = 0; tt < params.maxIters; tt++) //params.maxIters
   {
     cl_mem time_cells = (tt % 2) ? ocl.tmp_cells : ocl.cells;
     cl_mem time_tmp_cells = (tt % 2) ? ocl.cells : ocl.tmp_cells;
@@ -250,8 +250,6 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
   checkError(err, "setting comp_func arg 5", __LINE__);
   err = clSetKernelArg(ocl.comp_func, 6, sizeof(cl_float), &params.omega);
   checkError(err, "setting comp_func arg 6", __LINE__);
-  err = clSetKernelArg(ocl.comp_func, 7, sizeof(t_speed) * (blksz+2) * (blksz+2), NULL);
-  checkError(err, "setting comp_func arg 7", __LINE__);
 
   // Enqueue kernel
   size_t global[2] = {params.nx, params.ny};

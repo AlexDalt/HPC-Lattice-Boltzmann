@@ -46,8 +46,7 @@ kernel void comp_func(global t_speed* cells,
                       global float* tot_us,
                       global int* obstacles,
                       int nx, int ny,
-                      float omega,
-                      local t_speed* cells_wrk)
+                      float omega)
 {
   const float c_sq = 1.0 / 3.0; /* square of speed of sound */
   const float w0 = 4.0 / 9.0;  /* weighting factor */
@@ -55,6 +54,7 @@ kernel void comp_func(global t_speed* cells,
   const float w2 = 1.0 / 36.0; /* weighting factor */
   t_speed tmp;
   t_speed diff;
+  local t_speed cells_wrk[18*18];
 
   // work on cell (x,y) (x == jj, y == ii)
   int x = get_global_id(0);
