@@ -250,7 +250,7 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
   checkError(err, "setting comp_func arg 5", __LINE__);
   err = clSetKernelArg(ocl.comp_func, 6, sizeof(cl_float), &params.omega);
   checkError(err, "setting comp_func arg 6", __LINE__);
-  err = clSetKernelArg(ocl.comp_func, 7, sizeof(t_speed) * (blksz+2) * (blksz+2), NULL);
+  err = clSetKernelArg(ocl.comp_func, 7, sizeof(t_speed) * blksz * blksz, NULL);
   checkError(err, "setting comp_func arg 7", __LINE__);
 
   // Enqueue kernel
