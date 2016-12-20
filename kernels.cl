@@ -93,7 +93,7 @@ kernel void comp_func(global t_speed* cells,
   int y_corner = (y < YMAX/2) ? 0 : blksz + 2;
   int x_corner = (x < XMAX/2) ? 0 : blksz + 2;
   int y_global = (y < YMAX/2) ? y_below : y_above;
-  itn x_global = (x < XMAX/2) ? x_east : x_west;
+  int x_global = (x < XMAX/2) ? x_east : x_west;
 
   if(xwrk == ywrk || xwrk == (blksz + 2 - ywrk)){
     //load x is corner
