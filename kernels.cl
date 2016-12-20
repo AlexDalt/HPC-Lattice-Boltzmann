@@ -1,7 +1,7 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
 #define NSPEEDS         9
-#define blksz 32
+#define blksz 16
 
 typedef struct
 {
@@ -74,14 +74,13 @@ kernel void comp_func(global t_speed* cells,
   int base = Yblk * nx * blksz + Xblk * blksz;
 
   // tmp_cell(Xblk, Yblk) = comp(cell(Xblk, Yblk))
-  //Load each cell(Xblk, Yblk)
+  // Load each cell(Xblk, Yblk)
   // Each work-item loads a single element of cells
   // which is shared with the entire work-group
 
   cells_wrk[yloc * blksz + xloc] = cells[base + yloc * nx + xloc];
 
   barrier(CLK_LOCAL_MEM_FENCE);
-
 
   // compute
   int y_n = (yloc + 1) % blksz;
@@ -182,6 +181,6 @@ kernel void comp_func(global t_speed* cells,
     tmp.speeds[kk] = (nobst) * (tmp.speeds[kk] + omega + (d_equ[kk] - tmp.speeds[kk]))
                    + (obst) * diff.speeds[kk];
   }
-  barrier(CLK_LOCAL_MEM_FENCE);
   tot_us[base + yloc * nx + xloc] = (nobst) * (sqrt((u_x * u_x) + (u_y * u_y)));
+  barrier(CLK_LOCAL_MEM_FENCE);
 }
