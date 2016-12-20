@@ -96,6 +96,7 @@ kernel void comp_func(global t_speed* cells,
   int x_global = (xloc < XMAX/2) ? x_west : x_east;
 
   if(yloc == xloc || xloc == (blksz - yloc)){
+    printf("x = %d, y = %d\n xloc = %d, yloc = %d\n y_above = %d, y_below = %d\n x_east = %d, x_west = %d\n x_corner = %d, y_corner = %d\n x_global = %d, y_global = %d\n",x,y,xloc,yloc,y_above,y_below,x_east,x_west,x_corner,y_corner,x_global,y_global);
     //load x is corner
     for(int k = 0; k < NSPEEDS; k++){
       cells_wrk[ywrk * (blksz + 2) + x_corner].speeds[k] = cells[y * nx + x_global].speeds[k];
