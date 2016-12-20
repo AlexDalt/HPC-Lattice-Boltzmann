@@ -115,7 +115,7 @@ kernel void comp_func(global float* tot_us,
       tmp[4] = (a == blksz-1) ? cells_s4[y_n * nx + jj ] : s4[(a+1) * blksz + b];
       tmp[5] = (a == 0 || b == 0) ? cells_s5[y_s * nx + x_w] : s5[(a-1) * blksz + (b-1)];
       tmp[6] = (a == 0 || b == blksz-1) ? cells_s6[y_s * nx + x_e] : s6[(a-1) * blksz + (b+1)];
-      tmp[7] = (a == blksz-1 || b == blksz-1) ? cells_s7[y_n * nx + x_e] : s5[(a+1) * blksz + (b+1)];
+      tmp[7] = (a == blksz-1 || b == blksz-1) ? cells_s7[y_n * nx + x_e] : s7[(a+1) * blksz + (b+1)];
       tmp[8] = (a == blksz-1 || b == 0) ? cells_s8[y_n * nx + x_w] : s8[(a+1) * blksz + (b-1)];
 
       diff[1] = tmp[3];
