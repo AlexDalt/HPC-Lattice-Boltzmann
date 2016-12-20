@@ -117,7 +117,7 @@ kernel void comp_func(global t_speed* cells,
   tmp.speeds[7] = cells_wrk[y_n * (blksz+2) + x_e].speeds[7]; /* south-west */
   tmp.speeds[8] = cells_wrk[y_n * (blksz+2) + x_w].speeds[8]; /* south-east */
 
-  /*if (x == 5 && y == 126) {
+  if (x == 5 && y == 126) {
     printf("tmp.speed[%d] = %f\n", 0, tmp.speeds[0]);
     printf("tmp.speed[%d] = %f\n", 1, tmp.speeds[1]);
     printf("tmp.speed[%d] = %f\n", 2, tmp.speeds[2]);
@@ -127,7 +127,7 @@ kernel void comp_func(global t_speed* cells,
     printf("tmp.speed[%d] = %f\n", 6, tmp.speeds[6]);
     printf("tmp.speed[%d] = %f\n", 7, tmp.speeds[7]);
     printf("tmp.speed[%d] = %f\n", 8, tmp.speeds[8]);
-  }*/
+  }
 
   diff.speeds[0] = tmp.speeds[0];
   diff.speeds[1] = tmp.speeds[3];
@@ -212,8 +212,8 @@ kernel void comp_func(global t_speed* cells,
   tot_us[y * nx + x] = (nobst) * (sqrt((u_x * u_x) + (u_y * u_y)));
   barrier(CLK_LOCAL_MEM_FENCE);
 
-  /*if (x == 5 && y == 126) {
+  if (x == 5 && y == 126) {
     printf("x = %d, y = %d\n Xblk = %d, Yblk = %d\n xloc = %d, yloc = %d\n xwrk = %d, ywrk = %d\n y_a = %d, y_b = %d, x_e = %d, x_w = %d\n y_n = %d, y_s = %d, x_e = %d, x_w = %d\n",x,y,Xblk,Yblk,xloc,yloc,xwrk,ywrk,y_above,y_below,x_east,x_west,y_n, y_s, x_e, x_w);
-  }*/
+  }
 
 }
