@@ -61,8 +61,8 @@ kernel void comp_func(global float* tot_us,
   const float w2 = 1.0 / 36.0; /* weighting factor */
   float tmp[NSPEEDS];
   float diff[NSPEEDS];
-  int g_id_jj = get_global_id(0);
-  int g_id_ii = get_global_id(1);
+  int x = get_global_id(0);
+  int y = get_global_id(1);
   int max_jj = get_global_size(0);
   int max_ii = get_global_size(1);
   int max_b = ny/max_jj;
