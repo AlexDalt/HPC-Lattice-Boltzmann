@@ -109,14 +109,14 @@ kernel void comp_func(global t_speed* cells,
   
   if (x == 37 && y == 126) {
     printf("cells.speed[%d] = %f\n", 0, cells[y * nx + x].speeds[0]);
-    printf("cells.speed[%d] = %f\n", 1, cells[y * nx + x].speeds[1]);
-    printf("cells.speed[%d] = %f\n", 2, cells[y * nx + x].speeds[2]);
-    printf("cells.speed[%d] = %f\n", 3, cells[y * nx + x].speeds[3]);
-    printf("cells.speed[%d] = %f\n", 4, cells[y * nx + x].speeds[4]);
-    printf("cells.speed[%d] = %f\n", 5, cells[y * nx + x].speeds[5]);
-    printf("cells.speed[%d] = %f\n", 6, cells[y * nx + x].speeds[6]);
-    printf("cells.speed[%d] = %f\n", 7, cells[y * nx + x].speeds[7]);
-    printf("cells.speed[%d] = %f\n", 8, cells[y * nx + x].speeds[8]);
+    printf("cells.speed[%d] = %f\n", 1, cells[y * nx + x-1].speeds[1]);
+    printf("cells.speed[%d] = %f\n", 2, cells[(y-1) * nx + x].speeds[2]);
+    printf("cells.speed[%d] = %f\n", 3, cells[y * nx + x+1].speeds[3]);
+    printf("cells.speed[%d] = %f\n", 4, cells[(y+1) * nx + x].speeds[4]);
+    printf("cells.speed[%d] = %f\n", 5, cells[(y-1) * nx + x-1].speeds[5]);
+    printf("cells.speed[%d] = %f\n", 6, cells[(y-1) * nx + x+1].speeds[6]);
+    printf("cells.speed[%d] = %f\n", 7, cells[(y+1) * nx + x+1].speeds[7]);
+    printf("cells.speed[%d] = %f\n", 8, cells[(y+1) * nx + x-1].speeds[8]);
   }
 
   if (x == 37 && y == 126) {
