@@ -52,13 +52,6 @@ typedef struct
 typedef struct
 {
   float speeds[NSPEEDS];
-  float pad1;
-  float pad2;
-  float pad3;
-  float pad4;
-  float pad5;
-  float pad6;
-  float pad7;
 } t_speed;
 
 /*
