@@ -76,7 +76,7 @@ kernel void comp_func(global t_speed* cells,
   // lower-left-corner
   int base = Yblk * nx * blksz + Xblk * blksz;
 
-  // tmp_cell(Xblk, Yblk) = comp(cell(Xblk, Yblk))
+  // tmp_cell(x, y) = comp(cell(Xblk, Yblk))
   // Load each cell(Xblk, Yblk)
   // Each work-item loads a single element of cells
   // which is shared with the entire work-group
@@ -100,7 +100,7 @@ kernel void comp_func(global t_speed* cells,
     }
   }
 
-  cells_wrk[ywrk * (blksz+2) + xwrk] = cells[base + yloc * nx + xloc];
+  cells_wrk[ywrk * (blksz+2) + xwrk] = cells[y * nx + x];
 
   barrier(CLK_LOCAL_MEM_FENCE);
 
@@ -204,7 +204,7 @@ kernel void comp_func(global t_speed* cells,
                    + (obst) * diff.speeds[kk];
   }
 
-  tmp_cells[base + yloc * nx + xloc] = tmp;
-  tot_us[base + yloc * nx + xloc] = (nobst) * (sqrt((u_x * u_x) + (u_y * u_y)));
+  tmp_cells[y * nx + x] = tmp;
+  tot_us[y * nx + x] = (nobst) * (sqrt((u_x * u_x) + (u_y * u_y)));
   barrier(CLK_LOCAL_MEM_FENCE);
 }
