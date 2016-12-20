@@ -70,9 +70,6 @@ kernel void comp_func(global t_speed* cells,
   int xwrk = xloc + 1;
   int ywrk = yloc + 1;
 
-  // lower-left-corner
-  int base = Yblk * nx * blksz + Xblk * blksz;
-
   // tmp_cell(x, y) = comp(cell(Xblk, Yblk))
   // Load each cell(Xblk, Yblk)
   // Each work-item loads a single element of cells
@@ -85,16 +82,16 @@ kernel void comp_func(global t_speed* cells,
 
   #pragma unroll
   for(int k = 0; k < NSPEEDS; k++){
-    cells_wrk[ywrk * (blksz+2) + xwrk].speeds[k] = cells[y * nx + x].speeds[k];
-    cells_wrk[xwrk].speeds[k] = cells[y_below * nx + x].speeds[k];
+    cells_wrk[ywrk * (blksz+2) + xwrk].speeds[k]      = cells[y * nx + x].speeds[k];
+    cells_wrk[xwrk].speeds[k]                         = cells[y_below * nx + x].speeds[k];
     cells_wrk[(blksz+1) * (blksz+2) + xwrk].speeds[k] = cells[y_above * nx + x].speeds[k];
-    cells_wrk[ywrk * (blksz+2)].speeds[k] = cells[y * nx + x_west].speeds[k];
+    cells_wrk[ywrk * (blksz+2)].speeds[k]             = cells[y * nx + x_west].speeds[k];
     cells_wrk[ywrk * (blksz+2) + (blksz+1)].speeds[k] = cells[y * nx + x_east].speeds[k];
 
-    cells_wrk[0].speeds[k] = cells[y_below * nx + x_west].speeds[k];
-    cells_wrk[blksz+1].speeds[k] = cells[y_below * nx + x_east].speeds[k];
-    cells_wrk[(blksz+1) * (blksz+2)].speeds[k] = cells[y_above * nx + x_west].speeds[k];
-    cells_wrk[(blksz+1) * (blksz+2) + (blksz+1)].speeds[k] = cells[y_above * nx + x_east].speeds[k];
+    cells_wrk[0].speeds[k]                                  = cells[y_below * nx + x_west].speeds[k];
+    cells_wrk[blksz+1].speeds[k]                            = cells[y_below * nx + x_east].speeds[k];
+    cells_wrk[(blksz+1) * (blksz+2)].speeds[k]              = cells[y_above * nx + x_west].speeds[k];
+    cells_wrk[(blksz+1) * (blksz+2) + (blksz+1)].speeds[k]  = cells[y_above * nx + x_east].speeds[k];
   }
 
   barrier(CLK_LOCAL_MEM_FENCE);
@@ -195,12 +192,8 @@ kernel void comp_func(global t_speed* cells,
 
   #pragma unroll
   for(int kk = 0; kk < NSPEEDS; kk++){
-    tmp.speeds[kk] = (nobst) * (tmp.speeds[kk] + omega + (d_equ[kk] - tmp.speeds[kk]))
+    tmp_cells[y * nx + x].speeds[k] = (nobst) * (tmp.speeds[kk] + omega + (d_equ[kk] - tmp.speeds[kk]))
                    + (obst) * diff.speeds[kk];
-  }
-  #pragma unroll
-  for(int k = 0; k < NSPEEDS; k++){
-    tmp_cells[y * nx + x].speeds[k] = tmp.speeds[k];
   }
   tot_us[y * nx + x] = (nobst) * (sqrt((u_x * u_x) + (u_y * u_y)));
   barrier(CLK_LOCAL_MEM_FENCE);
