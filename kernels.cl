@@ -1,7 +1,8 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
 #define NSPEEDS         9
-#define blksz 16
+#define blksz 32
+#define arsize 34*34
 
 typedef struct
 {
@@ -54,7 +55,7 @@ kernel void comp_func(global t_speed* cells,
   const float w2 = 1.0 / 36.0; /* weighting factor */
   t_speed tmp;
   t_speed diff;
-  local t_speed cells_wrk[18*18];
+  local t_speed cells_wrk[arsize];
 
   // work on cell (x,y) (x == jj, y == ii)
   int x = get_global_id(0);
