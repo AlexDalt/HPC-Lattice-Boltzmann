@@ -7,11 +7,11 @@
 kernel void accelerate_flow(global int* obstacles,
                             int nx, int ny,
                             float density, float accel,
-                            float* s0, float* s1,
-                            float* s2, float* s3,
-                            float* s4, float* s5,
-                            float* s6, float* s7,
-                            float* s8)
+                            global float* s0, global float* s1,
+                            global float* s2, global float* s3,
+                            global float* s4, global float* s5,
+                            global float* s6, global float* s7,
+                            global float* s8)
 {
   /* compute weighting factors */
   float w1 = density * accel / 9.0;
@@ -45,15 +45,15 @@ kernel void comp_func(global float* tot_us,
                       global int* obstacles,
                       int nx, int ny,
                       float omega,
-                      float* cells_s0, float* cells_s1,
-                      float* cells_s2, float* cells_s3,
-                      float* cells_s4, float* cells_s5,
-                      float* cells_s6, float* cells_s7,
-                      float* cells_s8, float* tmp_cells_s0,
-                      float* tmp_cells_s1, float* tmp_cells_s2,
-                      float* tmp_cells_s3, float* tmp_cells_s4,
-                      float* tmp_cells_s5, float* tmp_cells_s6,
-                      float* tmp_cells_s7, float* tmp_cells_s8)
+                      global float* cells_s0, global float* cells_s1,
+                      global float* cells_s2, global float* cells_s3,
+                      global float* cells_s4, global float* cells_s5,
+                      global float* cells_s6, global float* cells_s7,
+                      global float* cells_s8, global float* tmp_cells_s0,
+                      global float* tmp_cells_s1, global float* tmp_cells_s2,
+                      global float* tmp_cells_s3, global float* tmp_cells_s4,
+                      global float* tmp_cells_s5, global float* tmp_cells_s6,
+                      global float* tmp_cells_s7, global float* tmp_cells_s8)
 {
   const float c_sq = 1.0 / 3.0; /* square of speed of sound */
   const float w0 = 4.0 / 9.0;  /* weighting factor */
