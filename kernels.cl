@@ -201,9 +201,7 @@ kernel void comp_func(global t_speed* cells,
   barrier(CLK_LOCAL_MEM_FENCE);
 
   if (x == 4) {
-    printf("x = %d, y = %d\n Xblk = %d, Yblk = %d\n xloc = %d, yloc = %d\n xwrk = %d, ywrk = %d\n y_a = %d, y_b = %d, x_e = %d, x_w = %d\n
-            y_n = %d, y_s = %d, x_e = %d, x_w = %d",x,y,Xblk,Yblk,xloc,yloc,xwrk,ywrk,y_above,y_below,x_east,x_west,
-            y_n, y_s, x_e, x_w);
+    printf("x = %d, y = %d\n Xblk = %d, Yblk = %d\n xloc = %d, yloc = %d\n xwrk = %d, ywrk = %d\n y_a = %d, y_b = %d, x_e = %d, x_w = %d\n y_n = %d, y_s = %d, x_e = %d, x_w = %d\n",x,y,Xblk,Yblk,xloc,yloc,xwrk,ywrk,y_above,y_below,x_east,x_west,y_n, y_s, x_e, x_w);
   }
 
 }
