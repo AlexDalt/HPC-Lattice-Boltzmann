@@ -95,7 +95,7 @@ kernel void comp_func(global t_speed* cells,
       diff[7] = tmp_cells[cell].speeds[5];
       diff[8] = tmp_cells[cell].speeds[6];
 
-      if (ii == 5 && jj == 126) {
+      if (ii == 126 && jj == 5) {
         printf("tmp.speed[%d] = %f\n", 0, tmp_cells[cell].speeds[0]);
         printf("tmp.speed[%d] = %f\n", 1, tmp_cells[cell].speeds[1]);
         printf("tmp.speed[%d] = %f\n", 2, tmp_cells[cell].speeds[2]);
