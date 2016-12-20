@@ -111,6 +111,8 @@ kernel void comp_func(global t_speed* cells,
   int obst = (obstacles[y * nx + x]) ? 1 : 0;
   int nobst = (obstacles[y * nx + x]) ? 0 : 1;
 
+  if (x == 0) printf("obst = %d nobst = %d", obst, nobst);
+
   tmp.speeds[0] = cells_wrk[ywrk * (blksz+2) + xwrk].speeds[0]; /* central cell, no movement */
   tmp.speeds[1] = cells_wrk[ywrk * (blksz+2) + x_w].speeds[1]; /* east */
   tmp.speeds[2] = cells_wrk[y_s * (blksz+2) + xwrk].speeds[2]; /* north */
@@ -203,4 +205,5 @@ kernel void comp_func(global t_speed* cells,
   }
   tot_us[y * nx + x] = (nobst) * (sqrt((u_x * u_x) + (u_y * u_y)));
   barrier(CLK_LOCAL_MEM_FENCE);
+
 }
