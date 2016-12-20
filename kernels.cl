@@ -1,8 +1,8 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
 #define NSPEEDS         9
-#define blksz 4
-#define arsize 6*6
+#define blksz 8
+#define arsize 10*10
 
 typedef struct
 {
