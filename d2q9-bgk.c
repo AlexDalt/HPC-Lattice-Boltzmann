@@ -117,8 +117,8 @@ int main(int argc, char* argv[])
   char*    obstaclefile = NULL; /* name of a the input obstacle file */
   t_param  params;              /* struct to hold parameter values */
   t_ocl    ocl;                 /* struct to hold OpenCL objects */
-  float*   cells[NSPEEDS] = NULL;    /* grid containing fluid densities */
-  float*   tmp_cells[NSPEEDS] = NULL;    /* scratch space */
+  float*   cells[NSPEEDS];    /* grid containing fluid densities */
+  float*   tmp_cells[NSPEEDS];    /* scratch space */
   int*     obstacles = NULL;    /* grid indicating which cells are blocked */
   float* av_vels   = NULL;     /* a record of the av. velocity computed for each timestep */
   cl_int err;
