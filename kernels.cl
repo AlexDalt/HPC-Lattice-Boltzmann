@@ -120,7 +120,7 @@ kernel void comp_func(global t_speed* cells,
     }
     cells_wrk[(blksz+1) * (blksz+2)].speeds[k]              = cells[y_above * nx + x_west].speeds[k];
     if (x == 5 && y == 12) {
-      printf("cells_wrk[(blksz+1) * (blksz+2)].speeds[%d]  = %f\n ells[y_above * nx + x_west].speeds[%d] = %f\n\n",k,cells_wrk[(blksz+1) * (blksz+2)].speeds[k],k,ells[y_above * nx + x_west].speeds[k]);
+      printf("cells_wrk[(blksz+1) * (blksz+2)].speeds[%d]  = %f\n ells[y_above * nx + x_west].speeds[%d] = %f\n\n",k,cells_wrk[(blksz+1) * (blksz+2)].speeds[k],k,cells[y_above * nx + x_west].speeds[k]);
     }
     cells_wrk[(blksz+1) * (blksz+2) + (blksz+1)].speeds[k]  = cells[y_above * nx + x_east].speeds[k];
     if (x == 5 && y == 12) {
