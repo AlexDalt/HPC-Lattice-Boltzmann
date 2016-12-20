@@ -119,18 +119,18 @@ kernel void comp_func(global t_speed* cells,
 
   if (x == 5 && y == 126) {
     printf("tmp.speed[%d] = %f\n", 0, tmp.speeds[0]);
-    printf("tmp.speed[%d] = %f\n", 1, tmp.speeds[0]);
-    printf("tmp.speed[%d] = %f\n", 2, tmp.speeds[0]);
-    printf("tmp.speed[%d] = %f\n", 3, tmp.speeds[0]);
-    printf("tmp.speed[%d] = %f\n", 4, tmp.speeds[0]);
-    printf("tmp.speed[%d] = %f\n", 5, tmp.speeds[0]);
-    printf("tmp.speed[%d] = %f\n", 6, tmp.speeds[0]);
-    printf("tmp.speed[%d] = %f\n", 7, tmp.speeds[0]);
-    printf("tmp.speed[%d] = %f\n", 8, tmp.speeds[0]);
+    printf("tmp.speed[%d] = %f\n", 1, tmp.speeds[1]);
+    printf("tmp.speed[%d] = %f\n", 2, tmp.speeds[2]);
+    printf("tmp.speed[%d] = %f\n", 3, tmp.speeds[3]);
+    printf("tmp.speed[%d] = %f\n", 4, tmp.speeds[4]);
+    printf("tmp.speed[%d] = %f\n", 5, tmp.speeds[5]);
+    printf("tmp.speed[%d] = %f\n", 6, tmp.speeds[6]);
+    printf("tmp.speed[%d] = %f\n", 7, tmp.speeds[7]);
+    printf("tmp.speed[%d] = %f\n", 8, tmp.speeds[8]);
 
   }
 
-  diff.speeds[0] = 0.0;
+  diff.speeds[0] = tmp.speeds[0];
   diff.speeds[1] = tmp.speeds[3];
   diff.speeds[2] = tmp.speeds[4];
   diff.speeds[3] = tmp.speeds[1];
