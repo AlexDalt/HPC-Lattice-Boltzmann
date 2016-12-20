@@ -71,6 +71,8 @@ kernel void comp_func(global t_speed* cells,
   int yloc = get_local_id(1);
   int xwrk = xloc + 1;
   int ywrk = yloc + 1;
+  int XMAX = get_local_size(0);
+  int YMAX = get_local_size(1);
 
   // tmp_cell(x, y) = comp(cell(Xblk, Yblk))
   // Load each cell(Xblk, Yblk)
@@ -81,43 +83,36 @@ kernel void comp_func(global t_speed* cells,
   int x_east = ((Xblk+1) * blksz) % nx;
   int y_below = (Yblk == 0) ? ny - 1 : Yblk * blksz - 1;
   int x_west = (Xblk == 0) ? nx - 1 : Xblk * blksz - 1;
-
+  
+  // load in working cell
   #pragma unroll
   for(int k = 0; k < NSPEEDS; k++){
     cells_wrk[ywrk * (blksz+2) + xwrk].speeds[k]      = cells[y * nx + x].speeds[k];
   }
-  #pragma unroll
-  for(int k = 0; k < NSPEEDS; k++){
-    cells_wrk[xwrk].speeds[k]                         = cells[y_below * nx + x].speeds[k];
-  }
-  #pragma unroll
-  for(int k = 0; k < NSPEEDS; k++){
-    cells_wrk[(blksz+1) * (blksz+2) + xwrk].speeds[k] = cells[y_above * nx + x].speeds[k];
-  }
-  #pragma unroll
-  for(int k = 0; k < NSPEEDS; k++){
-    cells_wrk[ywrk * (blksz+2)].speeds[k]             = cells[y * nx + x_west].speeds[k];
-  }
-  #pragma unroll
-  for(int k = 0; k < NSPEEDS; k++){
-    cells_wrk[ywrk * (blksz+2) + (blksz+1)].speeds[k] = cells[y * nx + x_east].speeds[k];
-  }
 
-  #pragma unroll
-  for(int k = 0; k < NSPEEDS; k++){
-    cells_wrk[0].speeds[k]                                  = cells[y_below * nx + x_west].speeds[k];
-  }
-  #pragma unroll
-  for(int k = 0; k < NSPEEDS; k++){
-    cells_wrk[blksz+1].speeds[k]                            = cells[y_below * nx + x_east].speeds[k];
-  }
-  #pragma unroll
-  for(int k = 0; k < NSPEEDS; k++){
-    cells_wrk[(blksz+1) * (blksz+2)].speeds[k]              = cells[y_above * nx + x_west].speeds[k];
-  }
-  #pragma unroll
-  for(int k = 0; k < NSPEEDS; k++){
-    cells_wrk[(blksz+1) * (blksz+2) + (blksz+1)].speeds[k]  = cells[y_above * nx + x_east].speeds[k];
+  int y_corner = (y < YMAX/2) ? 0 : blksz + 2;
+  int x_corner = (x < XMAX/2) ? 0 : blksz + 2;
+  int y_global = (y < YMAX/2) ? y_below : y_above;
+  itn x_global = (x < XMAX/2) ? x_east : x_west;
+
+  if(xwrk == ywrk || xwrk == (blksz + 2 - ywrk)){
+    //load x is corner
+    #pramga unroll
+    for(int k = 0; k < NSPEEDS; k++){
+      cells_wrk[ywrk * (blksz + 2) + x_corner].speeds[k] = cells[y * nx + x_global];
+    }
+
+    //load y is corner
+    #pramga unroll
+    for(int k = 0; k < NSPEEDS; k++){
+      cells_wrk[y_corner * (blksz + 2) + xwrk].speeds[k] = cells[y_global * nx + x];
+    }
+
+    //load corner
+    #pramga unroll
+    for(int k = 0; k < NSPEEDS; k++){
+      cells_wrk[y_corner * (blksz + 2) + x_corner].speeds[k] = cells[y_global * nx + x_global];
+    }
   }
 
   barrier(CLK_LOCAL_MEM_FENCE);
