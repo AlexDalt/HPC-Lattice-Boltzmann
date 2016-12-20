@@ -89,7 +89,7 @@ kernel void comp_func(global t_speed* cells,
 
   cells_wrk[ywrk * (blksz+2) + xwrk] = cells[y * nx + x];
   cells_wrk[xwrk] = cells[y_above * nx + x];
-  cells_wrk[(blksz+1) * (blksz+2) + xwrk] = cells[y_below * nx + x]
+  cells_wrk[(blksz+1) * (blksz+2) + xwrk] = cells[y_below * nx + x];
   cells_wrk[ywrk * (blksz+2)] = cells[y * nx + x_west];
   cells_wrk[ywrk * (blksz+2) + (blksz+1)] = cells[y * nx + x_east];
 
