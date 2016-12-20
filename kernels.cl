@@ -77,19 +77,8 @@ kernel void comp_func(global t_speed* cells,
 
   int y_above = ((Yblk+1) * blksz) % ny;
   int x_east = ((Xblk+1) * blksz) % nx;
-  int y_below, x_west;
-  if(Yblk == 0){
-    y_below = ny - 1;
-  } else {
-    y_below = Yblk * blksz - 1;
-  }
-  if(Xblk == 0){
-    x_west = nx - 1;
-  } else {
-    x_west = Xblk * blksz - 1;
-  }
-  //int y_below = (Yblk == 0) ? ny - 1 : Yblk * blksz - 1;
-  //int x_west = (Xblk == 0) ? nx - 1 : Xblk * blksz - 1;
+  int y_below = (Yblk == 0) ? ny - 1 : Yblk * blksz - 1;
+  int x_west = (Xblk == 0) ? nx - 1 : Xblk * blksz - 1;
 
   #pragma unroll
   for(int k = 0; k < NSPEEDS; k++){
