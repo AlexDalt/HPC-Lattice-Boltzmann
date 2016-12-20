@@ -87,20 +87,11 @@ kernel void comp_func(global t_speed* cells,
   int y_below = (Yblk == 0) ? ny - 1 : Yblk * blksz - 1;
   int x_west = (Xblk == 0) ? nx - 1 : Xblk * blksz - 1;
 
-  if(xloc == 0 && yloc == 0){
-    for(int i = 0; i < (blksz+2); i++){
-      // bottom row
-      cells_wrk[i] = cells[y_below * nx + ((x_west + i)%nx)];
-      // top row
-      cells_wrk[(blksz+1) * (blksz+2) + i] = cells[y_above * nx + ((x_west + i)%nx)];
-      // left row
-      cells_wrk[i * (blksz+2)] = cells[((y_below+i)%ny) * nx + x_west];
-      // right row
-      cells_wrk[i * (blksz+2) + (blksz+1)] = cells[((y_below+i)%ny) * nx + x_east];
-    }
-  }
-
   cells_wrk[ywrk * (blksz+2) + xwrk] = cells[y * nx + x];
+  cells_wrk[xwrk] = cells[y_above * nx + x];
+  cells_wrk[(blksz+1) * (blksz+2) + xwrk] = cells[y_below * nx + x]
+  cells_wrk[ywrk * (blksz+2)] = cells[y * nx + x_west];
+  cells_wrk[ywrk * (blksz+2) + (blksz+1)] = cells[y * nx + x_east];
 
   barrier(CLK_LOCAL_MEM_FENCE);
 
