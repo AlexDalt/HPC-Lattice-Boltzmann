@@ -70,6 +70,8 @@ kernel void comp_func(global t_speed* cells,
   int yloc = get_local_id(1);
   int X_Num_BLK = nx / blksz;
   int Y_Num_BLK = ny / blksz;
+  int xwrk = xloc + 1;
+  int ywrk = yloc + 1;
 
   // lower-left-corner
   int base = Yblk * nx * blksz + Xblk * blksz;
@@ -79,28 +81,46 @@ kernel void comp_func(global t_speed* cells,
   // Each work-item loads a single element of cells
   // which is shared with the entire work-group
 
-  cells_wrk[yloc * blksz + xloc] = cells[base + yloc * nx + xloc];
+  // "master" thread writes in the edge cases
+  int y_above = ((Yblk+1) * blksz) % ny;
+  int x_east = ((Xblk+1) * blksz) % nx;
+  int y_below = (Yblk == 0) ? ny - 1 : Yblk * blksz - 1;
+  int x_west = (Xblk == 0) ? nx - 1 : Xblk * blksz - 1;
+  if(xloc == 0 && yloc == 0){
+    for(int i = 0; i < blksz + 2; i++){
+      // bottom row
+      cells_wrk[i] = cells[y_below * nx + ((x_west + i)%nx)];
+      // top row
+      cells_wrk[(blksz+1) * (blksz+2) + i] = cells[y_above * nx + ((x_west + i)%nx)];
+      // left row
+      cells_wrk[i * (blksz+2)] = cells[((y_below+i)%ny) * nx + x_west]
+      // right row
+      cells_wrk[i * (blksz+2) + (blksz+1)] = cells[((y_below+i)%ny) * nx + x_east]
+    }
+  }
+
+  cells_wrk[ywrk * (blksz+2) + xwrk] = cells[base + yloc * nx + xloc];
 
   barrier(CLK_LOCAL_MEM_FENCE);
 
   // compute
-  int y_n = (yloc + 1) % blksz;
-  int x_e = (xloc + 1) % blksz;
-  int y_s = (yloc == 0) ? (yloc + blksz - 1) : (yloc - 1);
-  int x_w = (xloc == 0) ? (xloc + blksz - 1) : (xloc - 1);
+  int y_n = (ywrk + 1);
+  int x_e = (xwrk + 1);
+  int y_s = (ywrk - 1);
+  int x_w = (xwrk - 1);
 
   int obst = (obstacles[base + yloc * nx + xloc]) ? 1 : 0;
   int nobst = (obstacles[base + yloc * nx + xloc]) ? 0 : 1;
 
-  tmp.speeds[0] = cells_wrk[yloc * blksz + xloc].speeds[0]; /* central cell, no movement */
-  tmp.speeds[1] = cells_wrk[yloc * blksz + x_w].speeds[1]; /* east */
-  tmp.speeds[2] = cells_wrk[y_s * blksz + xloc].speeds[2]; /* north */
-  tmp.speeds[3] = cells_wrk[yloc * blksz + x_e].speeds[3]; /* west */
-  tmp.speeds[4] = cells_wrk[y_n * blksz + xloc].speeds[4]; /* south */
-  tmp.speeds[5] = cells_wrk[y_s * blksz + x_w].speeds[5]; /* north-east */
-  tmp.speeds[6] = cells_wrk[y_s * blksz + x_e].speeds[6]; /* north-west */
-  tmp.speeds[7] = cells_wrk[y_n * blksz + x_e].speeds[7]; /* south-west */
-  tmp.speeds[8] = cells_wrk[y_n * blksz + x_w].speeds[8]; /* south-east */
+  tmp.speeds[0] = cells_wrk[ywrk * (blksz+2) + xwrk].speeds[0]; /* central cell, no movement */
+  tmp.speeds[1] = cells_wrk[ywrk * (blksz+2) + x_w].speeds[1]; /* east */
+  tmp.speeds[2] = cells_wrk[y_s * (blksz+2) + xwrk].speeds[2]; /* north */
+  tmp.speeds[3] = cells_wrk[ywrk * (blksz+2) + x_e].speeds[3]; /* west */
+  tmp.speeds[4] = cells_wrk[y_n * (blksz+2) + xwrk].speeds[4]; /* south */
+  tmp.speeds[5] = cells_wrk[y_s * (blksz+2) + x_w].speeds[5]; /* north-east */
+  tmp.speeds[6] = cells_wrk[y_s * (blksz+2) + x_e].speeds[6]; /* north-west */
+  tmp.speeds[7] = cells_wrk[y_n * (blksz+2) + x_e].speeds[7]; /* south-west */
+  tmp.speeds[8] = cells_wrk[y_n * (blksz+2) + x_w].speeds[8]; /* south-east */
 
   diff.speeds[0] = 0.0;
   diff.speeds[1] = tmp.speeds[3];
@@ -182,7 +202,7 @@ kernel void comp_func(global t_speed* cells,
     tmp.speeds[kk] = (nobst) * (tmp.speeds[kk] + omega + (d_equ[kk] - tmp.speeds[kk]))
                    + (obst) * diff.speeds[kk];
   }
-  
+
   tmp_cells[base + yloc * nx + xloc] = tmp;
   tot_us[base + yloc * nx + xloc] = (nobst) * (sqrt((u_x * u_x) + (u_y * u_y)));
   barrier(CLK_LOCAL_MEM_FENCE);
