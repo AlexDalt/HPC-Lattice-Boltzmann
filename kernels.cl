@@ -81,11 +81,13 @@ kernel void comp_func(global t_speed* cells,
   int y_below = (Yblk == 0) ? ny - 1 : Yblk * blksz - 1;
   int x_west = (Xblk == 0) ? nx - 1 : Xblk * blksz - 1;
 
-  if (x == 0) printf("x = &d, y = &d\n
-                      Xblk = &d, Yblk = &d\n
-                      xloc = &d, yloc = &d\n
-                      xwrk = &d, ywrk = &d\n
-                      y_a = &d, y_b = &d, x_e = %d, x_w = &d\n ",x,y,Xblk,Yblk,xloc,yloc,xwrk,ywrk,y_above,y_below,x_east,x_west);
+  if (x == 0) {
+    printf("x = &d, y = &d\n
+            Xblk = &d, Yblk = &d\n
+            xloc = &d, yloc = &d\n
+            xwrk = &d, ywrk = &d\n
+            y_a = &d, y_b = &d, x_e = %d, x_w = &d\n",x,y,Xblk,Yblk,xloc,yloc,xwrk,ywrk,y_above,y_below,x_east,x_west);
+  }
 
   #pragma unroll
   for(int k = 0; k < NSPEEDS; k++){
