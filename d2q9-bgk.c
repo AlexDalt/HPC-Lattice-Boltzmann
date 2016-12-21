@@ -338,8 +338,8 @@ int accelerate_flow(const t_param params, cl_mem* cells, t_ocl ocl)
   checkError(err, "enqueueing accelerate_flow kernel", __LINE__);
 
   // Wait for kernel to finish
-  err = clFinish(ocl.queue);
-  checkError(err, "waiting for accelerate_flow kernel", __LINE__);
+  //err = clFinish(ocl.queue);
+  //checkError(err, "waiting for accelerate_flow kernel", __LINE__);
 
   return EXIT_SUCCESS;
 }
@@ -401,7 +401,7 @@ float comp_func(const t_param params, cl_mem* cells, cl_mem* tmp_cells, t_ocl oc
   size_t global[2] = {params.nx, params.ny};
   size_t local[2] = {blksz, blksz};
   err = clEnqueueNDRangeKernel(ocl.queue, ocl.comp_func,
-                               2, NULL, global, NULL, 0, NULL, NULL);
+                               2, NULL, global, local, 0, NULL, NULL);
   checkError(err, "enqueueing comp_func kernel", __LINE__);
 
   // Wait for kernel to finish
