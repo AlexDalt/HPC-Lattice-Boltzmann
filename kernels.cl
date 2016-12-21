@@ -1,7 +1,7 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
 #define NSPEEDS         9
-#define blksz 4
+#define blksz 16
 
 kernel void accelerate_flow(global int* obstacles,
                             int nx, int ny,
@@ -68,35 +68,7 @@ kernel void comp_func(global float* tot_us,
   int max_b = ny/max_jj;
   int max_a = nx/max_ii;
 
-  float s0[blksz*blksz];
-  float s1[blksz*blksz];
-  float s2[blksz*blksz];
-  float s3[blksz*blksz];
-  float s4[blksz*blksz];
-  float s5[blksz*blksz];
-  float s6[blksz*blksz];
-  float s7[blksz*blksz];
-  float s8[blksz*blksz];
-
-  #pragma unroll
   for(int a = 0; a < max_a; a++){
-    #pragma unroll
-    for(int b = 0; b < max_b; b++){
-      s0[a * max_b + b] = cells_s0[(g_id_ii * max_a + a) * nx + g_id_jj * max_b + b];
-      s1[a * max_b + b] = cells_s1[(g_id_ii * max_a + a) * nx + g_id_jj * max_b + b];
-      s2[a * max_b + b] = cells_s2[(g_id_ii * max_a + a) * nx + g_id_jj * max_b + b];
-      s3[a * max_b + b] = cells_s3[(g_id_ii * max_a + a) * nx + g_id_jj * max_b + b];
-      s4[a * max_b + b] = cells_s4[(g_id_ii * max_a + a) * nx + g_id_jj * max_b + b];
-      s5[a * max_b + b] = cells_s5[(g_id_ii * max_a + a) * nx + g_id_jj * max_b + b];
-      s6[a * max_b + b] = cells_s6[(g_id_ii * max_a + a) * nx + g_id_jj * max_b + b];
-      s7[a * max_b + b] = cells_s7[(g_id_ii * max_a + a) * nx + g_id_jj * max_b + b];
-      s8[a * max_b + b] = cells_s8[(g_id_ii * max_a + a) * nx + g_id_jj * max_b + b];
-    }
-  }
-
-  #pragma unroll
-  for(int a = 0; a < max_a; a++){
-    #pragma unroll
     for(int b = 0; b < max_b; b++){
       int ii = g_id_ii * max_a + a;
       int jj = g_id_jj * max_b + b;
@@ -113,15 +85,15 @@ kernel void comp_func(global float* tot_us,
       float diff[NSPEEDS];
       diff[0] = 0.0;
 
-      tmp[0] = s0[a * max_b + b];
-      tmp[1] = (b == 0)                       ? cells_s1[ii  * nx + x_w] : s1[a * max_b + b-1];
-      tmp[2] = (a == 0)                       ? cells_s2[y_s * nx + jj ] : s2[(a-1) * max_b + b];
-      tmp[3] = (b == max_b-1)                 ? cells_s3[ii  * nx + x_e] : s3[a * max_b + b+1];
-      tmp[4] = (a == max_a-1)                 ? cells_s4[y_n * nx + jj ] : s4[(a+1) * max_b + b];
-      tmp[5] = (a == 0 || b == 0)             ? cells_s5[y_s * nx + x_w] : s5[(a-1) * max_b + (b-1)];
-      tmp[6] = (a == 0 || b == max_b-1)       ? cells_s6[y_s * nx + x_e] : s6[(a-1) * max_b + (b+1)];
-      tmp[7] = (a == max_a-1 || b == max_b-1) ? cells_s7[y_n * nx + x_e] : s7[(a+1) * max_b + (b+1)];
-      tmp[8] = (a == max_a-1 || b == 0)       ? cells_s8[y_n * nx + x_w] : s8[(a+1) * max_b + (b-1)];
+      tmp[0] = cells_s0[ii  * nx + jj ]; /* central cell, no movement */
+      tmp[1] = cells_s1[ii  * nx + x_w]; /* east */
+      tmp[2] = cells_s2[y_s * nx + jj ]; /* north */
+      tmp[3] = cells_s3[ii  * nx + x_e]; /* west */
+      tmp[4] = cells_s4[y_n * nx + jj ]; /* south */
+      tmp[5] = cells_s5[y_s * nx + x_w]; /* north-east */
+      tmp[6] = cells_s6[y_s * nx + x_e]; /* north-west */
+      tmp[7] = cells_s7[y_n * nx + x_e]; /* south-west */
+      tmp[8] = cells_s8[y_n * nx + x_w]; /* south-east */
 
       diff[1] = tmp[3];
       diff[2] = tmp[4];
