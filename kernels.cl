@@ -2,6 +2,7 @@
 
 #define NSPEEDS         9
 #define blksz 16
+#define arsize 18*18
 
 kernel void accelerate_flow(global int* obstacles,
                             int nx, int ny,
@@ -60,7 +61,6 @@ kernel void comp_func(global float* tot_us,
   const float w2 = 1.0 / 36.0; /* weighting factor */
   float tmp[NSPEEDS];
   float diff[NSPEEDS];
-
   int g_id_jj = get_global_id(0);
   int g_id_ii = get_global_id(1);
   int max_jj = get_global_size(0);
@@ -68,7 +68,7 @@ kernel void comp_func(global float* tot_us,
   int max_b = ny/max_jj;
   int max_a = nx/max_ii;
 
-  for(int a = 0; a < max_a; a++){
+ for(int a = 0; a < max_a; a++){
     for(int b = 0; b < max_b; b++){
       int ii = g_id_ii * max_a + a;
       int jj = g_id_jj * max_b + b;
