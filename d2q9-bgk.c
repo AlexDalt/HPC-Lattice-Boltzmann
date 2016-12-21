@@ -206,7 +206,7 @@ int main(int argc, char* argv[])
   for (int tt = 0; tt < params.maxIters; tt++) //params.maxIters
   {
     time_cells[0] = (tt % 2) ? ocl.tmp_cells_s0 : ocl.cells_s0;
-    time_cells[1]  = (tt % 2) ? ocl.tmp_cells_s1 : ocl.cells_s1;
+    time_cells[1] = (tt % 2) ? ocl.tmp_cells_s1 : ocl.cells_s1;
     time_cells[2] = (tt % 2) ? ocl.tmp_cells_s2 : ocl.cells_s2;
     time_cells[3] = (tt % 2) ? ocl.tmp_cells_s3 : ocl.cells_s3;
     time_cells[4] = (tt % 2) ? ocl.tmp_cells_s4 : ocl.cells_s4;
