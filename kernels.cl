@@ -98,17 +98,12 @@ kernel void comp_func(global float* tot_us,
   int y_below = (Yblk == 0) ? ny - 1 : Yblk * blksz - 1;
   int x_west  = (Xblk == 0) ? nx - 1 : Xblk * blksz - 1;
 
-  // load in working cell
-  s0[ywrk * (blksz+2) + xwrk] = cells_s0[y * nx + x];
-  s1[ywrk * (blksz+2) + xwrk] = cells_s1[y * nx + x];
-  s2[ywrk * (blksz+2) + xwrk] = cells_s2[y * nx + x];
-  s3[ywrk * (blksz+2) + xwrk] = cells_s3[y * nx + x];
-  s4[ywrk * (blksz+2) + xwrk] = cells_s4[y * nx + x];
-  s5[ywrk * (blksz+2) + xwrk] = cells_s5[y * nx + x];
-  s6[ywrk * (blksz+2) + xwrk] = cells_s6[y * nx + x];
-  s7[ywrk * (blksz+2) + xwrk] = cells_s7[y * nx + x];
-  s8[ywrk * (blksz+2) + xwrk] = cells_s8[y * nx + x];
+  cl_int err;
 
+  #pragma unroll
+  for(int a = 0; a < blksz; a++){
+    async_work_group_copy(&(s0[(a+1)*(blksz+2)+1], &(cells_s0[((Yblk * blksz) + a) * nx],blksz, &err);
+  }
 
   /*int y_corner = (yloc < YMAX/2) ? 0 : blksz + 1;
   int x_corner = (xloc < XMAX/2) ? 0 : blksz + 1;
