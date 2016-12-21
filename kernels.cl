@@ -98,14 +98,14 @@ kernel void comp_func(global float* tot_us,
   int y_below = (Yblk == 0) ? ny - 1 : Yblk * blksz - 1;
   int x_west  = (Xblk == 0) ? nx - 1 : Xblk * blksz - 1;
 
-  cl_int err;
+  int err;
 
   #pragma unroll
   for(int a = 0; a < blksz; a++){
     async_work_group_copy(&(s0[(a+1)*(blksz+2)+1], &(cells_s0[((Yblk * blksz) + a) * nx],blksz, &err);
   }
 
-  /*int y_corner = (yloc < YMAX/2) ? 0 : blksz + 1;
+  int y_corner = (yloc < YMAX/2) ? 0 : blksz + 1;
   int x_corner = (xloc < XMAX/2) ? 0 : blksz + 1;
   int y_global = (yloc < YMAX/2) ? y_below : y_above;
   int x_global = (xloc < XMAX/2) ? x_west : x_east;
@@ -147,7 +147,7 @@ kernel void comp_func(global float* tot_us,
   s5[a3 * (blksz + 2) + a1] = cells_s5[a4 * nx + a2];
   s6[a3 * (blksz + 2) + a1] = cells_s6[a4 * nx + a2];
   s7[a3 * (blksz + 2) + a1] = cells_s7[a4 * nx + a2];
-  s8[a3 * (blksz + 2) + a1] = cells_s8[a4 * nx + a2];*/
+  s8[a3 * (blksz + 2) + a1] = cells_s8[a4 * nx + a2];
 
   barrier(CLK_LOCAL_MEM_FENCE);
 
