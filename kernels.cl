@@ -85,8 +85,8 @@ kernel void comp_func(global float* tot_us,
   for(int a = 0; a < blksz; a++){
     #pragma unroll
     for(int b = 0; b < blksz; b++){
-      int ii = g_id_ii * max_a + a;
-      int jj = g_id_jj * max_b + b;
+      int ii = g_id_ii * blksz + a;
+      int jj = g_id_jj * blksz + b;
 
       int cell = ii * nx + jj;
 
