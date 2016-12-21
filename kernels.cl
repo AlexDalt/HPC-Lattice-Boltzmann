@@ -1,8 +1,8 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
 #define NSPEEDS         9
-#define blksz 32
-#define arsize 34*34
+#define blksz 16
+#define arsize 18*18
 
 kernel void accelerate_flow(global int* obstacles,
                             int nx, int ny,
@@ -110,7 +110,7 @@ kernel void comp_func(global float* tot_us,
   s8[ywrk * (blksz+2) + xwrk] = cells_s8[y * nx + x];
 
 
-  int y_corner = (yloc < YMAX/2) ? 0 : blksz + 1;
+  /*int y_corner = (yloc < YMAX/2) ? 0 : blksz + 1;
   int x_corner = (xloc < XMAX/2) ? 0 : blksz + 1;
   int y_global = (yloc < YMAX/2) ? y_below : y_above;
   int x_global = (xloc < XMAX/2) ? x_west : x_east;
@@ -152,7 +152,7 @@ kernel void comp_func(global float* tot_us,
   s5[a3 * (blksz + 2) + a1] = cells_s5[a4 * nx + a2];
   s6[a3 * (blksz + 2) + a1] = cells_s6[a4 * nx + a2];
   s7[a3 * (blksz + 2) + a1] = cells_s7[a4 * nx + a2];
-  s8[a3 * (blksz + 2) + a1] = cells_s8[a4 * nx + a2];
+  s8[a3 * (blksz + 2) + a1] = cells_s8[a4 * nx + a2];*/
 
   barrier(CLK_LOCAL_MEM_FENCE);
 
