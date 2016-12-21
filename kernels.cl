@@ -58,7 +58,7 @@ kernel void comp_func(global float* tot_us,
   const float w0 = 4.0 / 9.0;  /* weighting factor */
   const float w1 = 1.0 / 9.0;  /* weighting factor */
   const float w2 = 1.0 / 36.0; /* weighting factor */
-  private float tmp[NSPEEDS];
+  float tmp[NSPEEDS];
   float diff[NSPEEDS];
 
   int g_id_jj = get_global_id(0);
