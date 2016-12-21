@@ -114,7 +114,7 @@ kernel void comp_func(global float* tot_us,
   int x_corner = (xloc < XMAX/2) ? 0 : blksz + 1;
   int y_global = (yloc < YMAX/2) ? y_below : y_above;
   int x_global = (xloc < XMAX/2) ? x_west : x_east;
-  int a1,a2,a3,b1,b2,b3;
+  int a1,a2,a3,a4;
   a1 = (yloc == xloc || xloc == (blksz - yloc - 1)) ? x_corner : xwrk;
   a2 = (yloc == xloc || xloc == (blksz - yloc - 1)) ? x_global : x;
   a3 = (yloc == xloc || xloc == (blksz - yloc - 1)) ? y_corner : ywrk;
