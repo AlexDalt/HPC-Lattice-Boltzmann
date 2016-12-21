@@ -58,7 +58,7 @@ kernel void comp_func(global float* tot_us,
   const float w0 = 4.0 / 9.0;  /* weighting factor */
   const float w1 = 1.0 / 9.0;  /* weighting factor */
   const float w2 = 1.0 / 36.0; /* weighting factor */
-  local float tmp[NSPEEDS];
+  private float tmp[NSPEEDS];
   float diff[NSPEEDS];
 
   int g_id_jj = get_global_id(0);
@@ -68,7 +68,9 @@ kernel void comp_func(global float* tot_us,
   int max_b = ny/max_jj;
   int max_a = nx/max_ii;
 
+  #pragma unroll
   for(int a = 0; a < max_a; a++){
+    #pragma unroll
     for(int b = 0; b < max_b; b++){
       int ii = g_id_ii * max_a + a;
       int jj = g_id_jj * max_b + b;
