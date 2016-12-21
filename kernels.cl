@@ -60,18 +60,31 @@ kernel void comp_func(global float* tot_us,
   const float w2 = 1.0 / 36.0; /* weighting factor */
   float tmp[NSPEEDS];
   float diff[NSPEEDS];
+  float cells_wrk_s0[blksz*blksz];
+  float cells_wrk_s1[blksz*blksz];
+  float cells_wrk_s2[blksz*blksz];
+  float cells_wrk_s3[blksz*blksz];
+  float cells_wrk_s4[blksz*blksz];
+  float cells_wrk_s5[blksz*blksz];
+  float cells_wrk_s6[blksz*blksz];
+  float cells_wrk_s7[blksz*blksz];
+  float cells_wrk_s8[blksz*blksz];
 
   int g_id_jj = get_global_id(0);
   int g_id_ii = get_global_id(1);
   int max_jj = get_global_size(0);
   int max_ii = get_global_size(1);
-  int max_b = ny/max_jj;
-  int max_a = nx/max_ii;
+
+  /*for(int a = 0; a < max_a; a++){
+    for(int b = 0; b < max_b; b++){
+      cells_wrk_s0[a * blksz]
+    }
+  } */
 
   #pragma unroll
-  for(int a = 0; a < max_a; a++){
+  for(int a = 0; a < blksz; a++){
     #pragma unroll
-    for(int b = 0; b < max_b; b++){
+    for(int b = 0; b < blksz; b++){
       int ii = g_id_ii * max_a + a;
       int jj = g_id_jj * max_b + b;
 
