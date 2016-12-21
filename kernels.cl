@@ -68,7 +68,9 @@ kernel void comp_func(global float* tot_us,
   int max_b = ny/max_jj;
   int max_a = nx/max_ii;
 
- for(int a = 0; a < max_a; a++){
+  #pragma unroll
+  for(int a = 0; a < max_a; a++){
+    #pragma unroll
     for(int b = 0; b < max_b; b++){
       int ii = g_id_ii * max_a + a;
       int jj = g_id_jj * max_b + b;
