@@ -1,7 +1,7 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
 #define NSPEEDS         9
-#define blksz 8
+#define blksz 4
 
 kernel void accelerate_flow(global int* obstacles,
                             int nx, int ny,
