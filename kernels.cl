@@ -68,15 +68,15 @@ kernel void comp_func(global float* tot_us,
   int max_b = ny/max_jj;
   int max_a = nx/max_ii;
 
-  float s0[max_a*max_b];
-  float s1[max_a*max_b];
-  float s2[max_a*max_b];
-  float s3[max_a*max_b];
-  float s4[max_a*max_b];
-  float s5[max_a*max_b];
-  float s6[max_a*max_b];
-  float s7[max_a*max_b];
-  float s8[max_a*max_b];
+  float s0[blksz*blksz];
+  float s1[blksz*blksz];
+  float s2[blksz*blksz];
+  float s3[blksz*blksz];
+  float s4[blksz*blksz];
+  float s5[blksz*blksz];
+  float s6[blksz*blksz];
+  float s7[blksz*blksz];
+  float s8[blksz*blksz];
 
   #pragma unroll
   for(int a = 0; a < max_a; a++){
