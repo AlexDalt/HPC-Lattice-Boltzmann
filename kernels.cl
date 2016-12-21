@@ -102,7 +102,7 @@ kernel void comp_func(global float* tot_us,
 
   #pragma unroll
   for(int a = 0; a < blksz; a++){
-    async_work_group_copy(&(s0[(a+1)*(blksz+2)+1], &(cells_s0[((Yblk * blksz) + a) * nx],blksz, &err);
+    async_work_group_copy(&(s0[(a+1)*(blksz+2)+1], &(cells_s0[((Yblk * blksz) + a) * nx],sizeof(float)*blksz, &err);
   }
 
   int y_corner = (yloc < YMAX/2) ? 0 : blksz + 1;
